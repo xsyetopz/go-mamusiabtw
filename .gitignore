@@ -1,0 +1,20 @@
+.DS_Store
+.env
+
+# Go
+/bin/
+/dist/
+*.test
+*.out
+
+# JAGPDA runtime data
+/data/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+
+# Local config (seed keys, etc.)
+/config/trusted_keys.json
+
+# temporary ignore of legacy Rust-based stuff
+legacy/

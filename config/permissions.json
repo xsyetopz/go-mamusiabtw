@@ -1,0 +1,15 @@
+{
+  "version": "1",
+  "defaults": {
+    "storage": {
+      "kv": false
+    }
+  },
+  "plugins": {
+    "example": {
+      "storage": {
+        "kv": true
+      }
+    }
+  }
+}

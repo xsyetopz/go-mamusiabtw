@@ -1,0 +1,29 @@
+package commands
+
+import (
+	cmdadmin "github.com/xsyetopz/jagpda/internal/discordapp/commands/admin"
+	cmdcore "github.com/xsyetopz/jagpda/internal/discordapp/commands/core"
+	cmdfun "github.com/xsyetopz/jagpda/internal/discordapp/commands/fun"
+	cmdinfo "github.com/xsyetopz/jagpda/internal/discordapp/commands/info"
+	cmdmanager "github.com/xsyetopz/jagpda/internal/discordapp/commands/manager"
+	cmdemojis "github.com/xsyetopz/jagpda/internal/discordapp/commands/manager/emojis"
+	cmdroles "github.com/xsyetopz/jagpda/internal/discordapp/commands/manager/roles"
+	cmdstickers "github.com/xsyetopz/jagpda/internal/discordapp/commands/manager/stickers"
+	cmdmoderation "github.com/xsyetopz/jagpda/internal/discordapp/commands/moderation"
+
+	"github.com/xsyetopz/jagpda/internal/discordapp/core"
+)
+
+func All() []core.SlashCommand {
+	out := []core.SlashCommand{}
+	out = append(out, cmdcore.Commands()...)
+	out = append(out, cmdinfo.Commands()...)
+	out = append(out, cmdfun.Commands()...)
+	out = append(out, cmdmoderation.Commands()...)
+	out = append(out, cmdadmin.Commands()...)
+	out = append(out, cmdmanager.Commands()...)
+	out = append(out, cmdroles.Commands()...)
+	out = append(out, cmdemojis.Commands()...)
+	out = append(out, cmdstickers.Commands()...)
+	return out
+}

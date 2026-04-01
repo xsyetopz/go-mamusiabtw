@@ -1,0 +1,19 @@
+{
+  "id": "example",
+  "name": "Example",
+  "version": "0.0.1",
+  "permissions": {
+    "storage": {
+      "kv": true
+    }
+  },
+  "commands": [
+    {
+      "name": "example",
+      "description": "Example Lua plugin command",
+      "description_id": "cmd.example.desc",
+      "ephemeral": true,
+      "options": []
+    }
+  ]
+}

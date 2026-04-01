@@ -1,0 +1,17 @@
+services:
+  jagpda:
+    build:
+      context: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      SQLITE_PATH: /data/jagpda.sqlite
+      MIGRATIONS_DIR: /app/migrations/sqlite
+      LOCALES_DIR: /app/locales
+      PLUGINS_DIR: /app/plugins
+      JAGPDA_PERMISSIONS_FILE: /app/config/permissions.json
+    volumes:
+      - ./data:/data
+      - ./plugins:/app/plugins
+      - ./config:/app/config:ro
