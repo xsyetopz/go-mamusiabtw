@@ -44,6 +44,6 @@ ENV SQLITE_PATH=/data/imotherbtw.sqlite
 ENV MIGRATIONS_DIR=/app/migrations/sqlite
 ENV LOCALES_DIR=/app/locales
 ENV PLUGINS_DIR=/app/plugins
-ENV JAGPDA_PERMISSIONS_FILE=/app/config/permissions.json
+ENV IMOTHERBTW_PERMISSIONS_FILE=/app/config/permissions.json
 
 ENTRYPOINT ["imotherbtw"]

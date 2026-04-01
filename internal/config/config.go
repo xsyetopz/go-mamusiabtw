@@ -62,12 +62,12 @@ func LoadFromEnv() (Config, error) {
 	migrations := envDefault("MIGRATIONS_DIR", defaultMigrationsDir)
 	localesDir := envDefault("LOCALES_DIR", defaultLocalesDir)
 	pluginsDir := envDefault("PLUGINS_DIR", defaultPluginsDir)
-	permissionsFile := envDefault("JAGPDA_PERMISSIONS_FILE", defaultPermissionsFile)
+	permissionsFile := envDefault("IMOTHERBTW_PERMISSIONS_FILE", defaultPermissionsFile)
 	logLevel := envDefault("LOG_LEVEL", defaultLogLevel)
 
-	prodMode := envBool1("JAGPDA_PROD_MODE")
-	allowUnsigned := envBool1("JAGPDA_ALLOW_UNSIGNED_PLUGINS")
-	trustedKeysFile := envDefault("JAGPDA_TRUSTED_KEYS_FILE", defaultTrustedKeysFile)
+	prodMode := envBool1("IMOTHERBTW_PROD_MODE")
+	allowUnsigned := envBool1("IMOTHERBTW_ALLOW_UNSIGNED_PLUGINS")
+	trustedKeysFile := envDefault("IMOTHERBTW_TRUSTED_KEYS_FILE", defaultTrustedKeysFile)
 
 	owners, err := parseOwnerIDs(os.Getenv("OWNER_USER_IDS"))
 	if err != nil {
@@ -85,32 +85,32 @@ func LoadFromEnv() (Config, error) {
 		devGuildID = &v
 	}
 
-	cmdRegMode := strings.ToLower(envDefault("JAGPDA_COMMAND_REGISTRATION_MODE", defaultCommandRegMode))
+	cmdRegMode := strings.ToLower(envDefault("IMOTHERBTW_COMMAND_REGISTRATION_MODE", defaultCommandRegMode))
 	switch cmdRegMode {
 	case "global", "guilds", "hybrid":
 	default:
-		return Config{}, fmt.Errorf("invalid JAGPDA_COMMAND_REGISTRATION_MODE %q", cmdRegMode)
+		return Config{}, fmt.Errorf("invalid IMOTHERBTW_COMMAND_REGISTRATION_MODE %q", cmdRegMode)
 	}
 
-	cmdGuildIDs, err := parseUint64List(os.Getenv("JAGPDA_COMMAND_GUILD_IDS"), "JAGPDA_COMMAND_GUILD_IDS")
+	cmdGuildIDs, err := parseUint64List(os.Getenv("IMOTHERBTW_COMMAND_GUILD_IDS"), "IMOTHERBTW_COMMAND_GUILD_IDS")
 	if err != nil {
 		return Config{}, err
 	}
-	cmdRegisterAllGuilds := strings.TrimSpace(os.Getenv("JAGPDA_COMMAND_REGISTER_ALL_GUILDS")) == "1"
+	cmdRegisterAllGuilds := strings.TrimSpace(os.Getenv("IMOTHERBTW_COMMAND_REGISTER_ALL_GUILDS")) == "1"
 
-	slashCooldown, err := parseDurationMS(os.Getenv("JAGPDA_SLASH_COOLDOWN_MS"), defaultSlashCooldownMS)
+	slashCooldown, err := parseDurationMS(os.Getenv("IMOTHERBTW_SLASH_COOLDOWN_MS"), defaultSlashCooldownMS)
 	if err != nil {
 		return Config{}, err
 	}
-	componentCooldown, err := parseDurationMS(os.Getenv("JAGPDA_COMPONENT_COOLDOWN_MS"), defaultComponentCooldown)
+	componentCooldown, err := parseDurationMS(os.Getenv("IMOTHERBTW_COMPONENT_COOLDOWN_MS"), defaultComponentCooldown)
 	if err != nil {
 		return Config{}, err
 	}
-	modalCooldown, err := parseDurationMS(os.Getenv("JAGPDA_MODAL_COOLDOWN_MS"), defaultModalCooldownMS)
+	modalCooldown, err := parseDurationMS(os.Getenv("IMOTHERBTW_MODAL_COOLDOWN_MS"), defaultModalCooldownMS)
 	if err != nil {
 		return Config{}, err
 	}
-	slashBypass := parseCSV(os.Getenv("JAGPDA_SLASH_COOLDOWN_BYPASS"))
+	slashBypass := parseCSV(os.Getenv("IMOTHERBTW_SLASH_COOLDOWN_BYPASS"))
 	if len(slashBypass) == 0 {
 		slashBypass = []string{"ping", "help", "plugins", "block", "unblock"}
 	}

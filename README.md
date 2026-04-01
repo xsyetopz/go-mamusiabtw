@@ -43,7 +43,7 @@ Plugins live under `plugins/<plugin>/` with:
 
 Plugins are sandboxed: no filesystem or network access. Any plugin capability must be both:
 1) requested in `plugin.json`, and
-2) granted by the host in `config/permissions.json` (default `JAGPDA_PERMISSIONS_FILE`).
+2) granted by the host in `config/permissions.json` (default `IMOTHERBTW_PERMISSIONS_FILE`).
 
 The host injects a global `imotherbtw` table into plugin scripts (see `plugins/jagpda_api.lua:1` for the editor stub).
 
@@ -87,9 +87,9 @@ Use `/plugins reload` (owner-only) to reload plugins from disk and re-register c
 
 ### Signing (prod)
 
-When `JAGPDA_PROD_MODE=1` and `JAGPDA_ALLOW_UNSIGNED_PLUGINS=0`, plugins must include `signature.json` and be signed by a trusted key.
+When `IMOTHERBTW_PROD_MODE=1` and `IMOTHERBTW_WALLOW_UNSIGNED_PLUGINS=0`, plugins must include `signature.json` and be signed by a trusted key.
 
-- Seed keys via `JAGPDA_TRUSTED_KEYS_FILE`
+- Seed keys via `IMOTHERBTW_TRUSTED_KEYS_FILE`
 - Additional trusted keys are stored in SQLite (`trusted_signers`)
 
 ## Legacy Parity Options
@@ -100,9 +100,9 @@ By default, imotherbtw registers slash commands globally (unless `DISCORD_DEV_GU
 
 Configure:
 
-- `JAGPDA_COMMAND_REGISTRATION_MODE=global|guilds|hybrid`
-- `JAGPDA_COMMAND_GUILD_IDS=...` (comma-separated)
-- `JAGPDA_COMMAND_REGISTER_ALL_GUILDS=1` (attempt to register in every cached guild)
+- `IMOTHERBTW_COMMAND_REGISTRATION_MODE=global|guilds|hybrid`
+- `IMOTHERBTW_COMMAND_GUILD_IDS=...` (comma-separated)
+- `IMOTHERBTW_COMMAND_REGISTER_ALL_GUILDS=1` (attempt to register in every cached guild)
 
 ### Restricted Message Links (build-time)
 

@@ -10,7 +10,7 @@ services:
       MIGRATIONS_DIR: /app/migrations/sqlite
       LOCALES_DIR: /app/locales
       PLUGINS_DIR: /app/plugins
-      JAGPDA_PERMISSIONS_FILE: /app/config/permissions.json
+      IMOTHERBTW_PERMISSIONS_FILE: /app/config/permissions.json
     volumes:
       - ./data:/data
       - ./plugins:/app/plugins
