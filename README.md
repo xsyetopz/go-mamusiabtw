@@ -1,4 +1,4 @@
-# JAGPDA
+# imotherbtw
 
 Just Another General-Purpose Discord App.
 
@@ -11,9 +11,9 @@ Just Another General-Purpose Discord App.
 
 1. Copy `.env.example` to `.env` and fill in at least `DISCORD_TOKEN`.
 2. (Recommended) Set `DISCORD_DEV_GUILD_ID` for fast command registration.
-3. Start: `go run ./cmd/jagpda`
+3. Start: `go run ./cmd/imotherbtw`
 
-JAGPDA creates/opens the SQLite DB at `SQLITE_PATH` and applies migrations automatically on startup.
+imotherbtw creates/opens the SQLite DB at `SQLITE_PATH` and applies migrations automatically on startup.
 
 ## Docker
 
@@ -45,7 +45,7 @@ Plugins are sandboxed: no filesystem or network access. Any plugin capability mu
 1) requested in `plugin.json`, and
 2) granted by the host in `config/permissions.json` (default `JAGPDA_PERMISSIONS_FILE`).
 
-The host injects a global `jagpda` table into plugin scripts (see `plugins/jagpda_api.lua:1` for the editor stub).
+The host injects a global `imotherbtw` table into plugin scripts (see `plugins/jagpda_api.lua:1` for the editor stub).
 
 The repo ships a minimal example plugin in `plugins/example` which exposes `/example`.
 
@@ -53,7 +53,7 @@ The repo ships a minimal example plugin in `plugins/example` which exposes `/exa
 
 If a plugin has `plugins/<id>/locales/<locale>/messages.json`, the host loads it and exposes:
 
-- `jagpda.t(message_id, data?, plural_count?)` inside Lua handlers.
+- `imotherbtw.t(message_id, data?, plural_count?)` inside Lua handlers.
 - `commands[].description_id` in `plugin.json` to localize slash command descriptions.
 
 ### Plugin Entry Points
@@ -64,7 +64,7 @@ Plugins can implement:
 - `HandleComponent(id, ctx)` (optional; message components)
 - `HandleModal(id, ctx)` (optional; modal submits)
 
-`cmd`/`id` is the *local* ID. The host namespaces all Discord `custom_id`s as `jagpda:pl:<plugin_id>:<local_id>` and routes them back to the plugin.
+`cmd`/`id` is the *local* ID. The host namespaces all Discord `custom_id`s as `imotherbtw:pl:<plugin_id>:<local_id>` and routes them back to the plugin.
 
 ### Plugin Responses
 
@@ -96,7 +96,7 @@ When `JAGPDA_PROD_MODE=1` and `JAGPDA_ALLOW_UNSIGNED_PLUGINS=0`, plugins must in
 
 ### Command Registration
 
-By default, JAGPDA registers slash commands globally (unless `DISCORD_DEV_GUILD_ID` is set).
+By default, imotherbtw registers slash commands globally (unless `DISCORD_DEV_GUILD_ID` is set).
 
 Configure:
 

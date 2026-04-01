@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/xsyetopz/jagpda/internal/store"
+	"github.com/xsyetopz/imotherbtw/internal/store"
 )
 
 type warningStore struct {

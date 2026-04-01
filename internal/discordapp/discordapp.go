@@ -1,6 +1,6 @@
 package discordapp
 
-import "github.com/xsyetopz/jagpda/internal/discordapp/botengine"
+import "github.com/xsyetopz/imotherbtw/internal/discordapp/botengine"
 
 type Dependencies = botengine.Dependencies
 type Bot = botengine.Bot

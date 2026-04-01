@@ -9,7 +9,7 @@ import (
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/snowflake/v2"
 
-	"github.com/xsyetopz/jagpda/internal/store"
+	"github.com/xsyetopz/imotherbtw/internal/store"
 )
 
 func (b *Bot) onGuildJoin(e *events.GuildJoin) {

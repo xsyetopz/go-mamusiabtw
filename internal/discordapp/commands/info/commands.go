@@ -11,10 +11,10 @@ import (
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/snowflake/v2"
 
-	"github.com/xsyetopz/jagpda/internal/buildinfo"
-	"github.com/xsyetopz/jagpda/internal/discordapp/core"
-	"github.com/xsyetopz/jagpda/internal/discordapp/interactions"
-	"github.com/xsyetopz/jagpda/internal/i18n"
+	"github.com/xsyetopz/imotherbtw/internal/buildinfo"
+	"github.com/xsyetopz/imotherbtw/internal/discordapp/core"
+	"github.com/xsyetopz/imotherbtw/internal/discordapp/interactions"
+	"github.com/xsyetopz/imotherbtw/internal/i18n"
 )
 
 const (

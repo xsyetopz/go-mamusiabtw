@@ -8,9 +8,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/xsyetopz/jagpda/internal/app"
-	"github.com/xsyetopz/jagpda/internal/config"
-	"github.com/xsyetopz/jagpda/internal/logging"
+	"github.com/xsyetopz/imotherbtw/internal/app"
+	"github.com/xsyetopz/imotherbtw/internal/config"
+	"github.com/xsyetopz/imotherbtw/internal/logging"
 )
 
 func main() {
@@ -42,16 +42,16 @@ func runMain() int {
 }
 
 func run(ctx context.Context, logger *slog.Logger, cfg config.Config) error {
-	jagpda, err := app.New(app.Dependencies{
+	imotherbtw, err := app.New(app.Dependencies{
 		Logger: logger,
 		Config: cfg,
 	})
 	if err != nil {
 		return err
 	}
-	defer jagpda.Close()
+	defer imotherbtw.Close()
 
-	if startErr := jagpda.Start(ctx); startErr != nil {
+	if startErr := imotherbtw.Start(ctx); startErr != nil {
 		if errors.Is(startErr, context.Canceled) {
 			return nil
 		}

@@ -9,11 +9,11 @@ import (
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 
-	cmdmoderation "github.com/xsyetopz/jagpda/internal/discordapp/commands/moderation"
-	"github.com/xsyetopz/jagpda/internal/discordapp/core"
-	"github.com/xsyetopz/jagpda/internal/discordapp/interactions"
-	"github.com/xsyetopz/jagpda/internal/plugins"
-	"github.com/xsyetopz/jagpda/internal/present"
+	cmdmoderation "github.com/xsyetopz/imotherbtw/internal/discordapp/commands/moderation"
+	"github.com/xsyetopz/imotherbtw/internal/discordapp/core"
+	"github.com/xsyetopz/imotherbtw/internal/discordapp/interactions"
+	"github.com/xsyetopz/imotherbtw/internal/plugins"
+	"github.com/xsyetopz/imotherbtw/internal/present"
 )
 
 func (b *Bot) onCommand(e *events.ApplicationCommandInteractionCreate) {
@@ -242,7 +242,7 @@ func (b *Bot) handleUnwarnComponent(
 	locale discord.Locale,
 	customID string,
 ) bool {
-	if !strings.HasPrefix(customID, "jagpda:unwarn:") {
+	if !strings.HasPrefix(customID, "imotherbtw:unwarn:") {
 		return false
 	}
 

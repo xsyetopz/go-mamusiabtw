@@ -1,272 +1,1082 @@
 [
-  { "id": "cmd.ping.name", "translation": "ping" },
-  { "id": "cmd.ping.desc", "translation": "Käyttökunnon tarkistus." },
-  { "id": "cmd.help.name", "translation": "ohje" },
-  { "id": "cmd.help.desc", "translation": "Listaa käytettävissä olevat komennot." },
-  { "id": "cmd.help.content", "translation": "Komennot: {{.Commands}}" },
-  { "id": "cmd.warn.name", "translation": "varoita" },
-  { "id": "cmd.warn.desc", "translation": "Varoita käyttäjää." },
-  { "id": "cmd.warn.opt.user.name", "translation": "käyttäjä" },
-  { "id": "cmd.warn.opt.user.desc", "translation": "Varoitettava käyttäjä." },
-  { "id": "cmd.warn.opt.reason.name", "translation": "syy" },
-  { "id": "cmd.warn.opt.reason.desc", "translation": "Varoituksen syy." },
-  { "id": "cmd.unwarn.name", "translation": "poistavaroitus" },
-  { "id": "cmd.unwarn.desc", "translation": "Poista varoitus käyttäjältä." },
-  { "id": "cmd.unwarn.opt.user.name", "translation": "käyttäjä" },
-  { "id": "cmd.unwarn.opt.user.desc", "translation": "Käyttäjä, jolta varoitus poistetaan." },
-  { "id": "cmd.block.name", "translation": "estä" },
-  { "id": "cmd.block.desc", "translation": "Rajoita käyttäjän tai palvelimen käyttöä." },
-  { "id": "cmd.block.sub.user.name", "translation": "käyttäjä" },
-  { "id": "cmd.block.sub.user.desc", "translation": "Rajoita käyttäjää." },
-  { "id": "cmd.block.sub.guild.name", "translation": "palvelin" },
-  { "id": "cmd.block.sub.guild.desc", "translation": "Rajoita palvelinta." },
-  { "id": "cmd.block.opt.user.name", "translation": "käyttäjä" },
-  { "id": "cmd.block.opt.user.desc", "translation": "Rajoitettava käyttäjä." },
-  { "id": "cmd.block.opt.reason.name", "translation": "syy" },
-  { "id": "cmd.block.opt.reason.desc", "translation": "Rajoituksen syy." },
-  { "id": "cmd.block.opt.guild_id.name", "translation": "palvelin_id" },
-  { "id": "cmd.block.opt.guild_id.desc", "translation": "Rajoitettava palvelin-ID." },
-  { "id": "cmd.unblock.name", "translation": "vapauta" },
-  { "id": "cmd.unblock.desc", "translation": "Poista rajoitus." },
-  { "id": "cmd.unblock.sub.user.name", "translation": "käyttäjä" },
-  { "id": "cmd.unblock.sub.user.desc", "translation": "Poista rajoitus käyttäjältä." },
-  { "id": "cmd.unblock.sub.guild.name", "translation": "palvelin" },
-  { "id": "cmd.unblock.sub.guild.desc", "translation": "Poista rajoitus palvelimelta." },
-  { "id": "cmd.unblock.opt.user.name", "translation": "käyttäjä" },
-  { "id": "cmd.unblock.opt.user.desc", "translation": "Käyttäjä, jolta rajoitus poistetaan." },
-  { "id": "cmd.unblock.opt.guild_id.name", "translation": "palvelin_id" },
-  { "id": "cmd.unblock.opt.guild_id.desc", "translation": "Palvelin-ID, jolta rajoitus poistetaan." },
-  { "id": "cmd.plugins.name", "translation": "lisäosat" },
-  { "id": "cmd.plugins.desc", "translation": "Hallitse lisäosia." },
-  { "id": "cmd.plugins.sub.list.name", "translation": "lista" },
-  { "id": "cmd.plugins.sub.list.desc", "translation": "Listaa ladatut lisäosat." },
-  { "id": "cmd.plugins.sub.reload.name", "translation": "uudelleenlataa" },
-  { "id": "cmd.plugins.sub.reload.desc", "translation": "Lataa lisäosat uudelleen levyltä." },
-  { "id": "cmd.about.name", "translation": "tietoa" },
-  { "id": "cmd.about.desc", "translation": "Näytä tietoa JAGPDA:sta." },
-  { "id": "cmd.lookup.name", "translation": "haku" },
-  { "id": "cmd.lookup.desc", "translation": "Näytä tietoa kohteista." },
-  { "id": "cmd.lookup.sub.user.name", "translation": "käyttäjä" },
-  { "id": "cmd.lookup.sub.user.desc", "translation": "Näytä tietoa käyttäjästä." },
-  { "id": "cmd.lookup.sub.user.opt.user.name", "translation": "käyttäjä" },
-  { "id": "cmd.lookup.sub.user.opt.user.desc", "translation": "Haettava käyttäjä, jos on." },
-  { "id": "cmd.lookup.sub.guild.name", "translation": "palvelin" },
-  { "id": "cmd.lookup.sub.guild.desc", "translation": "Näytä tietoa tästä palvelimesta." },
-  { "id": "info.lookup.user.field.bot", "translation": "🤖 Botti" },
-  { "id": "info.lookup.user.field.system", "translation": "🖥️ Järjestelmä" },
-  { "id": "info.lookup.user.field.locale", "translation": "🌐 Kieli" },
-  { "id": "info.lookup.user.field.created", "translation": "📅 Luotu" },
-  { "id": "info.lookup.user.field.joined", "translation": "📥 Liittyi" },
-  { "id": "info.lookup.user.field.roles", "translation": "🛡️ Roolit" },
-  { "id": "info.lookup.guild.field.roles", "translation": "🛡️ Roolit" },
-  { "id": "info.lookup.guild.field.emojis", "translation": "😃 Emojit" },
-  { "id": "info.lookup.guild.field.stickers", "translation": "🖼️ Tarrat" },
-  { "id": "info.lookup.guild.field.members", "translation": "👥 Jäsenet" },
-  { "id": "info.lookup.guild.field.channels", "translation": "🌐 Kanavat" },
-  { "id": "info.lookup.guild.field.created", "translation": "📅 Luotu" },
-  { "id": "cmd.flip.name", "translation": "kolikko" },
-  { "id": "cmd.flip.desc", "translation": "Heitä kolikkoa." },
-  { "id": "cmd.roll.name", "translation": "heitto" },
-  { "id": "cmd.roll.desc", "translation": "Heitä noppaa." },
-  { "id": "cmd.roll.opt.number.name", "translation": "määrä" },
-  { "id": "cmd.roll.opt.number.desc", "translation": "Heitettävien noppien määrä." },
-  { "id": "cmd.roll.opt.sides.name", "translation": "sivut" },
-  { "id": "cmd.roll.opt.sides.desc", "translation": "Nopan sivujen määrä." },
-  { "id": "cmd.roll.opt.modifier.name", "translation": "muunnin" },
-  { "id": "cmd.roll.opt.modifier.desc", "translation": "Lisättävä muunnin, jos on." },
-  { "id": "cmd.8ball.name", "translation": "8pallo" },
-  { "id": "cmd.8ball.desc", "translation": "Kysy Magic 8 Ballilta kysymys." },
-  { "id": "cmd.8ball.opt.question.name", "translation": "kysymys" },
-  { "id": "cmd.8ball.opt.question.desc", "translation": "Kysymys." },
-  { "id": "cmd.hug.name", "translation": "halaa" },
-  { "id": "cmd.hug.desc", "translation": "Halaa käyttäjää." },
-  { "id": "cmd.hug.opt.user.name", "translation": "käyttäjä" },
-  { "id": "cmd.hug.opt.user.desc", "translation": "Halaettava käyttäjä." },
-  { "id": "cmd.pat.name", "translation": "taputa" },
-  { "id": "cmd.pat.desc", "translation": "Taputa käyttäjää." },
-  { "id": "cmd.pat.opt.user.name", "translation": "käyttäjä" },
-  { "id": "cmd.pat.opt.user.desc", "translation": "Taputettava käyttäjä." },
-  { "id": "cmd.poke.name", "translation": "töki" },
-  { "id": "cmd.poke.desc", "translation": "Töki käyttäjää." },
-  { "id": "cmd.poke.opt.user.name", "translation": "käyttäjä" },
-  { "id": "cmd.poke.opt.user.desc", "translation": "Tökittävä käyttäjä." },
-  { "id": "cmd.shrug.name", "translation": "kohauta" },
-  { "id": "cmd.shrug.desc", "translation": "¯\\_(ツ)_/¯" },
-  { "id": "cmd.shrug.opt.message.name", "translation": "viesti" },
-  { "id": "cmd.shrug.opt.message.desc", "translation": "Viestisi, jos on." },
-  { "id": "cmd.slowmode.name", "translation": "hidastus" },
-  { "id": "cmd.slowmode.desc", "translation": "Hidasta kanavaa." },
-  { "id": "cmd.slowmode.opt.channel.name", "translation": "kanava" },
-  { "id": "cmd.slowmode.opt.channel.desc", "translation": "Hidastettava kanava." },
-  { "id": "cmd.slowmode.opt.seconds.name", "translation": "sekuntia" },
-  { "id": "cmd.slowmode.opt.seconds.desc", "translation": "Sekuntia viestien välissä, jos on." },
-  { "id": "cmd.nick.name", "translation": "lempinimi" },
-  { "id": "cmd.nick.desc", "translation": "Vaihda käyttäjän lempinimeä." },
-  { "id": "cmd.nick.opt.user.name", "translation": "käyttäjä" },
-  { "id": "cmd.nick.opt.user.desc", "translation": "Käyttäjä, jolle lempinimi vaihdetaan." },
-  { "id": "cmd.nick.opt.nickname.name", "translation": "lempinimi" },
-  { "id": "cmd.nick.opt.nickname.desc", "translation": "Asetettava lempinimi, jos on." },
-  { "id": "cmd.purge.name", "translation": "tyhjennä" },
-  { "id": "cmd.purge.desc", "translation": "Poista viestejä." },
-  { "id": "cmd.purge.sub.all.name", "translation": "kaikki" },
-  { "id": "cmd.purge.sub.all.desc", "translation": "Poista viimeisimpiä viestejä." },
-  { "id": "cmd.purge.sub.before.name", "translation": "ennen" },
-  { "id": "cmd.purge.sub.before.desc", "translation": "Poista viestejä ennen viestiä." },
-  { "id": "cmd.purge.sub.after.name", "translation": "jälkeen" },
-  { "id": "cmd.purge.sub.after.desc", "translation": "Poista viestejä viestin jälkeen." },
-  { "id": "cmd.purge.sub.around.name", "translation": "ympärillä" },
-  { "id": "cmd.purge.sub.around.desc", "translation": "Poista viestejä viestin ympäriltä." },
-  { "id": "cmd.purge.opt.count.name", "translation": "määrä" },
-  { "id": "cmd.purge.opt.count.desc", "translation": "Poistettavien viestien määrä, jos on." },
-  { "id": "cmd.purge.opt.message.name", "translation": "viesti" },
-  { "id": "cmd.purge.opt.message.desc", "translation": "Viestin ID tai linkki." },
-  { "id": "cmd.roles.name", "translation": "roolit" },
-  { "id": "cmd.roles.desc", "translation": "Hallitse rooleja palvelimessa." },
-  { "id": "cmd.roles.sub.create.name", "translation": "luo" },
-  { "id": "cmd.roles.sub.create.desc", "translation": "Luo rooli." },
-  { "id": "cmd.roles.sub.edit.name", "translation": "muokkaa" },
-  { "id": "cmd.roles.sub.edit.desc", "translation": "Muokkaa roolia." },
-  { "id": "cmd.roles.sub.delete.name", "translation": "poista" },
-  { "id": "cmd.roles.sub.delete.desc", "translation": "Poista rooli." },
-  { "id": "cmd.roles.sub.add.name", "translation": "lisää" },
-  { "id": "cmd.roles.sub.add.desc", "translation": "Lisää rooli jäsenelle." },
-  { "id": "cmd.roles.sub.remove.name", "translation": "poista_jäseneltä" },
-  { "id": "cmd.roles.sub.remove.desc", "translation": "Poista rooli jäseneltä." },
-  { "id": "cmd.roles.opt.role.name", "translation": "rooli" },
-  { "id": "cmd.roles.opt.role.desc", "translation": "Rooli." },
-  { "id": "cmd.roles.opt.member.name", "translation": "jäsen" },
-  { "id": "cmd.roles.opt.member.desc", "translation": "Jäsen, jolle rooli asetetaan." },
-  { "id": "cmd.roles.opt.name.name", "translation": "nimi" },
-  { "id": "cmd.roles.opt.name.desc", "translation": "Nimi." },
-  { "id": "cmd.roles.opt.colour.name", "translation": "väri" },
-  { "id": "cmd.roles.opt.colour.desc", "translation": "Väri, jos on. (RRGGBB)" },
-  { "id": "cmd.roles.opt.hoist.name", "translation": "nosta" },
-  { "id": "cmd.roles.opt.hoist.desc", "translation": "Näkyy ylempänä kuin alemmat roolit?" },
-  { "id": "cmd.roles.opt.mentionable.name", "translation": "mainittava" },
-  { "id": "cmd.roles.opt.mentionable.desc", "translation": "Voiko roolia mainita?" },
-  { "id": "cmd.emojis.name", "translation": "emojit" },
-  { "id": "cmd.emojis.desc", "translation": "Hallitse emojeja palvelimessa." },
-  { "id": "cmd.emojis.sub.create.name", "translation": "luo" },
-  { "id": "cmd.emojis.sub.create.desc", "translation": "Luo emoji." },
-  { "id": "cmd.emojis.sub.edit.name", "translation": "muokkaa" },
-  { "id": "cmd.emojis.sub.edit.desc", "translation": "Nimeä emoji uudelleen." },
-  { "id": "cmd.emojis.sub.delete.name", "translation": "poista" },
-  { "id": "cmd.emojis.sub.delete.desc", "translation": "Poista emoji." },
-  { "id": "cmd.emojis.opt.name.name", "translation": "nimi" },
-  { "id": "cmd.emojis.opt.name.desc", "translation": "Nimi." },
-  { "id": "cmd.emojis.opt.file.name", "translation": "tiedosto" },
-  { "id": "cmd.emojis.opt.file.desc", "translation": "Kuva." },
-  { "id": "cmd.emojis.opt.emoji.name", "translation": "emoji" },
-  { "id": "cmd.emojis.opt.emoji.desc", "translation": "Emoji-merkintä (<:nimi:id>) tai ID." },
-  { "id": "cmd.stickers.name", "translation": "tarrat" },
-  { "id": "cmd.stickers.desc", "translation": "Hallitse tarroja palvelimessa." },
-  { "id": "cmd.stickers.sub.create.name", "translation": "luo" },
-  { "id": "cmd.stickers.sub.create.desc", "translation": "Luo tarra." },
-  { "id": "cmd.stickers.sub.edit.name", "translation": "muokkaa" },
-  { "id": "cmd.stickers.sub.edit.desc", "translation": "Muokkaa tarraa." },
-  { "id": "cmd.stickers.sub.delete.name", "translation": "poista" },
-  { "id": "cmd.stickers.sub.delete.desc", "translation": "Poista tarra." },
-  { "id": "cmd.stickers.opt.id.name", "translation": "id" },
-  { "id": "cmd.stickers.opt.id.desc", "translation": "Tarran ID tai linkki." },
-  { "id": "cmd.stickers.opt.name.name", "translation": "nimi" },
-  { "id": "cmd.stickers.opt.name.desc", "translation": "Nimi." },
-  { "id": "cmd.stickers.opt.description.name", "translation": "kuvaus" },
-  { "id": "cmd.stickers.opt.description.desc", "translation": "Kuvaus, jos on." },
-  { "id": "cmd.stickers.opt.emoji_tag.name", "translation": "emoji_tagi" },
-  { "id": "cmd.stickers.opt.emoji_tag.desc", "translation": "Emoji-tagi (Discord vaatii)." },
-  { "id": "cmd.stickers.opt.file.name", "translation": "tiedosto" },
-  { "id": "cmd.stickers.opt.file.desc", "translation": "Kuva." },
-  { "id": "admin.not_owner", "translation": "Tämä komento on vain omistajalle." },
-  { "id": "admin.block.user.success", "translation": "{{.User}} on estetty." },
-  { "id": "admin.block.guild.invalid", "translation": "{{.GuildID}} ei ole kelvollinen palvelimen ID." },
-  { "id": "admin.block.guild.success", "translation": "Palvelin {{.GuildID}} on estetty." },
-  { "id": "admin.unblock.user.success", "translation": "{{.User}} on vapautettu." },
-  { "id": "admin.unblock.guild.invalid", "translation": "{{.GuildID}} ei ole kelvollinen palvelimen ID." },
-  { "id": "admin.unblock.guild.success", "translation": "Palvelin {{.GuildID}} on vapautettu." },
-  { "id": "admin.plugins.not_configured", "translation": "Lisäosia ei ole määritetty." },
-  { "id": "admin.plugins.none", "translation": "Lisäosia ei ole ladattu." },
-  { "id": "admin.plugins.list", "translation": "Ladatut lisäosat ({{.Count}}):\n{{.List}}" },
-  { "id": "admin.plugins.reloaded", "translation": "Lisäosat ladattu uudelleen." },
-  { "id": "mod.warn.self", "translation": "Et voi varoittaa itseäsi." },
-  { "id": "mod.warn.bot", "translation": "Et voi käyttää moderointikomentoja botteihin tai järjestelmäkäyttäjiin." },
-  { "id": "mod.warn.too_many", "translation": "Käyttäjää {{.User}} ei voi enää varoittaa." },
-  { "id": "mod.warn.success", "translation": "{{.User}} on varoitettu syystä `{{.Reason}}`." },
-  { "id": "mod.warn.dm", "translation": "Sinua on varoitettu syystä `{{.Reason}}`." },
-  { "id": "mod.unwarn.self", "translation": "Et voi poistaa varoitusta itseltäsi." },
-  { "id": "mod.unwarn.none", "translation": "Ei varoituksia käyttäjälle {{.User}}." },
-  { "id": "mod.unwarn.prompt", "translation": "Minkä varoituksen haluat poistaa?" },
-  { "id": "mod.unwarn.placeholder", "translation": "Valitse varoitus..." },
-  { "id": "mod.unwarn.expired", "translation": "Valinta vanheni. Suorita `/unwarn` uudelleen." },
-  { "id": "mod.unwarn.success", "translation": "Varoitus poistettu käyttäjältä {{.User}}." },
-  { "id": "info.about.title", "translation": "JAGPDA {{.Version}}" },
-  { "id": "info.lookup.user.error", "translation": "Käyttäjätietojen haku epäonnistui." },
-  { "id": "info.lookup.guild.error", "translation": "Palvelintietojen haku epäonnistui." },
-  { "id": "fun.flip.result", "translation": ":coin: {{.User}} heitti kolikkoa ja sai `{{.Result}}`." },
-  { "id": "fun.roll.invalid_sides", "translation": "Ei tuettu nopan koko `{{.Sides}}`. Tuetut: 4, 6, 8, 10, 12, 20." },
-  { "id": "fun.roll.result", "translation": ":game_die: {{.User}} heitti `{{.Notation}}` ja sai `{{.Total}}`." },
-  { "id": "fun.8ball.question_error", "translation": "Tuo ei näytä avoimelta kysymykseltä: `{{.Question}}`" },
-  { "id": "fun.8ball.result", "translation": ":8ball: {{.Answer}}, {{.User}}." },
-  { "id": "fun.kawaii.footer", "translation": "Kawaii API" },
-  { "id": "fun.kawaii.error", "translation": "GIFin haku epäonnistui." },
-  { "id": "fun.kawaii.self_error", "translation": "Et voi kohdistaa itseesi." },
-  { "id": "fun.kawaii.user_mention_only", "translation": "{{.Emoji}} {{.User}}" },
-  { "id": "mgr.slowmode.set", "translation": "{{.Channel}} on hidastettu arvoon `{{.Seconds}}s`." },
-  { "id": "mgr.slowmode.removed", "translation": "Hidastus poistettu kanavasta {{.Channel}}." },
-  { "id": "mgr.slowmode.error", "translation": "Hidastuksen päivitys epäonnistui." },
-  { "id": "mgr.nick.self_error", "translation": "Et voi muokata omaa lempinimeäsi." },
-  { "id": "mgr.nick.set", "translation": "{{.User}}:n lempinimi asetettu arvoon `{{.Nickname}}`." },
-  { "id": "mgr.nick.reset", "translation": "{{.User}}:n lempinimi nollattu." },
-  { "id": "mgr.nick.error", "translation": "Lempinimen päivitys epäonnistui." },
-  { "id": "mgr.purge.invalid_message", "translation": "Virheellinen viestin ID tai linkki." },
-  { "id": "mgr.purge.success", "translation": "Poistettu `{{.Count}}` viesti(ä)." },
-  { "id": "mgr.purge.error", "translation": "Viestien poisto epäonnistui." },
-  { "id": "mgr.roles.invalid_colour", "translation": "Virheellinen väri `{{.Colour}}` (odotettiin RRGGBB)." },
-  { "id": "mgr.roles.cannot_edit_everyone", "translation": "Et voi muokata @everyone-roolia." },
-  { "id": "mgr.roles.cannot_delete_everyone", "translation": "Et voi poistaa @everyone-roolia." },
-  { "id": "mgr.roles.create_success", "translation": "{{.Role}} luotu." },
-  { "id": "mgr.roles.create_error", "translation": "Roolin `@{{.Name}}` luonti epäonnistui." },
-  { "id": "mgr.roles.edit_success", "translation": "{{.Role}} muokattu." },
-  { "id": "mgr.roles.edit_error", "translation": "Roolin {{.Role}} muokkaus epäonnistui." },
-  { "id": "mgr.roles.delete_success", "translation": "`@{{.Name}}` poistettu." },
-  { "id": "mgr.roles.delete_error", "translation": "Roolin {{.Role}} poisto epäonnistui." },
-  { "id": "mgr.roles.add_success", "translation": "{{.Role}} lisätty käyttäjälle {{.User}}." },
-  { "id": "mgr.roles.add_error", "translation": "{{.Role}} lisäys käyttäjälle {{.User}} epäonnistui." },
-  { "id": "mgr.roles.remove_success", "translation": "{{.Role}} poistettu käyttäjältä {{.User}}." },
-  { "id": "mgr.roles.remove_error", "translation": "{{.Role}} poisto käyttäjältä {{.User}} epäonnistui." },
-  { "id": "mgr.emojis.file_missing", "translation": "Liite puuttuu." },
-  { "id": "mgr.emojis.file_too_large", "translation": "Tiedosto on liian suuri ({{.Size}} tavua; max {{.Max}})." },
-  { "id": "mgr.emojis.bad_extension", "translation": "`{{.Ext}}` ei ole kelvollinen emoji-tiedostopääte." },
-  { "id": "mgr.emojis.too_many", "translation": "Et voi omistaa yli `{{.Max}}` emoji(a)." },
-  { "id": "mgr.emojis.download_error", "translation": "Liitteen lataus epäonnistui (vain Discord CDN)." },
-  { "id": "mgr.emojis.dimensions_error", "translation": "Kuvan mittojen lukeminen epäonnistui." },
-  { "id": "mgr.emojis.too_large_dims", "translation": "`{{.Width}}x{{.Height}}` on liian suuri emojille." },
-  { "id": "mgr.emojis.bad_image", "translation": "Ei tuettu kuvatyyppi." },
-  { "id": "mgr.emojis.invalid_emoji", "translation": "Virheellinen emoji `{{.Emoji}}` (odotettiin <:nimi:id> tai ID)." },
-  { "id": "mgr.emojis.create_success", "translation": "`:{{.Name}}:` luotu." },
-  { "id": "mgr.emojis.create_error", "translation": "Emojin `:{{.Name}}:` luonti epäonnistui." },
-  { "id": "mgr.emojis.edit_success", "translation": "Emoji nimetty uudelleen: `{{.Name}}`." },
-  { "id": "mgr.emojis.edit_error", "translation": "Emojin uudelleennimeäminen epäonnistui." },
-  { "id": "mgr.emojis.delete_success", "translation": "Emoji poistettu." },
-  { "id": "mgr.emojis.delete_error", "translation": "Emojin poisto epäonnistui." },
-  { "id": "mgr.stickers.file_missing", "translation": "Liite puuttuu." },
-  { "id": "mgr.stickers.tags_missing", "translation": "Emoji-tagi vaaditaan." },
-  { "id": "mgr.stickers.file_too_large", "translation": "Tiedosto on liian suuri ({{.Size}} tavua; max {{.Max}})." },
-  { "id": "mgr.stickers.bad_extension", "translation": "`{{.Ext}}` ei ole kelvollinen tarra-pääte." },
-  { "id": "mgr.stickers.too_many", "translation": "Et voi omistaa yli `{{.Max}}` tarraa." },
-  { "id": "mgr.stickers.download_error", "translation": "Liitteen lataus epäonnistui (vain Discord CDN)." },
-  { "id": "mgr.stickers.dimensions_error", "translation": "Kuvan mittojen lukeminen epäonnistui." },
-  { "id": "mgr.stickers.too_large_dims", "translation": "`{{.Width}}x{{.Height}}` on liian suuri tarralle." },
-  { "id": "mgr.stickers.invalid_id", "translation": "Virheellinen tarran ID tai linkki: `{{.ID}}`." },
-  { "id": "mgr.stickers.create_success", "translation": "`{{.Name}}` luotu." },
-  { "id": "mgr.stickers.create_error", "translation": "Tarran `{{.Name}}` luonti epäonnistui." },
-  { "id": "mgr.stickers.edit_success", "translation": "`{{.Name}}` muokattu." },
-  { "id": "mgr.stickers.edit_error", "translation": "Tarran muokkaus epäonnistui." },
-  { "id": "mgr.stickers.delete_success", "translation": "Tarra poistettu." },
-  { "id": "mgr.stickers.delete_error", "translation": "Tarran poisto epäonnistui." },
-  { "id": "ok.pong", "translation": "Pong." },
-  { "id": "err.generic", "translation": "Tapahtui virhe." },
-  { "id": "err.cooldown", "translation": "Odota hetki — yritä uudelleen {{.Seconds}}s kuluttua." },
-  { "id": "err.not_in_guild", "translation": "Komentoa voi käyttää vain palvelimessa." },
-  { "id": "err.restricted", "translation": "Sinulla ei ole lupaa käyttää tätä sovellusta." },
-  { "id": "err.restricted_links", "translation": "Sinulla ei ole lupaa käyttää tätä sovellusta.\nKehittäjä: {{.DeveloperURL}}\nTuki: {{.SupportServerURL}}" }
+  {
+    "id": "cmd.ping.name",
+    "translation": "ping"
+  },
+  {
+    "id": "cmd.ping.desc",
+    "translation": "Käyttökunnon tarkistus."
+  },
+  {
+    "id": "cmd.help.name",
+    "translation": "ohje"
+  },
+  {
+    "id": "cmd.help.desc",
+    "translation": "Listaa käytettävissä olevat komennot."
+  },
+  {
+    "id": "cmd.help.content",
+    "translation": "Komennot: {{.Commands}}"
+  },
+  {
+    "id": "cmd.warn.name",
+    "translation": "varoita"
+  },
+  {
+    "id": "cmd.warn.desc",
+    "translation": "Varoita käyttäjää."
+  },
+  {
+    "id": "cmd.warn.opt.user.name",
+    "translation": "käyttäjä"
+  },
+  {
+    "id": "cmd.warn.opt.user.desc",
+    "translation": "Varoitettava käyttäjä."
+  },
+  {
+    "id": "cmd.warn.opt.reason.name",
+    "translation": "syy"
+  },
+  {
+    "id": "cmd.warn.opt.reason.desc",
+    "translation": "Varoituksen syy."
+  },
+  {
+    "id": "cmd.unwarn.name",
+    "translation": "poistavaroitus"
+  },
+  {
+    "id": "cmd.unwarn.desc",
+    "translation": "Poista varoitus käyttäjältä."
+  },
+  {
+    "id": "cmd.unwarn.opt.user.name",
+    "translation": "käyttäjä"
+  },
+  {
+    "id": "cmd.unwarn.opt.user.desc",
+    "translation": "Käyttäjä, jolta varoitus poistetaan."
+  },
+  {
+    "id": "cmd.block.name",
+    "translation": "estä"
+  },
+  {
+    "id": "cmd.block.desc",
+    "translation": "Rajoita käyttäjän tai palvelimen käyttöä."
+  },
+  {
+    "id": "cmd.block.sub.user.name",
+    "translation": "käyttäjä"
+  },
+  {
+    "id": "cmd.block.sub.user.desc",
+    "translation": "Rajoita käyttäjää."
+  },
+  {
+    "id": "cmd.block.sub.guild.name",
+    "translation": "palvelin"
+  },
+  {
+    "id": "cmd.block.sub.guild.desc",
+    "translation": "Rajoita palvelinta."
+  },
+  {
+    "id": "cmd.block.opt.user.name",
+    "translation": "käyttäjä"
+  },
+  {
+    "id": "cmd.block.opt.user.desc",
+    "translation": "Rajoitettava käyttäjä."
+  },
+  {
+    "id": "cmd.block.opt.reason.name",
+    "translation": "syy"
+  },
+  {
+    "id": "cmd.block.opt.reason.desc",
+    "translation": "Rajoituksen syy."
+  },
+  {
+    "id": "cmd.block.opt.guild_id.name",
+    "translation": "palvelin_id"
+  },
+  {
+    "id": "cmd.block.opt.guild_id.desc",
+    "translation": "Rajoitettava palvelin-ID."
+  },
+  {
+    "id": "cmd.unblock.name",
+    "translation": "vapauta"
+  },
+  {
+    "id": "cmd.unblock.desc",
+    "translation": "Poista rajoitus."
+  },
+  {
+    "id": "cmd.unblock.sub.user.name",
+    "translation": "käyttäjä"
+  },
+  {
+    "id": "cmd.unblock.sub.user.desc",
+    "translation": "Poista rajoitus käyttäjältä."
+  },
+  {
+    "id": "cmd.unblock.sub.guild.name",
+    "translation": "palvelin"
+  },
+  {
+    "id": "cmd.unblock.sub.guild.desc",
+    "translation": "Poista rajoitus palvelimelta."
+  },
+  {
+    "id": "cmd.unblock.opt.user.name",
+    "translation": "käyttäjä"
+  },
+  {
+    "id": "cmd.unblock.opt.user.desc",
+    "translation": "Käyttäjä, jolta rajoitus poistetaan."
+  },
+  {
+    "id": "cmd.unblock.opt.guild_id.name",
+    "translation": "palvelin_id"
+  },
+  {
+    "id": "cmd.unblock.opt.guild_id.desc",
+    "translation": "Palvelin-ID, jolta rajoitus poistetaan."
+  },
+  {
+    "id": "cmd.plugins.name",
+    "translation": "lisäosat"
+  },
+  {
+    "id": "cmd.plugins.desc",
+    "translation": "Hallitse lisäosia."
+  },
+  {
+    "id": "cmd.plugins.sub.list.name",
+    "translation": "lista"
+  },
+  {
+    "id": "cmd.plugins.sub.list.desc",
+    "translation": "Listaa ladatut lisäosat."
+  },
+  {
+    "id": "cmd.plugins.sub.reload.name",
+    "translation": "uudelleenlataa"
+  },
+  {
+    "id": "cmd.plugins.sub.reload.desc",
+    "translation": "Lataa lisäosat uudelleen levyltä."
+  },
+  {
+    "id": "cmd.about.name",
+    "translation": "tietoa"
+  },
+  {
+    "id": "cmd.about.desc",
+    "translation": "Näytä tietoa imotherbtw:sta."
+  },
+  {
+    "id": "cmd.lookup.name",
+    "translation": "haku"
+  },
+  {
+    "id": "cmd.lookup.desc",
+    "translation": "Näytä tietoa kohteista."
+  },
+  {
+    "id": "cmd.lookup.sub.user.name",
+    "translation": "käyttäjä"
+  },
+  {
+    "id": "cmd.lookup.sub.user.desc",
+    "translation": "Näytä tietoa käyttäjästä."
+  },
+  {
+    "id": "cmd.lookup.sub.user.opt.user.name",
+    "translation": "käyttäjä"
+  },
+  {
+    "id": "cmd.lookup.sub.user.opt.user.desc",
+    "translation": "Haettava käyttäjä, jos on."
+  },
+  {
+    "id": "cmd.lookup.sub.guild.name",
+    "translation": "palvelin"
+  },
+  {
+    "id": "cmd.lookup.sub.guild.desc",
+    "translation": "Näytä tietoa tästä palvelimesta."
+  },
+  {
+    "id": "info.lookup.user.field.bot",
+    "translation": "🤖 Botti"
+  },
+  {
+    "id": "info.lookup.user.field.system",
+    "translation": "🖥️ Järjestelmä"
+  },
+  {
+    "id": "info.lookup.user.field.locale",
+    "translation": "🌐 Kieli"
+  },
+  {
+    "id": "info.lookup.user.field.created",
+    "translation": "📅 Luotu"
+  },
+  {
+    "id": "info.lookup.user.field.joined",
+    "translation": "📥 Liittyi"
+  },
+  {
+    "id": "info.lookup.user.field.roles",
+    "translation": "🛡️ Roolit"
+  },
+  {
+    "id": "info.lookup.guild.field.roles",
+    "translation": "🛡️ Roolit"
+  },
+  {
+    "id": "info.lookup.guild.field.emojis",
+    "translation": "😃 Emojit"
+  },
+  {
+    "id": "info.lookup.guild.field.stickers",
+    "translation": "🖼️ Tarrat"
+  },
+  {
+    "id": "info.lookup.guild.field.members",
+    "translation": "👥 Jäsenet"
+  },
+  {
+    "id": "info.lookup.guild.field.channels",
+    "translation": "🌐 Kanavat"
+  },
+  {
+    "id": "info.lookup.guild.field.created",
+    "translation": "📅 Luotu"
+  },
+  {
+    "id": "cmd.flip.name",
+    "translation": "kolikko"
+  },
+  {
+    "id": "cmd.flip.desc",
+    "translation": "Heitä kolikkoa."
+  },
+  {
+    "id": "cmd.roll.name",
+    "translation": "heitto"
+  },
+  {
+    "id": "cmd.roll.desc",
+    "translation": "Heitä noppaa."
+  },
+  {
+    "id": "cmd.roll.opt.number.name",
+    "translation": "määrä"
+  },
+  {
+    "id": "cmd.roll.opt.number.desc",
+    "translation": "Heitettävien noppien määrä."
+  },
+  {
+    "id": "cmd.roll.opt.sides.name",
+    "translation": "sivut"
+  },
+  {
+    "id": "cmd.roll.opt.sides.desc",
+    "translation": "Nopan sivujen määrä."
+  },
+  {
+    "id": "cmd.roll.opt.modifier.name",
+    "translation": "muunnin"
+  },
+  {
+    "id": "cmd.roll.opt.modifier.desc",
+    "translation": "Lisättävä muunnin, jos on."
+  },
+  {
+    "id": "cmd.8ball.name",
+    "translation": "8pallo"
+  },
+  {
+    "id": "cmd.8ball.desc",
+    "translation": "Kysy Magic 8 Ballilta kysymys."
+  },
+  {
+    "id": "cmd.8ball.opt.question.name",
+    "translation": "kysymys"
+  },
+  {
+    "id": "cmd.8ball.opt.question.desc",
+    "translation": "Kysymys."
+  },
+  {
+    "id": "cmd.hug.name",
+    "translation": "halaa"
+  },
+  {
+    "id": "cmd.hug.desc",
+    "translation": "Halaa käyttäjää."
+  },
+  {
+    "id": "cmd.hug.opt.user.name",
+    "translation": "käyttäjä"
+  },
+  {
+    "id": "cmd.hug.opt.user.desc",
+    "translation": "Halaettava käyttäjä."
+  },
+  {
+    "id": "cmd.pat.name",
+    "translation": "taputa"
+  },
+  {
+    "id": "cmd.pat.desc",
+    "translation": "Taputa käyttäjää."
+  },
+  {
+    "id": "cmd.pat.opt.user.name",
+    "translation": "käyttäjä"
+  },
+  {
+    "id": "cmd.pat.opt.user.desc",
+    "translation": "Taputettava käyttäjä."
+  },
+  {
+    "id": "cmd.poke.name",
+    "translation": "töki"
+  },
+  {
+    "id": "cmd.poke.desc",
+    "translation": "Töki käyttäjää."
+  },
+  {
+    "id": "cmd.poke.opt.user.name",
+    "translation": "käyttäjä"
+  },
+  {
+    "id": "cmd.poke.opt.user.desc",
+    "translation": "Tökittävä käyttäjä."
+  },
+  {
+    "id": "cmd.shrug.name",
+    "translation": "kohauta"
+  },
+  {
+    "id": "cmd.shrug.desc",
+    "translation": "¯\\_(ツ)_/¯"
+  },
+  {
+    "id": "cmd.shrug.opt.message.name",
+    "translation": "viesti"
+  },
+  {
+    "id": "cmd.shrug.opt.message.desc",
+    "translation": "Viestisi, jos on."
+  },
+  {
+    "id": "cmd.slowmode.name",
+    "translation": "hidastus"
+  },
+  {
+    "id": "cmd.slowmode.desc",
+    "translation": "Hidasta kanavaa."
+  },
+  {
+    "id": "cmd.slowmode.opt.channel.name",
+    "translation": "kanava"
+  },
+  {
+    "id": "cmd.slowmode.opt.channel.desc",
+    "translation": "Hidastettava kanava."
+  },
+  {
+    "id": "cmd.slowmode.opt.seconds.name",
+    "translation": "sekuntia"
+  },
+  {
+    "id": "cmd.slowmode.opt.seconds.desc",
+    "translation": "Sekuntia viestien välissä, jos on."
+  },
+  {
+    "id": "cmd.nick.name",
+    "translation": "lempinimi"
+  },
+  {
+    "id": "cmd.nick.desc",
+    "translation": "Vaihda käyttäjän lempinimeä."
+  },
+  {
+    "id": "cmd.nick.opt.user.name",
+    "translation": "käyttäjä"
+  },
+  {
+    "id": "cmd.nick.opt.user.desc",
+    "translation": "Käyttäjä, jolle lempinimi vaihdetaan."
+  },
+  {
+    "id": "cmd.nick.opt.nickname.name",
+    "translation": "lempinimi"
+  },
+  {
+    "id": "cmd.nick.opt.nickname.desc",
+    "translation": "Asetettava lempinimi, jos on."
+  },
+  {
+    "id": "cmd.purge.name",
+    "translation": "tyhjennä"
+  },
+  {
+    "id": "cmd.purge.desc",
+    "translation": "Poista viestejä."
+  },
+  {
+    "id": "cmd.purge.sub.all.name",
+    "translation": "kaikki"
+  },
+  {
+    "id": "cmd.purge.sub.all.desc",
+    "translation": "Poista viimeisimpiä viestejä."
+  },
+  {
+    "id": "cmd.purge.sub.before.name",
+    "translation": "ennen"
+  },
+  {
+    "id": "cmd.purge.sub.before.desc",
+    "translation": "Poista viestejä ennen viestiä."
+  },
+  {
+    "id": "cmd.purge.sub.after.name",
+    "translation": "jälkeen"
+  },
+  {
+    "id": "cmd.purge.sub.after.desc",
+    "translation": "Poista viestejä viestin jälkeen."
+  },
+  {
+    "id": "cmd.purge.sub.around.name",
+    "translation": "ympärillä"
+  },
+  {
+    "id": "cmd.purge.sub.around.desc",
+    "translation": "Poista viestejä viestin ympäriltä."
+  },
+  {
+    "id": "cmd.purge.opt.count.name",
+    "translation": "määrä"
+  },
+  {
+    "id": "cmd.purge.opt.count.desc",
+    "translation": "Poistettavien viestien määrä, jos on."
+  },
+  {
+    "id": "cmd.purge.opt.message.name",
+    "translation": "viesti"
+  },
+  {
+    "id": "cmd.purge.opt.message.desc",
+    "translation": "Viestin ID tai linkki."
+  },
+  {
+    "id": "cmd.roles.name",
+    "translation": "roolit"
+  },
+  {
+    "id": "cmd.roles.desc",
+    "translation": "Hallitse rooleja palvelimessa."
+  },
+  {
+    "id": "cmd.roles.sub.create.name",
+    "translation": "luo"
+  },
+  {
+    "id": "cmd.roles.sub.create.desc",
+    "translation": "Luo rooli."
+  },
+  {
+    "id": "cmd.roles.sub.edit.name",
+    "translation": "muokkaa"
+  },
+  {
+    "id": "cmd.roles.sub.edit.desc",
+    "translation": "Muokkaa roolia."
+  },
+  {
+    "id": "cmd.roles.sub.delete.name",
+    "translation": "poista"
+  },
+  {
+    "id": "cmd.roles.sub.delete.desc",
+    "translation": "Poista rooli."
+  },
+  {
+    "id": "cmd.roles.sub.add.name",
+    "translation": "lisää"
+  },
+  {
+    "id": "cmd.roles.sub.add.desc",
+    "translation": "Lisää rooli jäsenelle."
+  },
+  {
+    "id": "cmd.roles.sub.remove.name",
+    "translation": "poista_jäseneltä"
+  },
+  {
+    "id": "cmd.roles.sub.remove.desc",
+    "translation": "Poista rooli jäseneltä."
+  },
+  {
+    "id": "cmd.roles.opt.role.name",
+    "translation": "rooli"
+  },
+  {
+    "id": "cmd.roles.opt.role.desc",
+    "translation": "Rooli."
+  },
+  {
+    "id": "cmd.roles.opt.member.name",
+    "translation": "jäsen"
+  },
+  {
+    "id": "cmd.roles.opt.member.desc",
+    "translation": "Jäsen, jolle rooli asetetaan."
+  },
+  {
+    "id": "cmd.roles.opt.name.name",
+    "translation": "nimi"
+  },
+  {
+    "id": "cmd.roles.opt.name.desc",
+    "translation": "Nimi."
+  },
+  {
+    "id": "cmd.roles.opt.colour.name",
+    "translation": "väri"
+  },
+  {
+    "id": "cmd.roles.opt.colour.desc",
+    "translation": "Väri, jos on. (RRGGBB)"
+  },
+  {
+    "id": "cmd.roles.opt.hoist.name",
+    "translation": "nosta"
+  },
+  {
+    "id": "cmd.roles.opt.hoist.desc",
+    "translation": "Näkyy ylempänä kuin alemmat roolit?"
+  },
+  {
+    "id": "cmd.roles.opt.mentionable.name",
+    "translation": "mainittava"
+  },
+  {
+    "id": "cmd.roles.opt.mentionable.desc",
+    "translation": "Voiko roolia mainita?"
+  },
+  {
+    "id": "cmd.emojis.name",
+    "translation": "emojit"
+  },
+  {
+    "id": "cmd.emojis.desc",
+    "translation": "Hallitse emojeja palvelimessa."
+  },
+  {
+    "id": "cmd.emojis.sub.create.name",
+    "translation": "luo"
+  },
+  {
+    "id": "cmd.emojis.sub.create.desc",
+    "translation": "Luo emoji."
+  },
+  {
+    "id": "cmd.emojis.sub.edit.name",
+    "translation": "muokkaa"
+  },
+  {
+    "id": "cmd.emojis.sub.edit.desc",
+    "translation": "Nimeä emoji uudelleen."
+  },
+  {
+    "id": "cmd.emojis.sub.delete.name",
+    "translation": "poista"
+  },
+  {
+    "id": "cmd.emojis.sub.delete.desc",
+    "translation": "Poista emoji."
+  },
+  {
+    "id": "cmd.emojis.opt.name.name",
+    "translation": "nimi"
+  },
+  {
+    "id": "cmd.emojis.opt.name.desc",
+    "translation": "Nimi."
+  },
+  {
+    "id": "cmd.emojis.opt.file.name",
+    "translation": "tiedosto"
+  },
+  {
+    "id": "cmd.emojis.opt.file.desc",
+    "translation": "Kuva."
+  },
+  {
+    "id": "cmd.emojis.opt.emoji.name",
+    "translation": "emoji"
+  },
+  {
+    "id": "cmd.emojis.opt.emoji.desc",
+    "translation": "Emoji-merkintä (<:nimi:id>) tai ID."
+  },
+  {
+    "id": "cmd.stickers.name",
+    "translation": "tarrat"
+  },
+  {
+    "id": "cmd.stickers.desc",
+    "translation": "Hallitse tarroja palvelimessa."
+  },
+  {
+    "id": "cmd.stickers.sub.create.name",
+    "translation": "luo"
+  },
+  {
+    "id": "cmd.stickers.sub.create.desc",
+    "translation": "Luo tarra."
+  },
+  {
+    "id": "cmd.stickers.sub.edit.name",
+    "translation": "muokkaa"
+  },
+  {
+    "id": "cmd.stickers.sub.edit.desc",
+    "translation": "Muokkaa tarraa."
+  },
+  {
+    "id": "cmd.stickers.sub.delete.name",
+    "translation": "poista"
+  },
+  {
+    "id": "cmd.stickers.sub.delete.desc",
+    "translation": "Poista tarra."
+  },
+  {
+    "id": "cmd.stickers.opt.id.name",
+    "translation": "id"
+  },
+  {
+    "id": "cmd.stickers.opt.id.desc",
+    "translation": "Tarran ID tai linkki."
+  },
+  {
+    "id": "cmd.stickers.opt.name.name",
+    "translation": "nimi"
+  },
+  {
+    "id": "cmd.stickers.opt.name.desc",
+    "translation": "Nimi."
+  },
+  {
+    "id": "cmd.stickers.opt.description.name",
+    "translation": "kuvaus"
+  },
+  {
+    "id": "cmd.stickers.opt.description.desc",
+    "translation": "Kuvaus, jos on."
+  },
+  {
+    "id": "cmd.stickers.opt.emoji_tag.name",
+    "translation": "emoji_tagi"
+  },
+  {
+    "id": "cmd.stickers.opt.emoji_tag.desc",
+    "translation": "Emoji-tagi (Discord vaatii)."
+  },
+  {
+    "id": "cmd.stickers.opt.file.name",
+    "translation": "tiedosto"
+  },
+  {
+    "id": "cmd.stickers.opt.file.desc",
+    "translation": "Kuva."
+  },
+  {
+    "id": "admin.not_owner",
+    "translation": "Tämä komento on vain omistajalle."
+  },
+  {
+    "id": "admin.block.user.success",
+    "translation": "{{.User}} on estetty."
+  },
+  {
+    "id": "admin.block.guild.invalid",
+    "translation": "{{.GuildID}} ei ole kelvollinen palvelimen ID."
+  },
+  {
+    "id": "admin.block.guild.success",
+    "translation": "Palvelin {{.GuildID}} on estetty."
+  },
+  {
+    "id": "admin.unblock.user.success",
+    "translation": "{{.User}} on vapautettu."
+  },
+  {
+    "id": "admin.unblock.guild.invalid",
+    "translation": "{{.GuildID}} ei ole kelvollinen palvelimen ID."
+  },
+  {
+    "id": "admin.unblock.guild.success",
+    "translation": "Palvelin {{.GuildID}} on vapautettu."
+  },
+  {
+    "id": "admin.plugins.not_configured",
+    "translation": "Lisäosia ei ole määritetty."
+  },
+  {
+    "id": "admin.plugins.none",
+    "translation": "Lisäosia ei ole ladattu."
+  },
+  {
+    "id": "admin.plugins.list",
+    "translation": "Ladatut lisäosat ({{.Count}}):\n{{.List}}"
+  },
+  {
+    "id": "admin.plugins.reloaded",
+    "translation": "Lisäosat ladattu uudelleen."
+  },
+  {
+    "id": "mod.warn.self",
+    "translation": "Et voi varoittaa itseäsi."
+  },
+  {
+    "id": "mod.warn.bot",
+    "translation": "Et voi käyttää moderointikomentoja botteihin tai järjestelmäkäyttäjiin."
+  },
+  {
+    "id": "mod.warn.too_many",
+    "translation": "Käyttäjää {{.User}} ei voi enää varoittaa."
+  },
+  {
+    "id": "mod.warn.success",
+    "translation": "{{.User}} on varoitettu syystä `{{.Reason}}`."
+  },
+  {
+    "id": "mod.warn.dm",
+    "translation": "Sinua on varoitettu syystä `{{.Reason}}`."
+  },
+  {
+    "id": "mod.unwarn.self",
+    "translation": "Et voi poistaa varoitusta itseltäsi."
+  },
+  {
+    "id": "mod.unwarn.none",
+    "translation": "Ei varoituksia käyttäjälle {{.User}}."
+  },
+  {
+    "id": "mod.unwarn.prompt",
+    "translation": "Minkä varoituksen haluat poistaa?"
+  },
+  {
+    "id": "mod.unwarn.placeholder",
+    "translation": "Valitse varoitus..."
+  },
+  {
+    "id": "mod.unwarn.expired",
+    "translation": "Valinta vanheni. Suorita `/unwarn` uudelleen."
+  },
+  {
+    "id": "mod.unwarn.success",
+    "translation": "Varoitus poistettu käyttäjältä {{.User}}."
+  },
+  {
+    "id": "info.about.title",
+    "translation": "imotherbtw {{.Version}}"
+  },
+  {
+    "id": "info.lookup.user.error",
+    "translation": "Käyttäjätietojen haku epäonnistui."
+  },
+  {
+    "id": "info.lookup.guild.error",
+    "translation": "Palvelintietojen haku epäonnistui."
+  },
+  {
+    "id": "fun.flip.result",
+    "translation": ":coin: {{.User}} heitti kolikkoa ja sai `{{.Result}}`."
+  },
+  {
+    "id": "fun.roll.invalid_sides",
+    "translation": "Ei tuettu nopan koko `{{.Sides}}`. Tuetut: 4, 6, 8, 10, 12, 20."
+  },
+  {
+    "id": "fun.roll.result",
+    "translation": ":game_die: {{.User}} heitti `{{.Notation}}` ja sai `{{.Total}}`."
+  },
+  {
+    "id": "fun.8ball.question_error",
+    "translation": "Tuo ei näytä avoimelta kysymykseltä: `{{.Question}}`"
+  },
+  {
+    "id": "fun.8ball.result",
+    "translation": ":8ball: {{.Answer}}, {{.User}}."
+  },
+  {
+    "id": "fun.kawaii.footer",
+    "translation": "Kawaii API"
+  },
+  {
+    "id": "fun.kawaii.error",
+    "translation": "GIFin haku epäonnistui."
+  },
+  {
+    "id": "fun.kawaii.self_error",
+    "translation": "Et voi kohdistaa itseesi."
+  },
+  {
+    "id": "fun.kawaii.user_mention_only",
+    "translation": "{{.Emoji}} {{.User}}"
+  },
+  {
+    "id": "mgr.slowmode.set",
+    "translation": "{{.Channel}} on hidastettu arvoon `{{.Seconds}}s`."
+  },
+  {
+    "id": "mgr.slowmode.removed",
+    "translation": "Hidastus poistettu kanavasta {{.Channel}}."
+  },
+  {
+    "id": "mgr.slowmode.error",
+    "translation": "Hidastuksen päivitys epäonnistui."
+  },
+  {
+    "id": "mgr.nick.self_error",
+    "translation": "Et voi muokata omaa lempinimeäsi."
+  },
+  {
+    "id": "mgr.nick.set",
+    "translation": "{{.User}}:n lempinimi asetettu arvoon `{{.Nickname}}`."
+  },
+  {
+    "id": "mgr.nick.reset",
+    "translation": "{{.User}}:n lempinimi nollattu."
+  },
+  {
+    "id": "mgr.nick.error",
+    "translation": "Lempinimen päivitys epäonnistui."
+  },
+  {
+    "id": "mgr.purge.invalid_message",
+    "translation": "Virheellinen viestin ID tai linkki."
+  },
+  {
+    "id": "mgr.purge.success",
+    "translation": "Poistettu `{{.Count}}` viesti(ä)."
+  },
+  {
+    "id": "mgr.purge.error",
+    "translation": "Viestien poisto epäonnistui."
+  },
+  {
+    "id": "mgr.roles.invalid_colour",
+    "translation": "Virheellinen väri `{{.Colour}}` (odotettiin RRGGBB)."
+  },
+  {
+    "id": "mgr.roles.cannot_edit_everyone",
+    "translation": "Et voi muokata @everyone-roolia."
+  },
+  {
+    "id": "mgr.roles.cannot_delete_everyone",
+    "translation": "Et voi poistaa @everyone-roolia."
+  },
+  {
+    "id": "mgr.roles.create_success",
+    "translation": "{{.Role}} luotu."
+  },
+  {
+    "id": "mgr.roles.create_error",
+    "translation": "Roolin `@{{.Name}}` luonti epäonnistui."
+  },
+  {
+    "id": "mgr.roles.edit_success",
+    "translation": "{{.Role}} muokattu."
+  },
+  {
+    "id": "mgr.roles.edit_error",
+    "translation": "Roolin {{.Role}} muokkaus epäonnistui."
+  },
+  {
+    "id": "mgr.roles.delete_success",
+    "translation": "`@{{.Name}}` poistettu."
+  },
+  {
+    "id": "mgr.roles.delete_error",
+    "translation": "Roolin {{.Role}} poisto epäonnistui."
+  },
+  {
+    "id": "mgr.roles.add_success",
+    "translation": "{{.Role}} lisätty käyttäjälle {{.User}}."
+  },
+  {
+    "id": "mgr.roles.add_error",
+    "translation": "{{.Role}} lisäys käyttäjälle {{.User}} epäonnistui."
+  },
+  {
+    "id": "mgr.roles.remove_success",
+    "translation": "{{.Role}} poistettu käyttäjältä {{.User}}."
+  },
+  {
+    "id": "mgr.roles.remove_error",
+    "translation": "{{.Role}} poisto käyttäjältä {{.User}} epäonnistui."
+  },
+  {
+    "id": "mgr.emojis.file_missing",
+    "translation": "Liite puuttuu."
+  },
+  {
+    "id": "mgr.emojis.file_too_large",
+    "translation": "Tiedosto on liian suuri ({{.Size}} tavua; max {{.Max}})."
+  },
+  {
+    "id": "mgr.emojis.bad_extension",
+    "translation": "`{{.Ext}}` ei ole kelvollinen emoji-tiedostopääte."
+  },
+  {
+    "id": "mgr.emojis.too_many",
+    "translation": "Et voi omistaa yli `{{.Max}}` emoji(a)."
+  },
+  {
+    "id": "mgr.emojis.download_error",
+    "translation": "Liitteen lataus epäonnistui (vain Discord CDN)."
+  },
+  {
+    "id": "mgr.emojis.dimensions_error",
+    "translation": "Kuvan mittojen lukeminen epäonnistui."
+  },
+  {
+    "id": "mgr.emojis.too_large_dims",
+    "translation": "`{{.Width}}x{{.Height}}` on liian suuri emojille."
+  },
+  {
+    "id": "mgr.emojis.bad_image",
+    "translation": "Ei tuettu kuvatyyppi."
+  },
+  {
+    "id": "mgr.emojis.invalid_emoji",
+    "translation": "Virheellinen emoji `{{.Emoji}}` (odotettiin <:nimi:id> tai ID)."
+  },
+  {
+    "id": "mgr.emojis.create_success",
+    "translation": "`:{{.Name}}:` luotu."
+  },
+  {
+    "id": "mgr.emojis.create_error",
+    "translation": "Emojin `:{{.Name}}:` luonti epäonnistui."
+  },
+  {
+    "id": "mgr.emojis.edit_success",
+    "translation": "Emoji nimetty uudelleen: `{{.Name}}`."
+  },
+  {
+    "id": "mgr.emojis.edit_error",
+    "translation": "Emojin uudelleennimeäminen epäonnistui."
+  },
+  {
+    "id": "mgr.emojis.delete_success",
+    "translation": "Emoji poistettu."
+  },
+  {
+    "id": "mgr.emojis.delete_error",
+    "translation": "Emojin poisto epäonnistui."
+  },
+  {
+    "id": "mgr.stickers.file_missing",
+    "translation": "Liite puuttuu."
+  },
+  {
+    "id": "mgr.stickers.tags_missing",
+    "translation": "Emoji-tagi vaaditaan."
+  },
+  {
+    "id": "mgr.stickers.file_too_large",
+    "translation": "Tiedosto on liian suuri ({{.Size}} tavua; max {{.Max}})."
+  },
+  {
+    "id": "mgr.stickers.bad_extension",
+    "translation": "`{{.Ext}}` ei ole kelvollinen tarra-pääte."
+  },
+  {
+    "id": "mgr.stickers.too_many",
+    "translation": "Et voi omistaa yli `{{.Max}}` tarraa."
+  },
+  {
+    "id": "mgr.stickers.download_error",
+    "translation": "Liitteen lataus epäonnistui (vain Discord CDN)."
+  },
+  {
+    "id": "mgr.stickers.dimensions_error",
+    "translation": "Kuvan mittojen lukeminen epäonnistui."
+  },
+  {
+    "id": "mgr.stickers.too_large_dims",
+    "translation": "`{{.Width}}x{{.Height}}` on liian suuri tarralle."
+  },
+  {
+    "id": "mgr.stickers.invalid_id",
+    "translation": "Virheellinen tarran ID tai linkki: `{{.ID}}`."
+  },
+  {
+    "id": "mgr.stickers.create_success",
+    "translation": "`{{.Name}}` luotu."
+  },
+  {
+    "id": "mgr.stickers.create_error",
+    "translation": "Tarran `{{.Name}}` luonti epäonnistui."
+  },
+  {
+    "id": "mgr.stickers.edit_success",
+    "translation": "`{{.Name}}` muokattu."
+  },
+  {
+    "id": "mgr.stickers.edit_error",
+    "translation": "Tarran muokkaus epäonnistui."
+  },
+  {
+    "id": "mgr.stickers.delete_success",
+    "translation": "Tarra poistettu."
+  },
+  {
+    "id": "mgr.stickers.delete_error",
+    "translation": "Tarran poisto epäonnistui."
+  },
+  {
+    "id": "ok.pong",
+    "translation": "Pong."
+  },
+  {
+    "id": "err.generic",
+    "translation": "Tapahtui virhe."
+  },
+  {
+    "id": "err.cooldown",
+    "translation": "Odota hetki — yritä uudelleen {{.Seconds}}s kuluttua."
+  },
+  {
+    "id": "err.not_in_guild",
+    "translation": "Komentoa voi käyttää vain palvelimessa."
+  },
+  {
+    "id": "err.restricted",
+    "translation": "Sinulla ei ole lupaa käyttää tätä sovellusta."
+  },
+  {
+    "id": "err.restricted_links",
+    "translation": "Sinulla ei ole lupaa käyttää tätä sovellusta.\nKehittäjä: {{.DeveloperURL}}\nTuki: {{.SupportServerURL}}"
+  }
 ]

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/xsyetopz/jagpda/internal/integrations/kawaii"
+	"github.com/xsyetopz/imotherbtw/internal/integrations/kawaii"
 )
 
 type KawaiiConfig struct {

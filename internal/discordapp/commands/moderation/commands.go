@@ -14,11 +14,11 @@ import (
 	"github.com/disgoorg/snowflake/v2"
 	"github.com/google/uuid"
 
-	"github.com/xsyetopz/jagpda/internal/discordapp/core"
-	"github.com/xsyetopz/jagpda/internal/discordapp/interactions"
-	"github.com/xsyetopz/jagpda/internal/i18n"
-	"github.com/xsyetopz/jagpda/internal/present"
-	"github.com/xsyetopz/jagpda/internal/store"
+	"github.com/xsyetopz/imotherbtw/internal/discordapp/core"
+	"github.com/xsyetopz/imotherbtw/internal/discordapp/interactions"
+	"github.com/xsyetopz/imotherbtw/internal/i18n"
+	"github.com/xsyetopz/imotherbtw/internal/present"
+	"github.com/xsyetopz/imotherbtw/internal/store"
 )
 
 const (
@@ -417,7 +417,7 @@ func sendDM(_ context.Context, client *bot.Client, userID snowflake.ID, create d
 }
 
 func buildUnwarnCustomID(actorID, guildID, targetID uint64, issuedAt int64) string {
-	return "jagpda:unwarn:" + strconv.FormatUint(
+	return "imotherbtw:unwarn:" + strconv.FormatUint(
 		actorID,
 		10,
 	) + ":" + strconv.FormatUint(
@@ -439,7 +439,7 @@ func parseUnwarnCustomID(customID string) (uint64, uint64, uint64, int64, bool) 
 	if len(parts) != unwarnCustomIDParts {
 		return 0, 0, 0, 0, false
 	}
-	if parts[0] != "jagpda" || parts[1] != "unwarn" {
+	if parts[0] != "imotherbtw" || parts[1] != "unwarn" {
 		return 0, 0, 0, 0, false
 	}
 

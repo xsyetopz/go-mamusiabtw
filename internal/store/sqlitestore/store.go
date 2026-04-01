@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/xsyetopz/jagpda/internal/store"
+	"github.com/xsyetopz/imotherbtw/internal/store"
 )
 
 type Store struct {

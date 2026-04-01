@@ -16,7 +16,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/xsyetopz/jagpda/internal/store"
+	"github.com/xsyetopz/imotherbtw/internal/store"
 )
 
 type Signature struct {

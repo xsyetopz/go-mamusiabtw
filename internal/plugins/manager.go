@@ -15,10 +15,10 @@ import (
 
 	"github.com/disgoorg/disgo/discord"
 
-	"github.com/xsyetopz/jagpda/internal/i18n"
-	"github.com/xsyetopz/jagpda/internal/luavm"
-	"github.com/xsyetopz/jagpda/internal/permissions"
-	"github.com/xsyetopz/jagpda/internal/store"
+	"github.com/xsyetopz/imotherbtw/internal/i18n"
+	"github.com/xsyetopz/imotherbtw/internal/luavm"
+	"github.com/xsyetopz/imotherbtw/internal/permissions"
+	"github.com/xsyetopz/imotherbtw/internal/store"
 )
 
 type Manager struct {

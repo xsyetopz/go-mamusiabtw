@@ -38,7 +38,7 @@ type Config struct {
 
 const (
 	defaultKawaiiToken       = "anonymous"
-	defaultSQLitePath        = "./data/jagpda.sqlite"
+	defaultSQLitePath        = "./data/imotherbtw.sqlite"
 	defaultMigrationsDir     = "./migrations/sqlite"
 	defaultLocalesDir        = "./locales"
 	defaultPluginsDir        = "./plugins"

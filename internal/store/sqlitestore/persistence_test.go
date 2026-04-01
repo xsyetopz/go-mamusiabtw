@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/xsyetopz/jagpda/internal/migrate"
-	"github.com/xsyetopz/jagpda/internal/sqlite"
-	"github.com/xsyetopz/jagpda/internal/store"
-	"github.com/xsyetopz/jagpda/internal/store/sqlitestore"
+	"github.com/xsyetopz/imotherbtw/internal/migrate"
+	"github.com/xsyetopz/imotherbtw/internal/sqlite"
+	"github.com/xsyetopz/imotherbtw/internal/store"
+	"github.com/xsyetopz/imotherbtw/internal/store/sqlitestore"
 )
 
 func mustNoErr(t *testing.T, err error, msg string) {

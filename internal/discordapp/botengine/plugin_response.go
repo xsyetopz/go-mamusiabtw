@@ -9,9 +9,9 @@ import (
 
 	"github.com/disgoorg/disgo/discord"
 
-	"github.com/xsyetopz/jagpda/internal/discordapp/interactions"
-	"github.com/xsyetopz/jagpda/internal/plugins"
-	"github.com/xsyetopz/jagpda/internal/present"
+	"github.com/xsyetopz/imotherbtw/internal/discordapp/interactions"
+	"github.com/xsyetopz/imotherbtw/internal/plugins"
+	"github.com/xsyetopz/imotherbtw/internal/present"
 )
 
 type pluginResponseMode int

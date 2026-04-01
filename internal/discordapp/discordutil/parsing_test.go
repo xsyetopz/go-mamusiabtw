@@ -3,7 +3,7 @@ package discordutil_test
 import (
 	"testing"
 
-	"github.com/xsyetopz/jagpda/internal/discordapp/discordutil"
+	"github.com/xsyetopz/imotherbtw/internal/discordapp/discordutil"
 )
 
 func TestParseEmojiID(t *testing.T) {

@@ -1,4 +1,4 @@
-module github.com/xsyetopz/jagpda
+module github.com/xsyetopz/imotherbtw
 
 go 1.26.1
 

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/xsyetopz/jagpda/internal/permissions"
+	"github.com/xsyetopz/imotherbtw/internal/permissions"
 )
 
 type Manifest struct {

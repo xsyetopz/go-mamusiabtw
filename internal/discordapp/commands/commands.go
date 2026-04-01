@@ -1,17 +1,17 @@
 package commands
 
 import (
-	cmdadmin "github.com/xsyetopz/jagpda/internal/discordapp/commands/admin"
-	cmdcore "github.com/xsyetopz/jagpda/internal/discordapp/commands/core"
-	cmdfun "github.com/xsyetopz/jagpda/internal/discordapp/commands/fun"
-	cmdinfo "github.com/xsyetopz/jagpda/internal/discordapp/commands/info"
-	cmdmanager "github.com/xsyetopz/jagpda/internal/discordapp/commands/manager"
-	cmdemojis "github.com/xsyetopz/jagpda/internal/discordapp/commands/manager/emojis"
-	cmdroles "github.com/xsyetopz/jagpda/internal/discordapp/commands/manager/roles"
-	cmdstickers "github.com/xsyetopz/jagpda/internal/discordapp/commands/manager/stickers"
-	cmdmoderation "github.com/xsyetopz/jagpda/internal/discordapp/commands/moderation"
+	cmdadmin "github.com/xsyetopz/imotherbtw/internal/discordapp/commands/admin"
+	cmdcore "github.com/xsyetopz/imotherbtw/internal/discordapp/commands/core"
+	cmdfun "github.com/xsyetopz/imotherbtw/internal/discordapp/commands/fun"
+	cmdinfo "github.com/xsyetopz/imotherbtw/internal/discordapp/commands/info"
+	cmdmanager "github.com/xsyetopz/imotherbtw/internal/discordapp/commands/manager"
+	cmdemojis "github.com/xsyetopz/imotherbtw/internal/discordapp/commands/manager/emojis"
+	cmdroles "github.com/xsyetopz/imotherbtw/internal/discordapp/commands/manager/roles"
+	cmdstickers "github.com/xsyetopz/imotherbtw/internal/discordapp/commands/manager/stickers"
+	cmdmoderation "github.com/xsyetopz/imotherbtw/internal/discordapp/commands/moderation"
 
-	"github.com/xsyetopz/jagpda/internal/discordapp/core"
+	"github.com/xsyetopz/imotherbtw/internal/discordapp/core"
 )
 
 func All() []core.SlashCommand {

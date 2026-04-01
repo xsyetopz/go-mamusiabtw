@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/xsyetopz/jagpda/internal/plugins"
+	"github.com/xsyetopz/imotherbtw/internal/plugins"
 )
 
 func (b *Bot) commandCooldown(cmdName string) time.Duration {
@@ -51,8 +51,8 @@ func componentCooldownKey(customID string) string {
 	if pid, _, ok := plugins.ParseCustomID(cid); ok {
 		return "component:" + pid
 	}
-	if strings.HasPrefix(cid, "jagpda:") {
-		return "component:jagpda"
+	if strings.HasPrefix(cid, "imotherbtw:") {
+		return "component:imotherbtw"
 	}
 	return "component:other"
 }
@@ -65,8 +65,8 @@ func modalCooldownKey(customID string) string {
 	if pid, _, ok := plugins.ParseCustomID(cid); ok {
 		return "modal:" + pid
 	}
-	if strings.HasPrefix(cid, "jagpda:") {
-		return "modal:jagpda"
+	if strings.HasPrefix(cid, "imotherbtw:") {
+		return "modal:imotherbtw"
 	}
 	return "modal:other"
 }

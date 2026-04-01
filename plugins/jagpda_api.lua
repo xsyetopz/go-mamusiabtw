@@ -12,7 +12,7 @@
 
 ---Global injected by the host at runtime.
 ---@type JagpdaAPI
-jagpda = jagpda
+imotherbtw = imotherbtw
 
 ---@class JagpdaPresent
 ---@field kind? 'info'|'success'|'warning'|'error'|'ok'|'warn'|'err'

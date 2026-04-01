@@ -5,12 +5,12 @@ import (
 	"errors"
 	"log/slog"
 
-	"github.com/xsyetopz/jagpda/internal/config"
-	"github.com/xsyetopz/jagpda/internal/discordapp"
-	"github.com/xsyetopz/jagpda/internal/i18n"
-	"github.com/xsyetopz/jagpda/internal/migrate"
-	"github.com/xsyetopz/jagpda/internal/sqlite"
-	"github.com/xsyetopz/jagpda/internal/store/sqlitestore"
+	"github.com/xsyetopz/imotherbtw/internal/config"
+	"github.com/xsyetopz/imotherbtw/internal/discordapp"
+	"github.com/xsyetopz/imotherbtw/internal/i18n"
+	"github.com/xsyetopz/imotherbtw/internal/migrate"
+	"github.com/xsyetopz/imotherbtw/internal/sqlite"
+	"github.com/xsyetopz/imotherbtw/internal/store/sqlitestore"
 )
 
 type Dependencies struct {

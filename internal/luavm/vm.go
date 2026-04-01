@@ -15,9 +15,9 @@ import (
 
 	lua "github.com/yuin/gopher-lua"
 
-	"github.com/xsyetopz/jagpda/internal/i18n"
-	"github.com/xsyetopz/jagpda/internal/permissions"
-	"github.com/xsyetopz/jagpda/internal/store"
+	"github.com/xsyetopz/imotherbtw/internal/i18n"
+	"github.com/xsyetopz/imotherbtw/internal/permissions"
+	"github.com/xsyetopz/imotherbtw/internal/store"
 )
 
 const defaultCallTimeout = 2 * time.Second
@@ -253,7 +253,7 @@ func (v *VM) registerHostAPI() {
 	t.RawSetString("kv_get_json", v.L.NewFunction(v.luaKVGetJSON))
 	t.RawSetString("kv_put_json", v.L.NewFunction(v.luaKVPutJSON))
 
-	v.L.SetGlobal("jagpda", t)
+	v.L.SetGlobal("imotherbtw", t)
 }
 
 func (v *VM) payloadToLua(p Payload) (*lua.LTable, error) {

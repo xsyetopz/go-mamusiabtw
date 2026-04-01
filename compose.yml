@@ -1,12 +1,12 @@
 services:
-  jagpda:
+  imotherbtw:
     build:
       context: .
     restart: unless-stopped
     env_file:
       - .env
     environment:
-      SQLITE_PATH: /data/jagpda.sqlite
+      SQLITE_PATH: /data/imotherbtw.sqlite
       MIGRATIONS_DIR: /app/migrations/sqlite
       LOCALES_DIR: /app/locales
       PLUGINS_DIR: /app/plugins

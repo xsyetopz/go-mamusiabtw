@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/xsyetopz/jagpda/internal/permissions"
+	"github.com/xsyetopz/imotherbtw/internal/permissions"
 )
 
 func TestEffective(t *testing.T) {

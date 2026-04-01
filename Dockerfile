@@ -14,7 +14,7 @@ RUN go mod download
 COPY . .
 
 ENV CGO_ENABLED=1
-RUN go build -trimpath -ldflags="-s -w" -o /out/jagpda ./cmd/jagpda
+RUN go build -trimpath -ldflags="-s -w" -o /out/imotherbtw ./cmd/imotherbtw
 
 
 FROM debian:bookworm-slim
@@ -26,24 +26,24 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 ARG UID=1000
 ARG GID=1000
-RUN groupadd -g "${GID}" jagpda && useradd -u "${UID}" -g "${GID}" -m -s /usr/sbin/nologin jagpda
+RUN groupadd -g "${GID}" imotherbtw && useradd -u "${UID}" -g "${GID}" -m -s /usr/sbin/nologin imotherbtw
 
 WORKDIR /app
 
-COPY --from=builder /out/jagpda /usr/local/bin/jagpda
+COPY --from=builder /out/imotherbtw /usr/local/bin/imotherbtw
 COPY migrations ./migrations
 COPY locales ./locales
 COPY plugins ./plugins
 COPY config ./config
 
-RUN mkdir -p /data && chown -R jagpda:jagpda /data
+RUN mkdir -p /data && chown -R imotherbtw:imotherbtw /data
 
-USER jagpda:jagpda
+USER imotherbtw:imotherbtw
 
-ENV SQLITE_PATH=/data/jagpda.sqlite
+ENV SQLITE_PATH=/data/imotherbtw.sqlite
 ENV MIGRATIONS_DIR=/app/migrations/sqlite
 ENV LOCALES_DIR=/app/locales
 ENV PLUGINS_DIR=/app/plugins
 ENV JAGPDA_PERMISSIONS_FILE=/app/config/permissions.json
 
-ENTRYPOINT ["jagpda"]
+ENTRYPOINT ["imotherbtw"]
