@@ -167,7 +167,7 @@ func TestLoadFromEnv_RejectsInvalidInputs(t *testing.T) {
 func TestShippedSchemaURLs(t *testing.T) {
 	t.Parallel()
 
-	const schemaBaseURL = "https://raw.githubusercontent.com/xsyetopz/go-mamusiabtw/main/schemas/"
+	const schemaBaseURL = "https://raw.githubusercontent.com/xsyetopz/go-mamusiabtw/refs/heads/main/schemas/"
 
 	cases := []struct {
 		path string
