@@ -17,6 +17,8 @@ One important thing, honey: this repo’s stable internal name is `mamusiabtw` (
 
 mamusiabtw creates/opens the SQLite DB at `SQLITE_PATH` and applies migrations automatically on startup... Mommy handles the chores.~
 
+The direct-binary flow and the Docker flow use the same env vars and the same `config/`, `plugins/`, `locales/`, and `migrations/` inputs.
+
 ## Docker
 
 1. Copy `.env.example` to `.env` and fill in at least `DISCORD_TOKEN`.
@@ -117,6 +119,12 @@ When `MAMUSIABTW_PROD_MODE=1` and `MAMUSIABTW_ALLOW_UNSIGNED_PLUGINS=0`, plugins
 
 - Seed keys via `MAMUSIABTW_TRUSTED_KEYS_FILE`
 - Additional trusted keys are stored in SQLite (`trusted_signers`)
+
+### Plugin Trust Modes
+
+- Production signed mode: `MAMUSIABTW_PROD_MODE=1` and `MAMUSIABTW_ALLOW_UNSIGNED_PLUGINS=0`
+- Mixed dev mode: `MAMUSIABTW_PROD_MODE=0` and `MAMUSIABTW_ALLOW_UNSIGNED_PLUGINS=1`
+- Recommended release default: keep unsigned plugins off anywhere you treat as production
 
 ## Legacy Parity Options
 

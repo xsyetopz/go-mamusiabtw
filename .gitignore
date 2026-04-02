@@ -16,5 +16,5 @@
 # Local config (seed keys, etc.)
 /config/trusted_keys.json
 
-# temporary ignore of legacy Rust-based stuff
-legacy/
+# Executables
+mamusiabtw

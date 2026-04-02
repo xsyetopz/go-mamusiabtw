@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/xsyetopz/go-mamusiabtw/refs/heads/mainchemas/plugin.schema.v1.json",
+  "$id": "https://raw.githubusercontent.com/xsyetopz/go-mamusiabtw/main/schemas/plugin.schema.v1.json",
   "title": "mamusiabtw plugin manifest",
   "type": "object",
   "additionalProperties": false,
