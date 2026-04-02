@@ -17,6 +17,13 @@ type Manifest struct {
 	Permissions permissions.Permissions `json:"permissions"`
 
 	Commands []Command `json:"commands"`
+
+	// Events declares which gateway events this plugin wants to receive.
+	// The host still enforces permissions/allow-lists.
+	Events []string `json:"events,omitempty"`
+
+	// Jobs declares scheduled plugin triggers.
+	Jobs []Job `json:"jobs,omitempty"`
 }
 
 type Command struct {
@@ -34,6 +41,11 @@ type CommandOption struct {
 	Type        string `json:"type"`
 	Description string `json:"description"`
 	Required    bool   `json:"required"`
+}
+
+type Job struct {
+	ID       string `json:"id"`
+	Schedule string `json:"schedule"`
 }
 
 func ReadManifest(path string) (Manifest, error) {

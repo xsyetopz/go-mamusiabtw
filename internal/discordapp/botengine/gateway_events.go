@@ -9,6 +9,7 @@ import (
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/snowflake/v2"
 
+	"github.com/xsyetopz/imotherbtw/internal/plugins"
 	"github.com/xsyetopz/imotherbtw/internal/store"
 )
 
@@ -165,6 +166,16 @@ func (b *Bot) onGuildMemberJoin(e *events.GuildMemberJoin) {
 		slog.Uint64("user_id", userID),
 		slog.String("username", strings.TrimSpace(user.Username)),
 	)
+
+	if b.pluginAuto != nil {
+		b.pluginAuto.FireEvent(pluginEventMemberJoin, plugins.Payload{
+			GuildID:   snowflake.ID(guildID).String(),
+			ChannelID: "",
+			UserID:    user.ID.String(),
+			Locale:    "",
+			Options:   map[string]any{},
+		})
+	}
 }
 
 func (b *Bot) onGuildMemberLeave(e *events.GuildMemberLeave) {
@@ -191,6 +202,16 @@ func (b *Bot) onGuildMemberLeave(e *events.GuildMemberLeave) {
 		slog.Uint64("user_id", userID),
 		slog.String("username", strings.TrimSpace(user.Username)),
 	)
+
+	if b.pluginAuto != nil {
+		b.pluginAuto.FireEvent(pluginEventMemberLeave, plugins.Payload{
+			GuildID:   snowflake.ID(guildID).String(),
+			ChannelID: "",
+			UserID:    user.ID.String(),
+			Locale:    "",
+			Options:   map[string]any{},
+		})
+	}
 }
 
 func (b *Bot) onGuildBan(e *events.GuildBan) {
@@ -203,6 +224,16 @@ func (b *Bot) onGuildBan(e *events.GuildBan) {
 		slog.Uint64("user_id", uint64(e.User.ID)),
 		slog.String("username", strings.TrimSpace(e.User.Username)),
 	)
+
+	if b.pluginAuto != nil {
+		b.pluginAuto.FireEvent(pluginEventGuildBan, plugins.Payload{
+			GuildID:   e.GuildID.String(),
+			ChannelID: "",
+			UserID:    e.User.ID.String(),
+			Locale:    "",
+			Options:   map[string]any{},
+		})
+	}
 }
 
 func (b *Bot) onGuildUnban(e *events.GuildUnban) {
@@ -215,6 +246,16 @@ func (b *Bot) onGuildUnban(e *events.GuildUnban) {
 		slog.Uint64("user_id", uint64(e.User.ID)),
 		slog.String("username", strings.TrimSpace(e.User.Username)),
 	)
+
+	if b.pluginAuto != nil {
+		b.pluginAuto.FireEvent(pluginEventGuildUnban, plugins.Payload{
+			GuildID:   e.GuildID.String(),
+			ChannelID: "",
+			UserID:    e.User.ID.String(),
+			Locale:    "",
+			Options:   map[string]any{},
+		})
+	}
 }
 
 func (b *Bot) onGuildChannelCreate(e *events.GuildChannelCreate) {

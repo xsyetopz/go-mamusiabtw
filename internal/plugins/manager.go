@@ -38,6 +38,9 @@ type Manager struct {
 
 	plugins  map[string]*Plugin
 	commands map[string]PluginCommand
+
+	eventSubs map[string][]string
+	jobs      []PluginJob
 }
 
 type Store interface {
@@ -70,6 +73,12 @@ type Plugin struct {
 type PluginCommand struct {
 	PluginID string
 	Command  Command
+}
+
+type PluginJob struct {
+	PluginID string
+	JobID    string
+	Schedule string
 }
 
 type Payload struct {
@@ -105,6 +114,7 @@ func NewManager(opts Options) (*Manager, error) {
 		i18n:                 opts.I18n,
 		plugins:              map[string]*Plugin{},
 		commands:             map[string]PluginCommand{},
+		eventSubs:            map[string][]string{},
 	}, nil
 }
 
@@ -127,7 +137,8 @@ func (m *Manager) LoadAll(ctx context.Context) error {
 	}
 
 	nextPlugins, nextCommands := m.loadPluginsFromEntries(ctx, entries, keys, policy)
-	oldPlugins := m.swapState(nextPlugins, nextCommands, policy)
+	nextEvents, nextJobs := buildSubscriptions(nextPlugins)
+	oldPlugins := m.swapState(nextPlugins, nextCommands, nextEvents, nextJobs, policy)
 	closePlugins(oldPlugins)
 	return nil
 }
@@ -241,12 +252,16 @@ func addCommands(
 func (m *Manager) swapState(
 	nextPlugins map[string]*Plugin,
 	nextCommands map[string]PluginCommand,
+	nextEvents map[string][]string,
+	nextJobs []PluginJob,
 	policy permissions.Policy,
 ) map[string]*Plugin {
 	m.mu.Lock()
 	oldPlugins := m.plugins
 	m.plugins = nextPlugins
 	m.commands = nextCommands
+	m.eventSubs = nextEvents
+	m.jobs = nextJobs
 	m.policy = policy
 	m.mu.Unlock()
 	return oldPlugins
@@ -260,6 +275,50 @@ func closePlugins(oldPlugins map[string]*Plugin) {
 	}
 }
 
+func buildSubscriptions(pls map[string]*Plugin) (map[string][]string, []PluginJob) {
+	ev := map[string][]string{}
+	var jobs []PluginJob
+
+	for _, pl := range pls {
+		if pl == nil {
+			continue
+		}
+
+		for _, raw := range pl.Manifest.Events {
+			name := strings.ToLower(strings.TrimSpace(raw))
+			if name == "" {
+				continue
+			}
+			ev[name] = append(ev[name], pl.ID)
+		}
+
+		for _, job := range pl.Manifest.Jobs {
+			id := strings.TrimSpace(job.ID)
+			spec := strings.TrimSpace(job.Schedule)
+			if id == "" || spec == "" {
+				continue
+			}
+			jobs = append(jobs, PluginJob{
+				PluginID: pl.ID,
+				JobID:    id,
+				Schedule: spec,
+			})
+		}
+	}
+
+	for name := range ev {
+		sort.Strings(ev[name])
+	}
+	sort.Slice(jobs, func(i, j int) bool {
+		if jobs[i].PluginID != jobs[j].PluginID {
+			return jobs[i].PluginID < jobs[j].PluginID
+		}
+		return jobs[i].JobID < jobs[j].JobID
+	})
+
+	return ev, jobs
+}
+
 func (m *Manager) Commands() map[string]PluginCommand {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
@@ -267,6 +326,41 @@ func (m *Manager) Commands() map[string]PluginCommand {
 	out := make(map[string]PluginCommand, len(m.commands))
 	maps.Copy(out, m.commands)
 	return out
+}
+
+func (m *Manager) Jobs() []PluginJob {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	return append([]PluginJob(nil), m.jobs...)
+}
+
+func (m *Manager) EventSubscribers(eventName string) []string {
+	eventName = strings.ToLower(strings.TrimSpace(eventName))
+	if eventName == "" {
+		return nil
+	}
+
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	return append([]string(nil), m.eventSubs[eventName]...)
+}
+
+func (m *Manager) EffectivePermissions(pluginID string) (permissions.Permissions, bool) {
+	pluginID = strings.TrimSpace(pluginID)
+	if pluginID == "" {
+		return permissions.Permissions{}, false
+	}
+
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	pl, ok := m.plugins[pluginID]
+	if !ok || pl == nil {
+		return permissions.Permissions{}, false
+	}
+	return pl.Effective, true
 }
 
 func (m *Manager) CommandCreates() []discord.ApplicationCommandCreate {
@@ -370,6 +464,52 @@ func (m *Manager) HandleModal(ctx context.Context, pluginID, localID string, pay
 	}
 
 	return vm.CallHandle(ctx, "HandleModal", localID, luavm.Payload{
+		GuildID:   payload.GuildID,
+		ChannelID: payload.ChannelID,
+		UserID:    payload.UserID,
+		Locale:    payload.Locale,
+		Options:   payload.Options,
+	})
+}
+
+func (m *Manager) HandleEvent(ctx context.Context, pluginID, eventName string, payload Payload) (any, bool, error) {
+	m.mu.RLock()
+	pl, ok := m.plugins[pluginID]
+	if !ok || pl.VM == nil {
+		m.mu.RUnlock()
+		return nil, false, fmt.Errorf("plugin %q not loaded", pluginID)
+	}
+	vm := pl.VM
+	m.mu.RUnlock()
+
+	if !vm.HasFunc("HandleEvent") {
+		return nil, false, fmt.Errorf("plugin %q does not implement HandleEvent", pluginID)
+	}
+
+	return vm.CallHandle(ctx, "HandleEvent", eventName, luavm.Payload{
+		GuildID:   payload.GuildID,
+		ChannelID: payload.ChannelID,
+		UserID:    payload.UserID,
+		Locale:    payload.Locale,
+		Options:   payload.Options,
+	})
+}
+
+func (m *Manager) HandleJob(ctx context.Context, pluginID, jobID string, payload Payload) (any, bool, error) {
+	m.mu.RLock()
+	pl, ok := m.plugins[pluginID]
+	if !ok || pl.VM == nil {
+		m.mu.RUnlock()
+		return nil, false, fmt.Errorf("plugin %q not loaded", pluginID)
+	}
+	vm := pl.VM
+	m.mu.RUnlock()
+
+	if !vm.HasFunc("HandleJob") {
+		return nil, false, fmt.Errorf("plugin %q does not implement HandleJob", pluginID)
+	}
+
+	return vm.CallHandle(ctx, "HandleJob", jobID, luavm.Payload{
 		GuildID:   payload.GuildID,
 		ChannelID: payload.ChannelID,
 		UserID:    payload.UserID,
@@ -516,8 +656,38 @@ func commandToCreate(
 				Description: opt.Description,
 				Required:    opt.Required,
 			})
+		case "float":
+			options = append(options, discord.ApplicationCommandOptionFloat{
+				Name:        opt.Name,
+				Description: opt.Description,
+				Required:    opt.Required,
+			})
 		case "user":
 			options = append(options, discord.ApplicationCommandOptionUser{
+				Name:        opt.Name,
+				Description: opt.Description,
+				Required:    opt.Required,
+			})
+		case "channel":
+			options = append(options, discord.ApplicationCommandOptionChannel{
+				Name:        opt.Name,
+				Description: opt.Description,
+				Required:    opt.Required,
+			})
+		case "role":
+			options = append(options, discord.ApplicationCommandOptionRole{
+				Name:        opt.Name,
+				Description: opt.Description,
+				Required:    opt.Required,
+			})
+		case "mentionable":
+			options = append(options, discord.ApplicationCommandOptionMentionable{
+				Name:        opt.Name,
+				Description: opt.Description,
+				Required:    opt.Required,
+			})
+		case "attachment":
+			options = append(options, discord.ApplicationCommandOptionAttachment{
 				Name:        opt.Name,
 				Description: opt.Description,
 				Required:    opt.Required,

@@ -79,6 +79,8 @@ type Bot struct {
 	order    []core.SlashCommand
 
 	plugins *plugins.Manager
+
+	pluginAuto *pluginAutomation
 }
 
 func New(deps Dependencies) (*Bot, error) {
@@ -217,6 +219,7 @@ func (b *Bot) initPlugins(deps Dependencies) error {
 		return err
 	}
 	b.plugins = pm
+	b.pluginAuto = newPluginAutomation(b)
 	return nil
 }
 
@@ -271,6 +274,10 @@ func (b *Bot) Start(ctx context.Context) error {
 		return err
 	}
 
+	if b.pluginAuto != nil {
+		b.pluginAuto.Start(ctx)
+	}
+
 	b.startReminderScheduler(ctx)
 	return nil
 }
@@ -278,6 +285,9 @@ func (b *Bot) Start(ctx context.Context) error {
 func (b *Bot) Close(ctx context.Context) {
 	if b.client != nil {
 		b.client.Close(ctx)
+	}
+	if b.pluginAuto != nil {
+		b.pluginAuto.Stop()
 	}
 }
 
@@ -398,6 +408,9 @@ func (p pluginAdmin) Reload(ctx context.Context) error {
 		if err := p.b.registerCommandsInCachedGuilds(ctx); err != nil {
 			return err
 		}
+	}
+	if p.b.pluginAuto != nil {
+		p.b.pluginAuto.Restart(ctx)
 	}
 	return nil
 }

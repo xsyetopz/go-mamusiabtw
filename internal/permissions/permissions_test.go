@@ -29,6 +29,43 @@ func TestEffective(t *testing.T) {
 	if eff.Storage.KV {
 		t.Fatalf("expected kv denied when not requested")
 	}
+
+	req = permissions.Permissions{
+		Discord: permissions.DiscordPermissions{SendChannel: true, SendDM: true},
+		Automation: permissions.AutomationPermissions{
+			Jobs: true,
+			Events: permissions.AutomationEventPermissions{
+				MemberJoinLeave: true,
+				Moderation:      true,
+			},
+		},
+	}
+	grant = permissions.Permissions{
+		Discord: permissions.DiscordPermissions{SendChannel: true, SendDM: false},
+		Automation: permissions.AutomationPermissions{
+			Jobs: false,
+			Events: permissions.AutomationEventPermissions{
+				MemberJoinLeave: true,
+				Moderation:      false,
+			},
+		},
+	}
+	eff = permissions.Effective(req, grant)
+	if !eff.Discord.SendChannel {
+		t.Fatalf("expected send_channel allowed")
+	}
+	if eff.Discord.SendDM {
+		t.Fatalf("expected send_dm denied")
+	}
+	if eff.Automation.Jobs {
+		t.Fatalf("expected jobs denied")
+	}
+	if !eff.Automation.Events.MemberJoinLeave {
+		t.Fatalf("expected member_join_leave allowed")
+	}
+	if eff.Automation.Events.Moderation {
+		t.Fatalf("expected moderation denied")
+	}
 }
 
 func TestPolicyGranted(t *testing.T) {
@@ -38,9 +75,9 @@ func TestPolicyGranted(t *testing.T) {
 	p := filepath.Join(dir, "permissions.json")
 
 	if err := os.WriteFile(p, []byte(`{
-  "defaults": { "storage": { "kv": false } },
+  "defaults": { "storage": { "kv": false }, "discord": { "send_channel": false } },
   "plugins": {
-    "a": { "storage": { "kv": true } }
+    "a": { "storage": { "kv": true }, "discord": { "send_channel": true } }
   }
 }`), 0o600); err != nil {
 		t.Fatalf("write file: %v", err)
@@ -56,5 +93,8 @@ func TestPolicyGranted(t *testing.T) {
 	}
 	if !pol.Granted("a").Storage.KV {
 		t.Fatalf("expected plugin override kv allowed")
+	}
+	if !pol.Granted("a").Discord.SendChannel {
+		t.Fatalf("expected plugin override send_channel allowed")
 	}
 }

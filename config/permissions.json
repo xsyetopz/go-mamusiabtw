@@ -3,6 +3,17 @@
   "defaults": {
     "storage": {
       "kv": false
+    },
+    "discord": {
+      "send_channel": false,
+      "send_dm": false
+    },
+    "automation": {
+      "jobs": false,
+      "events": {
+        "member_join_leave": false,
+        "moderation": false
+      }
     }
   },
   "plugins": {

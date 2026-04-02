@@ -14,10 +14,34 @@ import (
 // default.
 type Permissions struct {
 	Storage StoragePermissions `json:"storage"`
+	Discord DiscordPermissions `json:"discord"`
+
+	// Automation covers non-interaction triggers: scheduled jobs and gateway events.
+	Automation AutomationPermissions `json:"automation"`
 }
 
 type StoragePermissions struct {
 	KV bool `json:"kv"`
+}
+
+type DiscordPermissions struct {
+	SendChannel bool `json:"send_channel"`
+	SendDM      bool `json:"send_dm"`
+}
+
+type AutomationPermissions struct {
+	// Jobs allows scheduled triggers declared by a plugin manifest.
+	Jobs bool `json:"jobs"`
+
+	Events AutomationEventPermissions `json:"events"`
+}
+
+type AutomationEventPermissions struct {
+	// MemberJoinLeave covers member join/leave hooks.
+	MemberJoinLeave bool `json:"member_join_leave"`
+
+	// Moderation covers ban/unban hooks.
+	Moderation bool `json:"moderation"`
 }
 
 // Policy is a Claude-style central permissions file: defaults + per-plugin overrides.
@@ -68,6 +92,18 @@ func Effective(requested, granted Permissions) Permissions {
 		Storage: StoragePermissions{
 			KV: requested.Storage.KV && granted.Storage.KV,
 		},
+		Discord: DiscordPermissions{
+			SendChannel: requested.Discord.SendChannel && granted.Discord.SendChannel,
+			SendDM:      requested.Discord.SendDM && granted.Discord.SendDM,
+		},
+		Automation: AutomationPermissions{
+			Jobs: requested.Automation.Jobs && granted.Automation.Jobs,
+			Events: AutomationEventPermissions{
+				MemberJoinLeave: requested.Automation.Events.MemberJoinLeave &&
+					granted.Automation.Events.MemberJoinLeave,
+				Moderation: requested.Automation.Events.Moderation && granted.Automation.Events.Moderation,
+			},
+		},
 	}
 }
 
@@ -75,6 +111,12 @@ func merge(base, override Permissions) Permissions {
 	// For v1, simple boolean OR for "grants" is sufficient.
 	out := base
 	out.Storage.KV = out.Storage.KV || override.Storage.KV
+	out.Discord.SendChannel = out.Discord.SendChannel || override.Discord.SendChannel
+	out.Discord.SendDM = out.Discord.SendDM || override.Discord.SendDM
+	out.Automation.Jobs = out.Automation.Jobs || override.Automation.Jobs
+	out.Automation.Events.MemberJoinLeave = out.Automation.Events.MemberJoinLeave ||
+		override.Automation.Events.MemberJoinLeave
+	out.Automation.Events.Moderation = out.Automation.Events.Moderation || override.Automation.Events.Moderation
 	return out
 }
 
