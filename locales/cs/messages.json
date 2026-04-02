@@ -1,1 +1,1418 @@
-[]
+[
+  {
+    "id": "cmd.ping.name",
+    "translation": "ping"
+  },
+  {
+    "id": "cmd.ping.desc",
+    "translation": "Rychla kontrola - jestli je máma vzhuru a drzi na vsechno oko."
+  },
+  {
+    "id": "cmd.help.name",
+    "translation": "help"
+  },
+  {
+    "id": "cmd.help.desc",
+    "translation": "Podivej se, s cim ti máma muze pomoct."
+  },
+  {
+    "id": "cmd.help.content",
+    "translation": "Tady mas, {{.Pet}} - {{.Mommy}} umi pomoct s: {{.Commands}}"
+  },
+  {
+    "id": "cmd.warn.name",
+    "translation": "warn"
+  },
+  {
+    "id": "cmd.warn.desc",
+    "translation": "Dej nekomu jemne varovani (a kdyz je treba, i kratky time-out)."
+  },
+  {
+    "id": "cmd.warn.opt.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.warn.opt.user.desc",
+    "translation": "Koho varovat?"
+  },
+  {
+    "id": "cmd.warn.opt.reason.name",
+    "translation": "reason"
+  },
+  {
+    "id": "cmd.warn.opt.reason.desc",
+    "translation": "Co se stalo?"
+  },
+  {
+    "id": "cmd.unwarn.name",
+    "translation": "unwarn"
+  },
+  {
+    "id": "cmd.unwarn.desc",
+    "translation": "Odebrat varovani a dat sanci zacit znovu."
+  },
+  {
+    "id": "cmd.unwarn.opt.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.unwarn.opt.user.desc",
+    "translation": "Komu odebrat varovani?"
+  },
+  {
+    "id": "cmd.block.name",
+    "translation": "block"
+  },
+  {
+    "id": "cmd.block.desc",
+    "translation": "Dat uzivatele nebo server do time-outu, aby me nemohli pouzivat."
+  },
+  {
+    "id": "cmd.block.sub.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.block.sub.user.desc",
+    "translation": "Dat uzivatele do time-outu, aby me nemohl pouzivat."
+  },
+  {
+    "id": "cmd.block.sub.guild.name",
+    "translation": "guild"
+  },
+  {
+    "id": "cmd.block.sub.guild.desc",
+    "translation": "Dat server do time-outu, aby me nemohl pouzivat."
+  },
+  {
+    "id": "cmd.block.opt.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.block.opt.user.desc",
+    "translation": "Ktery uzivatel potrebuje time-out?"
+  },
+  {
+    "id": "cmd.block.opt.reason.name",
+    "translation": "reason"
+  },
+  {
+    "id": "cmd.block.opt.reason.desc",
+    "translation": "Proc time-out?"
+  },
+  {
+    "id": "cmd.block.opt.guild_id.name",
+    "translation": "guild_id"
+  },
+  {
+    "id": "cmd.block.opt.guild_id.desc",
+    "translation": "ID serveru, ktery chces dat do time-outu."
+  },
+  {
+    "id": "cmd.unblock.name",
+    "translation": "unblock"
+  },
+  {
+    "id": "cmd.unblock.desc",
+    "translation": "Zrusit time-out."
+  },
+  {
+    "id": "cmd.unblock.sub.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.unblock.sub.user.desc",
+    "translation": "Nechat uzivatele zase me pouzivat."
+  },
+  {
+    "id": "cmd.unblock.sub.guild.name",
+    "translation": "guild"
+  },
+  {
+    "id": "cmd.unblock.sub.guild.desc",
+    "translation": "Nechat server zase me pouzivat."
+  },
+  {
+    "id": "cmd.unblock.opt.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.unblock.opt.user.desc",
+    "translation": "Ktereho uzivatele odblokovat?"
+  },
+  {
+    "id": "cmd.unblock.opt.guild_id.name",
+    "translation": "guild_id"
+  },
+  {
+    "id": "cmd.unblock.opt.guild_id.desc",
+    "translation": "ID serveru, ktery chces odblokovat."
+  },
+  {
+    "id": "cmd.plugins.name",
+    "translation": "plugins"
+  },
+  {
+    "id": "cmd.plugins.desc",
+    "translation": "Spravovat moje pluginy."
+  },
+  {
+    "id": "cmd.plugins.sub.list.name",
+    "translation": "list"
+  },
+  {
+    "id": "cmd.plugins.sub.list.desc",
+    "translation": "Zobrazit nactene pluginy."
+  },
+  {
+    "id": "cmd.plugins.sub.reload.name",
+    "translation": "reload"
+  },
+  {
+    "id": "cmd.plugins.sub.reload.desc",
+    "translation": "Znovu nacist pluginy z disku."
+  },
+  {
+    "id": "cmd.about.name",
+    "translation": "about"
+  },
+  {
+    "id": "cmd.about.desc",
+    "translation": "Zjisti, kdo jsem (a jakou verzi bezim)."
+  },
+  {
+    "id": "cmd.lookup.name",
+    "translation": "lookup"
+  },
+  {
+    "id": "cmd.lookup.desc",
+    "translation": "Vyhledat informace o uzivatelich, serverech, rolich a kanalech."
+  },
+  {
+    "id": "cmd.lookup.sub.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.lookup.sub.user.desc",
+    "translation": "Vyhledat uzivatele."
+  },
+  {
+    "id": "cmd.lookup.sub.user.opt.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.lookup.sub.user.opt.user.desc",
+    "translation": "Ktery uzivatel? (Ponech prazdne pro sebe.)"
+  },
+  {
+    "id": "cmd.lookup.sub.guild.name",
+    "translation": "guild"
+  },
+  {
+    "id": "cmd.lookup.sub.guild.desc",
+    "translation": "Vyhledat tento server."
+  },
+  {
+    "id": "cmd.lookup.sub.role.name",
+    "translation": "role"
+  },
+  {
+    "id": "cmd.lookup.sub.role.desc",
+    "translation": "Vyhledat roli."
+  },
+  {
+    "id": "cmd.lookup.sub.role.opt.role.name",
+    "translation": "role"
+  },
+  {
+    "id": "cmd.lookup.sub.role.opt.role.desc",
+    "translation": "Kterou roli máma prohlidne?"
+  },
+  {
+    "id": "cmd.lookup.sub.channel.name",
+    "translation": "channel"
+  },
+  {
+    "id": "cmd.lookup.sub.channel.desc",
+    "translation": "Vyhledat kanal."
+  },
+  {
+    "id": "cmd.lookup.sub.channel.opt.channel.name",
+    "translation": "channel"
+  },
+  {
+    "id": "cmd.lookup.sub.channel.opt.channel.desc",
+    "translation": "Ktery kanal máma prohlidne?"
+  },
+  {
+    "id": "info.lookup.user.field.bot",
+    "translation": "🤖 Bot"
+  },
+  {
+    "id": "info.lookup.user.field.system",
+    "translation": "🖥️ System"
+  },
+  {
+    "id": "info.lookup.user.field.locale",
+    "translation": "🌐 Jazyk"
+  },
+  {
+    "id": "info.lookup.user.field.created",
+    "translation": "📅 Vytvoreno"
+  },
+  {
+    "id": "info.lookup.user.field.joined",
+    "translation": "📥 Pripojeno"
+  },
+  {
+    "id": "info.lookup.user.field.roles",
+    "translation": "🛡️ Role"
+  },
+  {
+    "id": "info.lookup.guild.field.roles",
+    "translation": "🛡️ Role"
+  },
+  {
+    "id": "info.lookup.guild.field.emojis",
+    "translation": "😃 Emoji"
+  },
+  {
+    "id": "info.lookup.guild.field.stickers",
+    "translation": "🖼️ Stickery"
+  },
+  {
+    "id": "info.lookup.guild.field.members",
+    "translation": "👥 Clenove"
+  },
+  {
+    "id": "info.lookup.guild.field.channels",
+    "translation": "🌐 Kanaly"
+  },
+  {
+    "id": "info.lookup.guild.field.created",
+    "translation": "📅 Vytvoreno"
+  },
+  {
+    "id": "info.lookup.role.field.mention",
+    "translation": "🏷️ Zminenka"
+  },
+  {
+    "id": "info.lookup.role.field.position",
+    "translation": "📌 Pozice"
+  },
+  {
+    "id": "info.lookup.role.field.hoist",
+    "translation": "📌 Zvyřaznit"
+  },
+  {
+    "id": "info.lookup.role.field.mentionable",
+    "translation": "🔔 Lze zminit"
+  },
+  {
+    "id": "info.lookup.role.field.managed",
+    "translation": "🤖 Spravovana"
+  },
+  {
+    "id": "info.lookup.role.field.permissions",
+    "translation": "🔐 Opravneni"
+  },
+  {
+    "id": "info.lookup.role.field.created",
+    "translation": "📅 Vytvoreno"
+  },
+  {
+    "id": "info.lookup.channel.field.mention",
+    "translation": "🔗 Zminenka"
+  },
+  {
+    "id": "info.lookup.channel.field.type",
+    "translation": "📁 Typ"
+  },
+  {
+    "id": "info.lookup.channel.field.parent",
+    "translation": "🗂️ Kategorie"
+  },
+  {
+    "id": "info.lookup.channel.field.permissions",
+    "translation": "🔐 Opravneni"
+  },
+  {
+    "id": "info.lookup.channel.field.created",
+    "translation": "📅 Vytvoreno"
+  },
+  {
+    "id": "cmd.flip.name",
+    "translation": "flip"
+  },
+  {
+    "id": "cmd.flip.desc",
+    "translation": "Hodit minci."
+  },
+  {
+    "id": "cmd.roll.name",
+    "translation": "roll"
+  },
+  {
+    "id": "cmd.roll.desc",
+    "translation": "Hodit kostkami."
+  },
+  {
+    "id": "cmd.roll.opt.number.name",
+    "translation": "number"
+  },
+  {
+    "id": "cmd.roll.opt.number.desc",
+    "translation": "Kolik kostek?"
+  },
+  {
+    "id": "cmd.roll.opt.sides.name",
+    "translation": "sides"
+  },
+  {
+    "id": "cmd.roll.opt.sides.desc",
+    "translation": "Kolik stran na kostce?"
+  },
+  {
+    "id": "cmd.roll.opt.modifier.name",
+    "translation": "modifier"
+  },
+  {
+    "id": "cmd.roll.opt.modifier.desc",
+    "translation": "Pridat modifikator?"
+  },
+  {
+    "id": "cmd.8ball.name",
+    "translation": "8ball"
+  },
+  {
+    "id": "cmd.8ball.desc",
+    "translation": "Zeptat se kouzelne osmicky."
+  },
+  {
+    "id": "cmd.8ball.opt.question.name",
+    "translation": "question"
+  },
+  {
+    "id": "cmd.8ball.opt.question.desc",
+    "translation": "Jaka otazka?"
+  },
+  {
+    "id": "cmd.hug.name",
+    "translation": "hug"
+  },
+  {
+    "id": "cmd.hug.desc",
+    "translation": "Obejmout nekoho."
+  },
+  {
+    "id": "cmd.hug.opt.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.hug.opt.user.desc",
+    "translation": "Koho obejmout?"
+  },
+  {
+    "id": "cmd.pat.name",
+    "translation": "pat"
+  },
+  {
+    "id": "cmd.pat.desc",
+    "translation": "Pohladit nekoho po hlave."
+  },
+  {
+    "id": "cmd.pat.opt.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.pat.opt.user.desc",
+    "translation": "Koho pohladit?"
+  },
+  {
+    "id": "cmd.poke.name",
+    "translation": "poke"
+  },
+  {
+    "id": "cmd.poke.desc",
+    "translation": "Stouchnout do nekoho (jemne)."
+  },
+  {
+    "id": "cmd.poke.opt.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.poke.opt.user.desc",
+    "translation": "Koho stouchnout?"
+  },
+  {
+    "id": "cmd.shrug.name",
+    "translation": "shrug"
+  },
+  {
+    "id": "cmd.shrug.desc",
+    "translation": "Pokrcit rameny."
+  },
+  {
+    "id": "cmd.shrug.opt.message.name",
+    "translation": "message"
+  },
+  {
+    "id": "cmd.shrug.opt.message.desc",
+    "translation": "Chces neco dopsat?"
+  },
+  {
+    "id": "cmd.slowmode.name",
+    "translation": "slowmode"
+  },
+  {
+    "id": "cmd.slowmode.desc",
+    "translation": "Nastavit nebo zmenit slowmode v kanalu."
+  },
+  {
+    "id": "cmd.slowmode.opt.channel.name",
+    "translation": "channel"
+  },
+  {
+    "id": "cmd.slowmode.opt.channel.desc",
+    "translation": "Ktery kanal?"
+  },
+  {
+    "id": "cmd.slowmode.opt.seconds.name",
+    "translation": "seconds"
+  },
+  {
+    "id": "cmd.slowmode.opt.seconds.desc",
+    "translation": "Sekund mezi zprávami (0 pro odstraneni)."
+  },
+  {
+    "id": "cmd.nick.name",
+    "translation": "nick"
+  },
+  {
+    "id": "cmd.nick.desc",
+    "translation": "Zmenit prezdivku clena."
+  },
+  {
+    "id": "cmd.nick.opt.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.nick.opt.user.desc",
+    "translation": "Komu zmenit prezdivku?"
+  },
+  {
+    "id": "cmd.nick.opt.nickname.name",
+    "translation": "nickname"
+  },
+  {
+    "id": "cmd.nick.opt.nickname.desc",
+    "translation": "Nova prezdivka (prazdne = reset)."
+  },
+  {
+    "id": "cmd.purge.name",
+    "translation": "purge"
+  },
+  {
+    "id": "cmd.purge.desc",
+    "translation": "Uklidit zpravy v kanalu."
+  },
+  {
+    "id": "cmd.purge.sub.all.name",
+    "translation": "all"
+  },
+  {
+    "id": "cmd.purge.sub.all.desc",
+    "translation": "Smazat posledni zpravy."
+  },
+  {
+    "id": "cmd.purge.sub.before.name",
+    "translation": "before"
+  },
+  {
+    "id": "cmd.purge.sub.before.desc",
+    "translation": "Smazat zpravy pred zpravou."
+  },
+  {
+    "id": "cmd.purge.sub.after.name",
+    "translation": "after"
+  },
+  {
+    "id": "cmd.purge.sub.after.desc",
+    "translation": "Smazat zpravy po zprave."
+  },
+  {
+    "id": "cmd.purge.sub.around.name",
+    "translation": "around"
+  },
+  {
+    "id": "cmd.purge.sub.around.desc",
+    "translation": "Smazat zpravy okolo zpravy."
+  },
+  {
+    "id": "cmd.purge.opt.count.name",
+    "translation": "count"
+  },
+  {
+    "id": "cmd.purge.opt.count.desc",
+    "translation": "Kolik zprav? (Jemne.)"
+  },
+  {
+    "id": "cmd.purge.opt.message.name",
+    "translation": "message"
+  },
+  {
+    "id": "cmd.purge.opt.message.desc",
+    "translation": "ID zpravy nebo odkaz na zpravu."
+  },
+  {
+    "id": "cmd.roles.name",
+    "translation": "roles"
+  },
+  {
+    "id": "cmd.roles.desc",
+    "translation": "Spravovat role."
+  },
+  {
+    "id": "cmd.roles.sub.create.name",
+    "translation": "create"
+  },
+  {
+    "id": "cmd.roles.sub.create.desc",
+    "translation": "Vytvorit roli."
+  },
+  {
+    "id": "cmd.roles.sub.edit.name",
+    "translation": "edit"
+  },
+  {
+    "id": "cmd.roles.sub.edit.desc",
+    "translation": "Upravit roli."
+  },
+  {
+    "id": "cmd.roles.sub.delete.name",
+    "translation": "delete"
+  },
+  {
+    "id": "cmd.roles.sub.delete.desc",
+    "translation": "Smazat roli."
+  },
+  {
+    "id": "cmd.roles.sub.add.name",
+    "translation": "add"
+  },
+  {
+    "id": "cmd.roles.sub.add.desc",
+    "translation": "Pridat roli clenovi."
+  },
+  {
+    "id": "cmd.roles.sub.remove.name",
+    "translation": "remove"
+  },
+  {
+    "id": "cmd.roles.sub.remove.desc",
+    "translation": "Odebrat roli clenovi."
+  },
+  {
+    "id": "cmd.roles.opt.role.name",
+    "translation": "role"
+  },
+  {
+    "id": "cmd.roles.opt.role.desc",
+    "translation": "Ktera role?"
+  },
+  {
+    "id": "cmd.roles.opt.member.name",
+    "translation": "member"
+  },
+  {
+    "id": "cmd.roles.opt.member.desc",
+    "translation": "Ktery clen?"
+  },
+  {
+    "id": "cmd.roles.opt.name.name",
+    "translation": "name"
+  },
+  {
+    "id": "cmd.roles.opt.name.desc",
+    "translation": "Nazev role."
+  },
+  {
+    "id": "cmd.roles.opt.colour.name",
+    "translation": "colour"
+  },
+  {
+    "id": "cmd.roles.opt.colour.desc",
+    "translation": "Barva role (RRGGBB)."
+  },
+  {
+    "id": "cmd.roles.opt.hoist.name",
+    "translation": "hoist"
+  },
+  {
+    "id": "cmd.roles.opt.hoist.desc",
+    "translation": "Zobrazit zvlast v seznamu clenu?"
+  },
+  {
+    "id": "cmd.roles.opt.mentionable.name",
+    "translation": "mentionable"
+  },
+  {
+    "id": "cmd.roles.opt.mentionable.desc",
+    "translation": "Povolit @zmineni?"
+  },
+  {
+    "id": "cmd.emojis.name",
+    "translation": "emojis"
+  },
+  {
+    "id": "cmd.emojis.desc",
+    "translation": "Spravovat emoji."
+  },
+  {
+    "id": "cmd.emojis.sub.create.name",
+    "translation": "create"
+  },
+  {
+    "id": "cmd.emojis.sub.create.desc",
+    "translation": "Vytvorit emoji."
+  },
+  {
+    "id": "cmd.emojis.sub.edit.name",
+    "translation": "edit"
+  },
+  {
+    "id": "cmd.emojis.sub.edit.desc",
+    "translation": "Prejmenovat emoji."
+  },
+  {
+    "id": "cmd.emojis.sub.delete.name",
+    "translation": "delete"
+  },
+  {
+    "id": "cmd.emojis.sub.delete.desc",
+    "translation": "Smazat emoji."
+  },
+  {
+    "id": "cmd.emojis.opt.name.name",
+    "translation": "name"
+  },
+  {
+    "id": "cmd.emojis.opt.name.desc",
+    "translation": "Nazev emoji."
+  },
+  {
+    "id": "cmd.emojis.opt.file.name",
+    "translation": "file"
+  },
+  {
+    "id": "cmd.emojis.opt.file.desc",
+    "translation": "Obrazek emoji."
+  },
+  {
+    "id": "cmd.emojis.opt.emoji.name",
+    "translation": "emoji"
+  },
+  {
+    "id": "cmd.emojis.opt.emoji.desc",
+    "translation": "Zminenka emoji (<:name:id>) nebo ID."
+  },
+  {
+    "id": "cmd.stickers.name",
+    "translation": "stickers"
+  },
+  {
+    "id": "cmd.stickers.desc",
+    "translation": "Spravovat stickery."
+  },
+  {
+    "id": "cmd.stickers.sub.create.name",
+    "translation": "create"
+  },
+  {
+    "id": "cmd.stickers.sub.create.desc",
+    "translation": "Vytvorit sticker."
+  },
+  {
+    "id": "cmd.stickers.sub.edit.name",
+    "translation": "edit"
+  },
+  {
+    "id": "cmd.stickers.sub.edit.desc",
+    "translation": "Upravit sticker."
+  },
+  {
+    "id": "cmd.stickers.sub.delete.name",
+    "translation": "delete"
+  },
+  {
+    "id": "cmd.stickers.sub.delete.desc",
+    "translation": "Smazat sticker."
+  },
+  {
+    "id": "cmd.stickers.opt.id.name",
+    "translation": "id"
+  },
+  {
+    "id": "cmd.stickers.opt.id.desc",
+    "translation": "ID stickeru nebo odkaz na sticker."
+  },
+  {
+    "id": "cmd.stickers.opt.name.name",
+    "translation": "name"
+  },
+  {
+    "id": "cmd.stickers.opt.name.desc",
+    "translation": "Nazev stickeru."
+  },
+  {
+    "id": "cmd.stickers.opt.description.name",
+    "translation": "description"
+  },
+  {
+    "id": "cmd.stickers.opt.description.desc",
+    "translation": "Popis stickeru (volitelne)."
+  },
+  {
+    "id": "cmd.stickers.opt.emoji_tag.name",
+    "translation": "emoji_tag"
+  },
+  {
+    "id": "cmd.stickers.opt.emoji_tag.desc",
+    "translation": "Emoji tag (Discord to vyzaduje)."
+  },
+  {
+    "id": "cmd.stickers.opt.file.name",
+    "translation": "file"
+  },
+  {
+    "id": "cmd.stickers.opt.file.desc",
+    "translation": "Obrazek stickeru."
+  },
+  {
+    "id": "admin.not_owner",
+    "translation": "Ne. Tohle muze jen majitel {{.Mommy}}."
+  },
+  {
+    "id": "admin.block.user.success",
+    "translation": "Dobre, {{.Pet}}. {{.User}} je ted v time-outu a nemuze me pouzivat."
+  },
+  {
+    "id": "admin.block.guild.invalid",
+    "translation": "{{.Pet}}, to ID serveru vypada spatne: `{{.GuildID}}`."
+  },
+  {
+    "id": "admin.block.guild.success",
+    "translation": "Dobre, {{.Pet}}. Server `{{.GuildID}}` je ted v time-outu a nemuze me pouzivat."
+  },
+  {
+    "id": "admin.unblock.user.success",
+    "translation": "Tak jo, {{.Pet}}. {{.User}} muze zase me pouzivat."
+  },
+  {
+    "id": "admin.unblock.guild.invalid",
+    "translation": "{{.Pet}}, to ID serveru vypada spatne: `{{.GuildID}}`."
+  },
+  {
+    "id": "admin.unblock.guild.success",
+    "translation": "Dobre, {{.Pet}}. Server `{{.GuildID}}` muze zase me pouzivat."
+  },
+  {
+    "id": "admin.plugins.not_configured",
+    "translation": "{{.Pet}}, pluginy ted nejsou spravne nastavene."
+  },
+  {
+    "id": "admin.plugins.none",
+    "translation": "Zadne pluginy nejsou nactene, {{.Pet}}."
+  },
+  {
+    "id": "admin.plugins.list",
+    "translation": "{{.Pet}}, nactene pluginy ({{.Count}}):\n{{.List}}"
+  },
+  {
+    "id": "admin.plugins.reloaded",
+    "translation": "Hotovo, {{.Pet}}. Znovu nacteno."
+  },
+  {
+    "id": "mod.warn.self",
+    "translation": "Ne ty, {{.Pet}}. {{.Mommy}} chce chranit i tebe."
+  },
+  {
+    "id": "mod.warn.bot",
+    "translation": "{{.Pet}}, {{.Mommy}} nevaruje boty ani systemove ucty."
+  },
+  {
+    "id": "mod.warn.too_many",
+    "translation": "Staci, {{.Pet}}. {{.User}} uz ma limit varovani."
+  },
+  {
+    "id": "mod.warn.success",
+    "translation": "Dobre, {{.Pet}}. Zapsala jsem varovani pro {{.User}}: `{{.Reason}}`.{{if .TimeoutMinutes}} A dala jsem time-out na {{.TimeoutMinutes}} minut.{{end}}{{if .TimeoutFailed}} Time-out jsem zkusila, ale nepovedlo se.{{end}}"
+  },
+  {
+    "id": "mod.warn.dm",
+    "translation": "Ahoj {{.Pet}}. {{.Mommy}} potrebuje, abys zpomalil a byl milejsi. Duvod: `{{.Reason}}`.{{if .TimeoutMinutes}} Mas time-out na {{.TimeoutMinutes}} minut, at vychladnes.{{end}}"
+  },
+  {
+    "id": "mod.unwarn.self",
+    "translation": "Ne ty, {{.Pet}}."
+  },
+  {
+    "id": "mod.unwarn.none",
+    "translation": "{{.Pet}}, nenasla jsem zadna varovani pro {{.User}}."
+  },
+  {
+    "id": "mod.unwarn.prompt",
+    "translation": "Ktere varovani ma {{.Mommy}} odstranit, {{.Pet}}?"
+  },
+  {
+    "id": "mod.unwarn.placeholder",
+    "translation": "Vyber jedno..."
+  },
+  {
+    "id": "mod.unwarn.expired",
+    "translation": "{{.Pet}}, tohle vyprselo. Spust `/unwarn` znovu."
+  },
+  {
+    "id": "mod.unwarn.success",
+    "translation": "Hotovo, {{.Pet}}. {{.User}} ma cisty stit."
+  },
+  {
+    "id": "info.about.title",
+    "translation": "imotherbtw {{.Version}}"
+  },
+  {
+    "id": "info.lookup.user.error",
+    "translation": "{{.Pet}}, {{.Mommy}} nedokazala nacist informace o uzivateli."
+  },
+  {
+    "id": "info.lookup.guild.error",
+    "translation": "{{.Pet}}, {{.Mommy}} nedokazala nacist informace o serveru."
+  },
+  {
+    "id": "fun.flip.result",
+    "translation": ":coin: Panna nebo orel, {{.Pet}}? {{.User}} hodil a padlo `{{.Result}}`."
+  },
+  {
+    "id": "fun.roll.invalid_sides",
+    "translation": "{{.Pet}}, tahle kostka neni podporovana: `{{.Sides}}`. Zkus 4, 6, 8, 10, 12 nebo 20."
+  },
+  {
+    "id": "fun.roll.result",
+    "translation": ":game_die: {{.Pet}}, {{.User}} hodil `{{.Notation}}` a padlo `{{.Total}}`."
+  },
+  {
+    "id": "fun.8ball.question_error",
+    "translation": "{{.Pet}}, to nevypada jako otevrena otazka: `{{.Question}}`"
+  },
+  {
+    "id": "fun.8ball.result",
+    "translation": ":8ball: {{.Answer}}, {{.Pet}}."
+  },
+  {
+    "id": "fun.kawaii.footer",
+    "translation": "Powered by Kawaii API"
+  },
+  {
+    "id": "fun.kawaii.error",
+    "translation": "{{.Pet}}, {{.Mommy}} nedokazala nacist GIF."
+  },
+  {
+    "id": "fun.kawaii.self_error",
+    "translation": "Ne na sebe, {{.Pet}}."
+  },
+  {
+    "id": "fun.kawaii.user_mention_only",
+    "translation": "{{.Emoji}} {{.User}}"
+  },
+  {
+    "id": "mgr.slowmode.set",
+    "translation": "Dobre, {{.Pet}}. {{.Channel}} ma slowmode: `{{.Seconds}}s`."
+  },
+  {
+    "id": "mgr.slowmode.removed",
+    "translation": "Tak jo, {{.Pet}}. Slowmode je vypnuty pro {{.Channel}}."
+  },
+  {
+    "id": "mgr.slowmode.error",
+    "translation": "{{.Pet}}, {{.Mommy}} nedokazala upravit slowmode."
+  },
+  {
+    "id": "mgr.nick.self_error",
+    "translation": "{{.Pet}}, tvoji vlastni prezdivku zmenit nemuzu."
+  },
+  {
+    "id": "mgr.nick.set",
+    "translation": "Dobre, {{.Pet}}. {{.User}} je ted `{{.Nickname}}`."
+  },
+  {
+    "id": "mgr.nick.reset",
+    "translation": "Dobre, {{.Pet}}. Resetovala jsem prezdivku u {{.User}}."
+  },
+  {
+    "id": "mgr.nick.error",
+    "translation": "{{.Pet}}, {{.Mommy}} nedokazala zmenit prezdivku u {{.User}}."
+  },
+  {
+    "id": "mgr.purge.invalid_message",
+    "translation": "{{.Pet}}, tohle nevypada jako platne ID nebo odkaz na zpravu."
+  },
+  {
+    "id": "mgr.purge.success",
+    "translation": "Uklizeno, {{.Pet}}. Smazala jsem `{{.Count}}` zpráv."
+  },
+  {
+    "id": "mgr.purge.error",
+    "translation": "{{.Pet}}, {{.Mommy}} nedokazala smazat tyto zpravy."
+  },
+  {
+    "id": "mgr.roles.invalid_colour",
+    "translation": "{{.Pet}}, tahle barva nesedi: `{{.Colour}}` (RRGGBB)."
+  },
+  {
+    "id": "mgr.roles.cannot_edit_everyone",
+    "translation": "{{.Pet}}, na `@everyone` nesahej."
+  },
+  {
+    "id": "mgr.roles.cannot_delete_everyone",
+    "translation": "{{.Pet}}, na `@everyone` nesahej."
+  },
+  {
+    "id": "mgr.roles.create_success",
+    "translation": "Hotovo, {{.Pet}}. {{.Role}} byla vytvorena."
+  },
+  {
+    "id": "mgr.roles.create_error",
+    "translation": "{{.Pet}}, {{.Mommy}} nedokazala vytvorit `@{{.Name}}`."
+  },
+  {
+    "id": "mgr.roles.edit_success",
+    "translation": "Hotovo, {{.Pet}}. {{.Role}} byla upravena."
+  },
+  {
+    "id": "mgr.roles.edit_error",
+    "translation": "{{.Pet}}, {{.Mommy}} nedokazala upravit {{.Role}}."
+  },
+  {
+    "id": "mgr.roles.delete_success",
+    "translation": "Dobre, {{.Pet}}. `@{{.Name}}` je pryc."
+  },
+  {
+    "id": "mgr.roles.delete_error",
+    "translation": "{{.Pet}}, {{.Mommy}} nedokazala smazat {{.Role}}."
+  },
+  {
+    "id": "mgr.roles.add_success",
+    "translation": "Hotovo, {{.Pet}}. {{.User}} ma {{.Role}}."
+  },
+  {
+    "id": "mgr.roles.add_error",
+    "translation": "{{.Pet}}, {{.Mommy}} nedokazala pridat {{.Role}} uzivateli {{.User}}."
+  },
+  {
+    "id": "mgr.roles.remove_success",
+    "translation": "Hotovo, {{.Pet}}. {{.Role}} byla odebrana uzivateli {{.User}}."
+  },
+  {
+    "id": "mgr.roles.remove_error",
+    "translation": "{{.Pet}}, {{.Mommy}} nedokazala odebrat {{.Role}} uzivateli {{.User}}."
+  },
+  {
+    "id": "mgr.emojis.file_missing",
+    "translation": "{{.Pet}}, potrebuju prilohu."
+  },
+  {
+    "id": "mgr.emojis.file_too_large",
+    "translation": "{{.Pet}}, soubor je moc velky ({{.Size}} bytes; max {{.Max}})."
+  },
+  {
+    "id": "mgr.emojis.bad_extension",
+    "translation": "{{.Pet}}, tahle pripona pro emoji nefunguje: `{{.Ext}}`."
+  },
+  {
+    "id": "mgr.emojis.too_many",
+    "translation": "{{.Pet}}, tenhle server je na limitu emoji (max `{{.Max}}`)."
+  },
+  {
+    "id": "mgr.emojis.download_error",
+    "translation": "{{.Pet}}, {{.Mommy}} muze stahovat jen z Discord CDN."
+  },
+  {
+    "id": "mgr.emojis.dimensions_error",
+    "translation": "{{.Pet}}, nepodarilo se mi precist rozmery obrazku."
+  },
+  {
+    "id": "mgr.emojis.too_large_dims",
+    "translation": "{{.Pet}}, obrazek je pro emoji moc velky: `{{.Width}}x{{.Height}}`."
+  },
+  {
+    "id": "mgr.emojis.bad_image",
+    "translation": "{{.Pet}}, tenhle typ obrazku neni podporovany."
+  },
+  {
+    "id": "mgr.emojis.invalid_emoji",
+    "translation": "{{.Pet}}, tohle nevypada jako platne emoji: `{{.Emoji}}`."
+  },
+  {
+    "id": "mgr.emojis.create_success",
+    "translation": "Roztomile! {{.Pet}}, `:{{.Name}}:` je vytvoreno."
+  },
+  {
+    "id": "mgr.emojis.create_error",
+    "translation": "{{.Pet}}, {{.Mommy}} nedokazala vytvorit `:{{.Name}}:`."
+  },
+  {
+    "id": "mgr.emojis.edit_success",
+    "translation": "Dobre, {{.Pet}}. Prejmenovala jsem na `{{.Name}}`."
+  },
+  {
+    "id": "mgr.emojis.edit_error",
+    "translation": "{{.Pet}}, {{.Mommy}} nedokazala prejmenovat emoji."
+  },
+  {
+    "id": "mgr.emojis.delete_success",
+    "translation": "Dobre, {{.Pet}}. Emoji smazano."
+  },
+  {
+    "id": "mgr.emojis.delete_error",
+    "translation": "{{.Pet}}, {{.Mommy}} nedokazala smazat emoji."
+  },
+  {
+    "id": "mgr.stickers.file_missing",
+    "translation": "{{.Pet}}, potrebuju prilohu."
+  },
+  {
+    "id": "mgr.stickers.tags_missing",
+    "translation": "{{.Pet}}, Discord chce emoji tag."
+  },
+  {
+    "id": "mgr.stickers.file_too_large",
+    "translation": "{{.Pet}}, soubor je moc velky ({{.Size}} bytes; max {{.Max}})."
+  },
+  {
+    "id": "mgr.stickers.bad_extension",
+    "translation": "{{.Pet}}, tahle pripona pro sticker nefunguje: `{{.Ext}}`."
+  },
+  {
+    "id": "mgr.stickers.too_many",
+    "translation": "{{.Pet}}, tenhle server je na limitu stickeru (max `{{.Max}}`)."
+  },
+  {
+    "id": "mgr.stickers.download_error",
+    "translation": "{{.Pet}}, {{.Mommy}} muze stahovat jen z Discord CDN."
+  },
+  {
+    "id": "mgr.stickers.dimensions_error",
+    "translation": "{{.Pet}}, nepodarilo se mi precist rozmery obrazku."
+  },
+  {
+    "id": "mgr.stickers.too_large_dims",
+    "translation": "{{.Pet}}, obrazek je pro sticker moc velky: `{{.Width}}x{{.Height}}`."
+  },
+  {
+    "id": "mgr.stickers.invalid_id",
+    "translation": "{{.Pet}}, to ID/odkaz stickeru vypada spatne: `{{.ID}}`."
+  },
+  {
+    "id": "mgr.stickers.create_success",
+    "translation": "Hotovo, {{.Pet}}. `{{.Name}}` bylo vytvoreno."
+  },
+  {
+    "id": "mgr.stickers.create_error",
+    "translation": "{{.Pet}}, {{.Mommy}} nedokazala vytvorit `{{.Name}}`."
+  },
+  {
+    "id": "mgr.stickers.edit_success",
+    "translation": "Hotovo, {{.Pet}}. `{{.Name}}` bylo upraveno."
+  },
+  {
+    "id": "mgr.stickers.edit_error",
+    "translation": "{{.Pet}}, {{.Mommy}} nedokazala upravit sticker."
+  },
+  {
+    "id": "mgr.stickers.delete_success",
+    "translation": "Dobre, {{.Pet}}. Sticker smazan."
+  },
+  {
+    "id": "mgr.stickers.delete_error",
+    "translation": "{{.Pet}}, {{.Mommy}} nedokazala smazat sticker."
+  },
+  {
+    "id": "ok.pong",
+    "translation": "Pong, zlaticko. Jsem tady."
+  },
+  {
+    "id": "err.generic",
+    "translation": "Ajaj, {{.Pet}}... {{.Mommy}} to pokazila. Zkus to za chvili znovu, jo?"
+  },
+  {
+    "id": "err.cooldown",
+    "translation": "Pomalu, {{.Pet}}. Nadechni se. Zkus to znovu za {{.Seconds}}s."
+  },
+  {
+    "id": "err.not_in_guild",
+    "translation": "Tohle funguje jen na serveru, {{.Pet}}."
+  },
+  {
+    "id": "err.restricted",
+    "translation": "Ne, {{.Pet}}. Ted mas time-out a nemuzes me pouzivat."
+  },
+  {
+    "id": "err.restricted_links",
+    "translation": "Ne, {{.Pet}}. Ted mas time-out a nemuzes me pouzivat.\nJestli si myslis, ze je to omyl, ozvi se:\nDeveloper: {{.DeveloperURL}}\nSupport: {{.SupportServerURL}}"
+  },
+  {
+    "id": "cmd.timezone.name",
+    "translation": "timezone"
+  },
+  {
+    "id": "cmd.timezone.desc",
+    "translation": "Nastav si casove pasmo, aby mamine pripominky chodily ve spravny cas."
+  },
+  {
+    "id": "cmd.timezone.sub.set.name",
+    "translation": "set"
+  },
+  {
+    "id": "cmd.timezone.sub.set.desc",
+    "translation": "Nastavit casove pasmo (IANA, napr. Europe/Tallinn)."
+  },
+  {
+    "id": "cmd.timezone.sub.show.name",
+    "translation": "show"
+  },
+  {
+    "id": "cmd.timezone.sub.show.desc",
+    "translation": "Zobrazit aktualni casove pasmo."
+  },
+  {
+    "id": "cmd.timezone.sub.clear.name",
+    "translation": "clear"
+  },
+  {
+    "id": "cmd.timezone.sub.clear.desc",
+    "translation": "Smazat ulozene casove pasmo."
+  },
+  {
+    "id": "cmd.timezone.opt.iana.name",
+    "translation": "iana"
+  },
+  {
+    "id": "cmd.timezone.opt.iana.desc",
+    "translation": "Nazev pasma (napr. Europe/Tallinn)."
+  },
+  {
+    "id": "wellness.timezone.invalid",
+    "translation": "Hmm, {{.Pet}}... Tohle pasmo neznam: `{{.Timezone}}`."
+  },
+  {
+    "id": "wellness.timezone.set",
+    "translation": "Dobre, {{.Pet}}. Pro pripominky pouziju `{{.Timezone}}`."
+  },
+  {
+    "id": "wellness.timezone.unset",
+    "translation": "{{.Pet}}, jeste nemas nastavene pasmo. Pouzij `/timezone set`."
+  },
+  {
+    "id": "wellness.timezone.show",
+    "translation": "{{.Pet}}, ted mas nastavene `{{.Timezone}}`."
+  },
+  {
+    "id": "wellness.timezone.cleared",
+    "translation": "Hotovo, {{.Pet}}. Smazano."
+  },
+  {
+    "id": "cmd.checkin.name",
+    "translation": "checkin"
+  },
+  {
+    "id": "cmd.checkin.desc",
+    "translation": "Rekni mame, jak se dnes mas."
+  },
+  {
+    "id": "cmd.checkin.opt.mood.name",
+    "translation": "mood"
+  },
+  {
+    "id": "cmd.checkin.opt.mood.desc",
+    "translation": "Nalada: 1 (tezke) az 5 (skvele)."
+  },
+  {
+    "id": "cmd.checkin.opt.history.name",
+    "translation": "history"
+  },
+  {
+    "id": "cmd.checkin.opt.history.desc",
+    "translation": "Ukazat posledni check-iny misto ulozeni noveho."
+  },
+  {
+    "id": "wellness.checkin.prompt",
+    "translation": "Dej {{.Mommy}} cislo od 1 do 5, {{.Pet}}... nebo nastav `history=true` pro historii."
+  },
+  {
+    "id": "wellness.checkin.invalid_mood",
+    "translation": "Musi to byt 1..5, {{.Pet}}."
+  },
+  {
+    "id": "wellness.checkin.saved",
+    "translation": "Diky, {{.Pet}}. Ulozila jsem `{{.Mood}}/5`."
+  },
+  {
+    "id": "wellness.checkin.history.empty",
+    "translation": "{{.Pet}}, zatim zadne zaznamy. Zacit v malem je statecne."
+  },
+  {
+    "id": "wellness.checkin.history",
+    "translation": "{{.Pet}}, tady jsou posledni check-iny:\n{{.Lines}}"
+  },
+  {
+    "id": "cmd.remind.name",
+    "translation": "remind"
+  },
+  {
+    "id": "cmd.remind.desc",
+    "translation": "Nastav jemne pripominky (máma te jemne postouchne)."
+  },
+  {
+    "id": "cmd.remind.sub.create.name",
+    "translation": "create"
+  },
+  {
+    "id": "cmd.remind.sub.create.desc",
+    "translation": "Vytvorit pripominku."
+  },
+  {
+    "id": "cmd.remind.sub.list.name",
+    "translation": "list"
+  },
+  {
+    "id": "cmd.remind.sub.list.desc",
+    "translation": "Vypsat pripominky."
+  },
+  {
+    "id": "cmd.remind.sub.delete.name",
+    "translation": "delete"
+  },
+  {
+    "id": "cmd.remind.sub.delete.desc",
+    "translation": "Smazat pripominku."
+  },
+  {
+    "id": "cmd.remind.opt.schedule.name",
+    "translation": "schedule"
+  },
+  {
+    "id": "cmd.remind.opt.schedule.desc",
+    "translation": "Cron (napr. `0 9 * * *`) nebo `@hourly`."
+  },
+  {
+    "id": "cmd.remind.opt.kind.name",
+    "translation": "kind"
+  },
+  {
+    "id": "cmd.remind.opt.kind.desc",
+    "translation": "Jaky typ pripominky?"
+  },
+  {
+    "id": "cmd.remind.opt.note.name",
+    "translation": "note"
+  },
+  {
+    "id": "cmd.remind.opt.note.desc",
+    "translation": "Kratka poznamka (volitelne, max 120 znaku)."
+  },
+  {
+    "id": "cmd.remind.opt.delivery.name",
+    "translation": "delivery"
+  },
+  {
+    "id": "cmd.remind.opt.delivery.desc",
+    "translation": "Kam poslat? (dm nebo channel)"
+  },
+  {
+    "id": "cmd.remind.opt.channel.name",
+    "translation": "channel"
+  },
+  {
+    "id": "cmd.remind.opt.channel.desc",
+    "translation": "Ktery kanal? (jen kdyz delivery=channel)"
+  },
+  {
+    "id": "cmd.remind.opt.id.name",
+    "translation": "id"
+  },
+  {
+    "id": "cmd.remind.opt.id.desc",
+    "translation": "ID pripominky."
+  },
+  {
+    "id": "wellness.remind.bad_schedule",
+    "translation": "{{.Pet}}, ten rozpis vypada divne: `{{.Schedule}}`."
+  },
+  {
+    "id": "wellness.remind.channel_required",
+    "translation": "{{.Pet}}, kdyz posilas do kanalu, vyber kanal taky."
+  },
+  {
+    "id": "wellness.remind.created",
+    "translation": "Hotovo, {{.Pet}}. Priste pripomenu v {{.NextRun}} - `{{.ID}}` ({{.Kind}}, {{.Delivery}})."
+  },
+  {
+    "id": "wellness.remind.list.empty",
+    "translation": "{{.Pet}}, zatim zadne pripominky. Pouzij `/remind create`."
+  },
+  {
+    "id": "wellness.remind.list",
+    "translation": "{{.Pet}}, tve pripominky:\n{{.Lines}}"
+  },
+  {
+    "id": "wellness.remind.delete.placeholder",
+    "translation": "Vyber pripominku..."
+  },
+  {
+    "id": "wellness.remind.delete.prompt",
+    "translation": "{{.Pet}}, kterou pripominku ma {{.Mommy}} smazat?"
+  },
+  {
+    "id": "wellness.remind.delete.expired",
+    "translation": "{{.Pet}}, tohle menu vyprselo. Spust `/remind delete` znovu."
+  },
+  {
+    "id": "wellness.remind.delete.not_owner",
+    "translation": "Ne, {{.Pet}}. Tohle neni tvoje."
+  },
+  {
+    "id": "wellness.remind.delete.not_found",
+    "translation": "{{.Pet}}, tu pripominku jsem nenasla."
+  },
+  {
+    "id": "wellness.remind.delete.success",
+    "translation": "Smazano. Dobry, {{.Pet}}."
+  },
+  {
+    "id": "wellness.reminder.fire",
+    "translation": "Ahoj {{.Pet}}. Jemna pripominka: {{.Kind}}.{{if .Note}} {{.Note}}{{end}}"
+  },
+  {
+    "id": "wellness.reminder.kind.hydrate",
+    "translation": "napit se vody"
+  },
+  {
+    "id": "wellness.reminder.kind.stretch",
+    "translation": "trochu se protahnout"
+  },
+  {
+    "id": "wellness.reminder.kind.breathe",
+    "translation": "zhluboka se nadechnout"
+  },
+  {
+    "id": "wellness.reminder.kind.meds",
+    "translation": "vzít si leky"
+  },
+  {
+    "id": "wellness.reminder.kind.sleep",
+    "translation": "chystat se spat"
+  },
+  {
+    "id": "wellness.reminder.kind.checkin",
+    "translation": "kratky check-in"
+  }
+]
