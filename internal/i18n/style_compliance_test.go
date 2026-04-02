@@ -99,7 +99,7 @@ func assertNoTildePrompts(t *testing.T, locale string, byID map[string]string, n
 		if strings.ContainsAny(text, "~〜～") {
 			t.Fatalf("locale %q: %q must not include any tilde tone marks", locale, id)
 		}
-		if !strings.HasSuffix(text, "...") && !strings.HasSuffix(text, "…") {
+		if !strings.HasSuffix(text, "...") {
 			t.Fatalf("locale %q: %q must end with an ellipsis", locale, id)
 		}
 	}

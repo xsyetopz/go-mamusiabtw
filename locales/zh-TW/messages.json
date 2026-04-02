@@ -865,7 +865,7 @@
   },
   {
     "id": "mod.unwarn.placeholder",
-    "translation": "選一個吧，{{.Pet}}…"
+    "translation": "選一個吧，{{.Pet}}..."
   },
   {
     "id": "mod.unwarn.expired",
@@ -1141,7 +1141,7 @@
   },
   {
     "id": "err.generic",
-    "translation": "哎呀，{{.Pet}}… {{.Mommy}}出錯了… (；´д｀) 等一下再試，好嗎？"
+    "translation": "哎呀，{{.Pet}}。。。 {{.Mommy}}出錯了。。。 (；´д｀) 等一下再試，好嗎？"
   },
   {
     "id": "err.cooldown",
@@ -1365,7 +1365,7 @@
   },
   {
     "id": "wellness.remind.delete.placeholder",
-    "translation": "選一個提醒…"
+    "translation": "選一個提醒..."
   },
   {
     "id": "wellness.remind.delete.prompt",

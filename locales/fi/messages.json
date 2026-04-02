@@ -865,7 +865,7 @@
   },
   {
     "id": "mod.unwarn.placeholder",
-    "translation": "Valitse yksi, {{.Pet}}…"
+    "translation": "Valitse yksi, {{.Pet}}..."
   },
   {
     "id": "mod.unwarn.expired",
@@ -1137,11 +1137,11 @@
   },
   {
     "id": "ok.pong",
-    "translation": "Pong, {{.Pet}}~… {{.Mommy}} on tässä. ❤️"
+    "translation": "Pong, {{.Pet}}~... {{.Mommy}} on tässä. ❤️"
   },
   {
     "id": "err.generic",
-    "translation": "Voi ei, {{.Pet}}… {{.Mommy}} mokasi… (｡•́︿•̀｡) Yritä kohta uudelleen, okei?"
+    "translation": "Voi ei, {{.Pet}}... {{.Mommy}} mokasi... (｡•́︿•̀｡) Yritä kohta uudelleen, okei?"
   },
   {
     "id": "err.cooldown",
@@ -1201,7 +1201,7 @@
   },
   {
     "id": "wellness.timezone.invalid",
-    "translation": "Hmm, {{.Pet}}… I don't recognize that timezone: `{{.Timezone}}`."
+    "translation": "Hmm, {{.Pet}}... I don't recognize that timezone: `{{.Timezone}}`."
   },
   {
     "id": "wellness.timezone.set",
@@ -1245,7 +1245,7 @@
   },
   {
     "id": "wellness.checkin.prompt",
-    "translation": "Give {{.Mommy}} a number from 1 to 5, {{.Pet}}… or set `history=true` to see your last check-ins."
+    "translation": "Give {{.Mommy}} a number from 1 to 5, {{.Pet}}... or set `history=true` to see your last check-ins."
   },
   {
     "id": "wellness.checkin.invalid_mood",
@@ -1365,7 +1365,7 @@
   },
   {
     "id": "wellness.remind.delete.placeholder",
-    "translation": "Valitse muistutus…"
+    "translation": "Valitse muistutus..."
   },
   {
     "id": "wellness.remind.delete.prompt",

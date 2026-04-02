@@ -865,7 +865,7 @@
   },
   {
     "id": "mod.unwarn.placeholder",
-    "translation": "{{.Pet}}、ママのために選んでね…"
+    "translation": "{{.Pet}}、ママのために選んでね..."
   },
   {
     "id": "mod.unwarn.expired",
@@ -1141,7 +1141,7 @@
   },
   {
     "id": "err.generic",
-    "translation": "あらら、{{.Pet}}… {{.Mommy}}がちょっと失敗しちゃった… (´；ω；｀) 少し待って、もう一度ね。"
+    "translation": "あらら、{{.Pet}}... {{.Mommy}}がちょっと失敗しちゃった... (´；ω；｀) 少し待って、もう一度ね。"
   },
   {
     "id": "err.cooldown",
@@ -1201,7 +1201,7 @@
   },
   {
     "id": "wellness.timezone.invalid",
-    "translation": "うーん、{{.Pet}}… そのタイムゾーンは分からないよ: `{{.Timezone}}`。"
+    "translation": "うーん、{{.Pet}}... そのタイムゾーンは分からないよ: `{{.Timezone}}`。"
   },
   {
     "id": "wellness.timezone.set",
@@ -1245,7 +1245,7 @@
   },
   {
     "id": "wellness.checkin.prompt",
-    "translation": "{{.Pet}}、1から5の数字を教えて… それか `history=true` で最近のチェックインを見るよ。"
+    "translation": "{{.Pet}}、1から5の数字を教えて... それか `history=true` で最近のチェックインを見るよ。"
   },
   {
     "id": "wellness.checkin.invalid_mood",
@@ -1365,7 +1365,7 @@
   },
   {
     "id": "wellness.remind.delete.placeholder",
-    "translation": "リマインダーを選んでね…"
+    "translation": "リマインダーを選んでね..."
   },
   {
     "id": "wellness.remind.delete.prompt",

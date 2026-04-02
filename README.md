@@ -1,6 +1,8 @@
-# mamusiabtw
+# go-mamusiabtw
 
-A nurturing and protective Discord app.
+A nurturing and protective Discord app... Mommy for your server. She comforts the good kids, and steps in when someone gets naughty...~
+
+One important thing, honey: this repo’s stable internal name is `mamusiabtw` (env vars, IDs, and `custom_id` prefixes). Keep it consistent unless you *really* mean to rename everything.
 
 - Engine: Go
 - Discord API: `DisgoOrg/disgo`
@@ -13,7 +15,7 @@ A nurturing and protective Discord app.
 2. (Recommended) Set `DISCORD_DEV_GUILD_ID` for fast command registration.
 3. Start: `go run ./cmd/mamusiabtw`
 
-mamusiabtw creates/opens the SQLite DB at `SQLITE_PATH` and applies migrations automatically on startup.
+mamusiabtw creates/opens the SQLite DB at `SQLITE_PATH` and applies migrations automatically on startup... Mommy handles the chores.~
 
 ## Docker
 
@@ -43,6 +45,7 @@ Plugins live under `plugins/<plugin>/` with:
 - `locales/<locale>/messages.json` (optional plugin i18n)
 
 Plugins are sandboxed: no filesystem or network access. Any plugin capability must be both:
+
 1) requested in `plugin.json`, and
 2) granted by the host in `config/permissions.json` (default `MAMUSIABTW_PERMISSIONS_FILE`).
 
@@ -68,6 +71,8 @@ If a plugin has `plugins/<id>/locales/<locale>/messages.json`, the host loads it
 - `mamusiabtw.t(message_id, data?, plural_count?)` inside Lua handlers.
 - `commands[].description_id` in `plugin.json` to localize slash command descriptions.
 
+Locale folders must use official Discord locale codes (the same ones shipped under `./locales/`, like `en-US`, `fr`, `ja`, `zh-CN`)... anything else is ignored.~
+
 ### Plugin Entry Points
 
 Plugins can implement:
@@ -75,6 +80,15 @@ Plugins can implement:
 - `Handle(cmd, ctx)` (required for slash commands)
 - `HandleComponent(id, ctx)` (optional; message components)
 - `HandleModal(id, ctx)` (optional; modal submits)
+- `HandleEvent(event_name, ctx)` (optional; gateway events)
+- `HandleJob(job_id, ctx)` (optional; scheduled triggers)
+
+Supported event names:
+
+- `guild_member_join`
+- `guild_member_leave`
+- `guild_ban`
+- `guild_unban`
 
 `cmd`/`id` is the *local* ID. The host namespaces all Discord `custom_id`s as `mamusiabtw:pl:<plugin_id>:<local_id>` and routes them back to the plugin.
 
@@ -129,3 +143,11 @@ To include developer/support links in the restricted message, build with:
 - `buildinfo.SupportServerURL`
 
 To include a mascot image in `/about`, build with `buildinfo.MascotImageURL`.
+
+## License
+
+[MIT](LICENSE)
+
+---
+
+Made with (artificial) love ❤️
