@@ -1,1 +1,1418 @@
-[]
+[
+  {
+    "id": "cmd.ping.name",
+    "translation": "ping"
+  },
+  {
+    "id": "cmd.ping.desc",
+    "translation": "Швидка перевірка - переконатися, що мама не спить і наглядає за вами."
+  },
+  {
+    "id": "cmd.help.name",
+    "translation": "help"
+  },
+  {
+    "id": "cmd.help.desc",
+    "translation": "Подивись, чим мама може допомогти."
+  },
+  {
+    "id": "cmd.help.content",
+    "translation": "Ось, {{.Pet}} - {{.Mommy}} може допомогти з: {{.Commands}}"
+  },
+  {
+    "id": "cmd.warn.name",
+    "translation": "warn"
+  },
+  {
+    "id": "cmd.warn.desc",
+    "translation": "Дай комусь лагідне попередження (і короткий тайм-аут за потреби)."
+  },
+  {
+    "id": "cmd.warn.opt.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.warn.opt.user.desc",
+    "translation": "Кого попередити?"
+  },
+  {
+    "id": "cmd.warn.opt.reason.name",
+    "translation": "reason"
+  },
+  {
+    "id": "cmd.warn.opt.reason.desc",
+    "translation": "Що сталося?"
+  },
+  {
+    "id": "cmd.unwarn.name",
+    "translation": "unwarn"
+  },
+  {
+    "id": "cmd.unwarn.desc",
+    "translation": "Зняти попередження і дати шанс почати спочатку."
+  },
+  {
+    "id": "cmd.unwarn.opt.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.unwarn.opt.user.desc",
+    "translation": "З кого зняти попередження?"
+  },
+  {
+    "id": "cmd.block.name",
+    "translation": "block"
+  },
+  {
+    "id": "cmd.block.desc",
+    "translation": "Відправити користувача або сервер у тайм-аут: вони не зможуть користуватися мною."
+  },
+  {
+    "id": "cmd.block.sub.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.block.sub.user.desc",
+    "translation": "Відправити користувача у тайм-аут: він не зможе користуватися мною."
+  },
+  {
+    "id": "cmd.block.sub.guild.name",
+    "translation": "guild"
+  },
+  {
+    "id": "cmd.block.sub.guild.desc",
+    "translation": "Відправити сервер у тайм-аут: він не зможе користуватися мною."
+  },
+  {
+    "id": "cmd.block.opt.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.block.opt.user.desc",
+    "translation": "Якого користувача поставити на паузу?"
+  },
+  {
+    "id": "cmd.block.opt.reason.name",
+    "translation": "reason"
+  },
+  {
+    "id": "cmd.block.opt.reason.desc",
+    "translation": "Чому тайм-аут?"
+  },
+  {
+    "id": "cmd.block.opt.guild_id.name",
+    "translation": "guild_id"
+  },
+  {
+    "id": "cmd.block.opt.guild_id.desc",
+    "translation": "ID сервера, який треба поставити на паузу."
+  },
+  {
+    "id": "cmd.unblock.name",
+    "translation": "unblock"
+  },
+  {
+    "id": "cmd.unblock.desc",
+    "translation": "Зняти тайм-аут."
+  },
+  {
+    "id": "cmd.unblock.sub.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.unblock.sub.user.desc",
+    "translation": "Дозволити користувачу знову користуватися мною."
+  },
+  {
+    "id": "cmd.unblock.sub.guild.name",
+    "translation": "guild"
+  },
+  {
+    "id": "cmd.unblock.sub.guild.desc",
+    "translation": "Дозволити серверу знову користуватися мною."
+  },
+  {
+    "id": "cmd.unblock.opt.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.unblock.opt.user.desc",
+    "translation": "З якого користувача зняти тайм-аут?"
+  },
+  {
+    "id": "cmd.unblock.opt.guild_id.name",
+    "translation": "guild_id"
+  },
+  {
+    "id": "cmd.unblock.opt.guild_id.desc",
+    "translation": "ID сервера, з якого зняти тайм-аут."
+  },
+  {
+    "id": "cmd.plugins.name",
+    "translation": "plugins"
+  },
+  {
+    "id": "cmd.plugins.desc",
+    "translation": "Керування моїми плагінами."
+  },
+  {
+    "id": "cmd.plugins.sub.list.name",
+    "translation": "list"
+  },
+  {
+    "id": "cmd.plugins.sub.list.desc",
+    "translation": "Показати, які плагіни завантажені."
+  },
+  {
+    "id": "cmd.plugins.sub.reload.name",
+    "translation": "reload"
+  },
+  {
+    "id": "cmd.plugins.sub.reload.desc",
+    "translation": "Перезавантажити плагіни з диска."
+  },
+  {
+    "id": "cmd.about.name",
+    "translation": "about"
+  },
+  {
+    "id": "cmd.about.desc",
+    "translation": "Дізнайся, хто я (і яку версію запускаю)."
+  },
+  {
+    "id": "cmd.lookup.name",
+    "translation": "lookup"
+  },
+  {
+    "id": "cmd.lookup.desc",
+    "translation": "Переглянути інформацію про користувачів, сервери, ролі та канали."
+  },
+  {
+    "id": "cmd.lookup.sub.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.lookup.sub.user.desc",
+    "translation": "Переглянути інформацію про користувача."
+  },
+  {
+    "id": "cmd.lookup.sub.user.opt.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.lookup.sub.user.opt.user.desc",
+    "translation": "Про якого користувача? (Залиши порожнім, щоб подивитися себе.)"
+  },
+  {
+    "id": "cmd.lookup.sub.guild.name",
+    "translation": "guild"
+  },
+  {
+    "id": "cmd.lookup.sub.guild.desc",
+    "translation": "Інформація про цей сервер."
+  },
+  {
+    "id": "cmd.lookup.sub.role.name",
+    "translation": "role"
+  },
+  {
+    "id": "cmd.lookup.sub.role.desc",
+    "translation": "Інформація про роль."
+  },
+  {
+    "id": "cmd.lookup.sub.role.opt.role.name",
+    "translation": "role"
+  },
+  {
+    "id": "cmd.lookup.sub.role.opt.role.desc",
+    "translation": "Яку роль подивитися?"
+  },
+  {
+    "id": "cmd.lookup.sub.channel.name",
+    "translation": "channel"
+  },
+  {
+    "id": "cmd.lookup.sub.channel.desc",
+    "translation": "Інформація про канал."
+  },
+  {
+    "id": "cmd.lookup.sub.channel.opt.channel.name",
+    "translation": "channel"
+  },
+  {
+    "id": "cmd.lookup.sub.channel.opt.channel.desc",
+    "translation": "Який канал подивитися?"
+  },
+  {
+    "id": "info.lookup.user.field.bot",
+    "translation": "🤖 Бот"
+  },
+  {
+    "id": "info.lookup.user.field.system",
+    "translation": "🖥️ Система"
+  },
+  {
+    "id": "info.lookup.user.field.locale",
+    "translation": "🌐 Мова"
+  },
+  {
+    "id": "info.lookup.user.field.created",
+    "translation": "📅 Створено"
+  },
+  {
+    "id": "info.lookup.user.field.joined",
+    "translation": "📥 Приєднався"
+  },
+  {
+    "id": "info.lookup.user.field.roles",
+    "translation": "🛡️ Ролі"
+  },
+  {
+    "id": "info.lookup.guild.field.roles",
+    "translation": "🛡️ Ролі"
+  },
+  {
+    "id": "info.lookup.guild.field.emojis",
+    "translation": "😃 Емодзі"
+  },
+  {
+    "id": "info.lookup.guild.field.stickers",
+    "translation": "🖼️ Стікери"
+  },
+  {
+    "id": "info.lookup.guild.field.members",
+    "translation": "👥 Учасники"
+  },
+  {
+    "id": "info.lookup.guild.field.channels",
+    "translation": "🌐 Канали"
+  },
+  {
+    "id": "info.lookup.guild.field.created",
+    "translation": "📅 Створено"
+  },
+  {
+    "id": "info.lookup.role.field.mention",
+    "translation": "🏷️ Згадка"
+  },
+  {
+    "id": "info.lookup.role.field.position",
+    "translation": "📌 Позиція"
+  },
+  {
+    "id": "info.lookup.role.field.hoist",
+    "translation": "📌 Виводити окремо"
+  },
+  {
+    "id": "info.lookup.role.field.mentionable",
+    "translation": "🔔 Можна згадувати"
+  },
+  {
+    "id": "info.lookup.role.field.managed",
+    "translation": "🤖 Керується"
+  },
+  {
+    "id": "info.lookup.role.field.permissions",
+    "translation": "🔐 Права"
+  },
+  {
+    "id": "info.lookup.role.field.created",
+    "translation": "📅 Створено"
+  },
+  {
+    "id": "info.lookup.channel.field.mention",
+    "translation": "🔗 Посилання"
+  },
+  {
+    "id": "info.lookup.channel.field.type",
+    "translation": "📁 Тип"
+  },
+  {
+    "id": "info.lookup.channel.field.parent",
+    "translation": "🗂️ Категорія"
+  },
+  {
+    "id": "info.lookup.channel.field.permissions",
+    "translation": "🔐 Права"
+  },
+  {
+    "id": "info.lookup.channel.field.created",
+    "translation": "📅 Створено"
+  },
+  {
+    "id": "cmd.flip.name",
+    "translation": "flip"
+  },
+  {
+    "id": "cmd.flip.desc",
+    "translation": "Підкинути монетку."
+  },
+  {
+    "id": "cmd.roll.name",
+    "translation": "roll"
+  },
+  {
+    "id": "cmd.roll.desc",
+    "translation": "Кинути кубики."
+  },
+  {
+    "id": "cmd.roll.opt.number.name",
+    "translation": "number"
+  },
+  {
+    "id": "cmd.roll.opt.number.desc",
+    "translation": "Скільки кубиків?"
+  },
+  {
+    "id": "cmd.roll.opt.sides.name",
+    "translation": "sides"
+  },
+  {
+    "id": "cmd.roll.opt.sides.desc",
+    "translation": "Скільки граней у кубика?"
+  },
+  {
+    "id": "cmd.roll.opt.modifier.name",
+    "translation": "modifier"
+  },
+  {
+    "id": "cmd.roll.opt.modifier.desc",
+    "translation": "Який модифікатор додати?"
+  },
+  {
+    "id": "cmd.8ball.name",
+    "translation": "8ball"
+  },
+  {
+    "id": "cmd.8ball.desc",
+    "translation": "Запитати магічну кулю 8."
+  },
+  {
+    "id": "cmd.8ball.opt.question.name",
+    "translation": "question"
+  },
+  {
+    "id": "cmd.8ball.opt.question.desc",
+    "translation": "Яке питання поставити?"
+  },
+  {
+    "id": "cmd.hug.name",
+    "translation": "hug"
+  },
+  {
+    "id": "cmd.hug.desc",
+    "translation": "Обійняти когось."
+  },
+  {
+    "id": "cmd.hug.opt.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.hug.opt.user.desc",
+    "translation": "Кого обійняти?"
+  },
+  {
+    "id": "cmd.pat.name",
+    "translation": "pat"
+  },
+  {
+    "id": "cmd.pat.desc",
+    "translation": "Погладити когось по голові."
+  },
+  {
+    "id": "cmd.pat.opt.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.pat.opt.user.desc",
+    "translation": "Кого погладити?"
+  },
+  {
+    "id": "cmd.poke.name",
+    "translation": "poke"
+  },
+  {
+    "id": "cmd.poke.desc",
+    "translation": "Тицнути когось (обережно)."
+  },
+  {
+    "id": "cmd.poke.opt.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.poke.opt.user.desc",
+    "translation": "Кого тицнути?"
+  },
+  {
+    "id": "cmd.shrug.name",
+    "translation": "shrug"
+  },
+  {
+    "id": "cmd.shrug.desc",
+    "translation": "Знизати плечима."
+  },
+  {
+    "id": "cmd.shrug.opt.message.name",
+    "translation": "message"
+  },
+  {
+    "id": "cmd.shrug.opt.message.desc",
+    "translation": "Хочеш щось додати?"
+  },
+  {
+    "id": "cmd.slowmode.name",
+    "translation": "slowmode"
+  },
+  {
+    "id": "cmd.slowmode.desc",
+    "translation": "Увімкнути або змінити повільний режим у каналі."
+  },
+  {
+    "id": "cmd.slowmode.opt.channel.name",
+    "translation": "channel"
+  },
+  {
+    "id": "cmd.slowmode.opt.channel.desc",
+    "translation": "Який канал?"
+  },
+  {
+    "id": "cmd.slowmode.opt.seconds.name",
+    "translation": "seconds"
+  },
+  {
+    "id": "cmd.slowmode.opt.seconds.desc",
+    "translation": "Секунд між повідомленнями (0 - вимкнути)."
+  },
+  {
+    "id": "cmd.nick.name",
+    "translation": "nick"
+  },
+  {
+    "id": "cmd.nick.desc",
+    "translation": "Змінити нік учасника."
+  },
+  {
+    "id": "cmd.nick.opt.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.nick.opt.user.desc",
+    "translation": "Кому змінити нік?"
+  },
+  {
+    "id": "cmd.nick.opt.nickname.name",
+    "translation": "nickname"
+  },
+  {
+    "id": "cmd.nick.opt.nickname.desc",
+    "translation": "Новий нік (залиши порожнім, щоб скинути)."
+  },
+  {
+    "id": "cmd.purge.name",
+    "translation": "purge"
+  },
+  {
+    "id": "cmd.purge.desc",
+    "translation": "Почистити повідомлення в каналі."
+  },
+  {
+    "id": "cmd.purge.sub.all.name",
+    "translation": "all"
+  },
+  {
+    "id": "cmd.purge.sub.all.desc",
+    "translation": "Видалити останні повідомлення."
+  },
+  {
+    "id": "cmd.purge.sub.before.name",
+    "translation": "before"
+  },
+  {
+    "id": "cmd.purge.sub.before.desc",
+    "translation": "Видалити повідомлення до вказаного повідомлення."
+  },
+  {
+    "id": "cmd.purge.sub.after.name",
+    "translation": "after"
+  },
+  {
+    "id": "cmd.purge.sub.after.desc",
+    "translation": "Видалити повідомлення після вказаного повідомлення."
+  },
+  {
+    "id": "cmd.purge.sub.around.name",
+    "translation": "around"
+  },
+  {
+    "id": "cmd.purge.sub.around.desc",
+    "translation": "Видалити повідомлення навколо вказаного повідомлення."
+  },
+  {
+    "id": "cmd.purge.opt.count.name",
+    "translation": "count"
+  },
+  {
+    "id": "cmd.purge.opt.count.desc",
+    "translation": "Скільки повідомлень? (Обережніше.)"
+  },
+  {
+    "id": "cmd.purge.opt.message.name",
+    "translation": "message"
+  },
+  {
+    "id": "cmd.purge.opt.message.desc",
+    "translation": "ID повідомлення або посилання на повідомлення."
+  },
+  {
+    "id": "cmd.roles.name",
+    "translation": "roles"
+  },
+  {
+    "id": "cmd.roles.desc",
+    "translation": "Керування ролями."
+  },
+  {
+    "id": "cmd.roles.sub.create.name",
+    "translation": "create"
+  },
+  {
+    "id": "cmd.roles.sub.create.desc",
+    "translation": "Створити роль."
+  },
+  {
+    "id": "cmd.roles.sub.edit.name",
+    "translation": "edit"
+  },
+  {
+    "id": "cmd.roles.sub.edit.desc",
+    "translation": "Змінити роль."
+  },
+  {
+    "id": "cmd.roles.sub.delete.name",
+    "translation": "delete"
+  },
+  {
+    "id": "cmd.roles.sub.delete.desc",
+    "translation": "Видалити роль."
+  },
+  {
+    "id": "cmd.roles.sub.add.name",
+    "translation": "add"
+  },
+  {
+    "id": "cmd.roles.sub.add.desc",
+    "translation": "Додати роль учаснику."
+  },
+  {
+    "id": "cmd.roles.sub.remove.name",
+    "translation": "remove"
+  },
+  {
+    "id": "cmd.roles.sub.remove.desc",
+    "translation": "Зняти роль з учасника."
+  },
+  {
+    "id": "cmd.roles.opt.role.name",
+    "translation": "role"
+  },
+  {
+    "id": "cmd.roles.opt.role.desc",
+    "translation": "Яка роль?"
+  },
+  {
+    "id": "cmd.roles.opt.member.name",
+    "translation": "member"
+  },
+  {
+    "id": "cmd.roles.opt.member.desc",
+    "translation": "Який учасник?"
+  },
+  {
+    "id": "cmd.roles.opt.name.name",
+    "translation": "name"
+  },
+  {
+    "id": "cmd.roles.opt.name.desc",
+    "translation": "Назва ролі."
+  },
+  {
+    "id": "cmd.roles.opt.colour.name",
+    "translation": "colour"
+  },
+  {
+    "id": "cmd.roles.opt.colour.desc",
+    "translation": "Колір ролі (RRGGBB)."
+  },
+  {
+    "id": "cmd.roles.opt.hoist.name",
+    "translation": "hoist"
+  },
+  {
+    "id": "cmd.roles.opt.hoist.desc",
+    "translation": "Показувати окремо в списку учасників?"
+  },
+  {
+    "id": "cmd.roles.opt.mentionable.name",
+    "translation": "mentionable"
+  },
+  {
+    "id": "cmd.roles.opt.mentionable.desc",
+    "translation": "Дозволити згадки (@mention)?"
+  },
+  {
+    "id": "cmd.emojis.name",
+    "translation": "emojis"
+  },
+  {
+    "id": "cmd.emojis.desc",
+    "translation": "Керування емодзі."
+  },
+  {
+    "id": "cmd.emojis.sub.create.name",
+    "translation": "create"
+  },
+  {
+    "id": "cmd.emojis.sub.create.desc",
+    "translation": "Створити емодзі."
+  },
+  {
+    "id": "cmd.emojis.sub.edit.name",
+    "translation": "edit"
+  },
+  {
+    "id": "cmd.emojis.sub.edit.desc",
+    "translation": "Перейменувати емодзі."
+  },
+  {
+    "id": "cmd.emojis.sub.delete.name",
+    "translation": "delete"
+  },
+  {
+    "id": "cmd.emojis.sub.delete.desc",
+    "translation": "Видалити емодзі."
+  },
+  {
+    "id": "cmd.emojis.opt.name.name",
+    "translation": "name"
+  },
+  {
+    "id": "cmd.emojis.opt.name.desc",
+    "translation": "Назва емодзі."
+  },
+  {
+    "id": "cmd.emojis.opt.file.name",
+    "translation": "file"
+  },
+  {
+    "id": "cmd.emojis.opt.file.desc",
+    "translation": "Зображення емодзі."
+  },
+  {
+    "id": "cmd.emojis.opt.emoji.name",
+    "translation": "emoji"
+  },
+  {
+    "id": "cmd.emojis.opt.emoji.desc",
+    "translation": "Згадка емодзі (<:name:id>) або ID."
+  },
+  {
+    "id": "cmd.stickers.name",
+    "translation": "stickers"
+  },
+  {
+    "id": "cmd.stickers.desc",
+    "translation": "Керування стікерами."
+  },
+  {
+    "id": "cmd.stickers.sub.create.name",
+    "translation": "create"
+  },
+  {
+    "id": "cmd.stickers.sub.create.desc",
+    "translation": "Створити стікер."
+  },
+  {
+    "id": "cmd.stickers.sub.edit.name",
+    "translation": "edit"
+  },
+  {
+    "id": "cmd.stickers.sub.edit.desc",
+    "translation": "Змінити стікер."
+  },
+  {
+    "id": "cmd.stickers.sub.delete.name",
+    "translation": "delete"
+  },
+  {
+    "id": "cmd.stickers.sub.delete.desc",
+    "translation": "Видалити стікер."
+  },
+  {
+    "id": "cmd.stickers.opt.id.name",
+    "translation": "id"
+  },
+  {
+    "id": "cmd.stickers.opt.id.desc",
+    "translation": "ID стікера або посилання на стікер."
+  },
+  {
+    "id": "cmd.stickers.opt.name.name",
+    "translation": "name"
+  },
+  {
+    "id": "cmd.stickers.opt.name.desc",
+    "translation": "Назва стікера."
+  },
+  {
+    "id": "cmd.stickers.opt.description.name",
+    "translation": "description"
+  },
+  {
+    "id": "cmd.stickers.opt.description.desc",
+    "translation": "Опис стікера (необов'язково)."
+  },
+  {
+    "id": "cmd.stickers.opt.emoji_tag.name",
+    "translation": "emoji_tag"
+  },
+  {
+    "id": "cmd.stickers.opt.emoji_tag.desc",
+    "translation": "Емодзі-тег (Discord вимагає це)."
+  },
+  {
+    "id": "cmd.stickers.opt.file.name",
+    "translation": "file"
+  },
+  {
+    "id": "cmd.stickers.opt.file.desc",
+    "translation": "Зображення стікера."
+  },
+  {
+    "id": "admin.not_owner",
+    "translation": "Не можна, {{.Pet}}. Це лише для власника мами."
+  },
+  {
+    "id": "admin.block.user.success",
+    "translation": "Добре, {{.Pet}}. {{.User}} тепер на паузі й не може користуватися мною."
+  },
+  {
+    "id": "admin.block.guild.invalid",
+    "translation": "{{.Pet}}, цей ID сервера виглядає неправильним: `{{.GuildID}}`."
+  },
+  {
+    "id": "admin.block.guild.success",
+    "translation": "Добре, {{.Pet}}. Сервер `{{.GuildID}}` тепер не може користуватися мною."
+  },
+  {
+    "id": "admin.unblock.user.success",
+    "translation": "От і все, {{.Pet}}. {{.User}} знову може користуватися мною."
+  },
+  {
+    "id": "admin.unblock.guild.invalid",
+    "translation": "{{.Pet}}, цей ID сервера виглядає неправильним: `{{.GuildID}}`."
+  },
+  {
+    "id": "admin.unblock.guild.success",
+    "translation": "Добре, {{.Pet}}. Сервер `{{.GuildID}}` знову може користуватися мною."
+  },
+  {
+    "id": "admin.plugins.not_configured",
+    "translation": "{{.Pet}}, плагіни зараз не налаштовані."
+  },
+  {
+    "id": "admin.plugins.none",
+    "translation": "Плагіни не завантажені, {{.Pet}}."
+  },
+  {
+    "id": "admin.plugins.list",
+    "translation": "Ось мої завантажені плагіни, {{.Pet}} ({{.Count}}):\n{{.List}}"
+  },
+  {
+    "id": "admin.plugins.reloaded",
+    "translation": "Оновила, {{.Pet}}."
+  },
+  {
+    "id": "mod.warn.self",
+    "translation": "Не ти, {{.Pet}}. {{.Mommy}} теж хоче, щоб ти був у безпеці."
+  },
+  {
+    "id": "mod.warn.bot",
+    "translation": "{{.Mommy}} не попереджає ботів і системних користувачів, {{.Pet}}."
+  },
+  {
+    "id": "mod.warn.too_many",
+    "translation": "Досить, {{.Pet}}. У {{.User}} вже максимум попереджень."
+  },
+  {
+    "id": "mod.warn.success",
+    "translation": "Добре, {{.Pet}}. Я записала попередження для {{.User}}: `{{.Reason}}`.{{if .TimeoutMinutes}} І поставила в тайм-аут на {{.TimeoutMinutes}} хв.{{end}}{{if .TimeoutFailed}} Я намагалася поставити в тайм-аут теж, але не змогла.{{end}}"
+  },
+  {
+    "id": "mod.warn.dm",
+    "translation": "Привіт, {{.Pet}}. {{.Mommy}} потрібно, щоб ти пригальмував і був добрішим. Тебе попередили за `{{.Reason}}`.{{if .TimeoutMinutes}} Тайм-аут на {{.TimeoutMinutes}} хв, щоб охолонути.{{end}}"
+  },
+  {
+    "id": "mod.unwarn.self",
+    "translation": "Не ти, {{.Pet}}."
+  },
+  {
+    "id": "mod.unwarn.none",
+    "translation": "Я не знайшла попереджень для {{.User}}, {{.Pet}}."
+  },
+  {
+    "id": "mod.unwarn.prompt",
+    "translation": "Яке попередження зняти, {{.Pet}}?"
+  },
+  {
+    "id": "mod.unwarn.placeholder",
+    "translation": "Обери, сонечко..."
+  },
+  {
+    "id": "mod.unwarn.expired",
+    "translation": "Цей вибір застарів, {{.Pet}}. Запусти `/unwarn` ще раз."
+  },
+  {
+    "id": "mod.unwarn.success",
+    "translation": "Готово, {{.Pet}}. У {{.User}} чистий аркуш."
+  },
+  {
+    "id": "info.about.title",
+    "translation": "imotherbtw {{.Version}}"
+  },
+  {
+    "id": "info.lookup.user.error",
+    "translation": "{{.Pet}}, {{.Mommy}} не змогла отримати інформацію про цього користувача."
+  },
+  {
+    "id": "info.lookup.guild.error",
+    "translation": "{{.Pet}}, {{.Mommy}} не змогла отримати інформацію про цей сервер."
+  },
+  {
+    "id": "fun.flip.result",
+    "translation": ":coin: Орел чи решка, {{.Pet}}? {{.User}} підкинув монетку і випало `{{.Result}}`."
+  },
+  {
+    "id": "fun.roll.invalid_sides",
+    "translation": "Такий кубик не підтримується, {{.Pet}}: `{{.Sides}}`. Спробуй 4, 6, 8, 10, 12 або 20."
+  },
+  {
+    "id": "fun.roll.result",
+    "translation": ":game_die: {{.Pet}}, {{.User}} кинув `{{.Notation}}` і отримав `{{.Total}}`."
+  },
+  {
+    "id": "fun.8ball.question_error",
+    "translation": "Це не схоже на відкрите питання, {{.Pet}}: `{{.Question}}`"
+  },
+  {
+    "id": "fun.8ball.result",
+    "translation": ":8ball: {{.Answer}}, {{.Pet}}."
+  },
+  {
+    "id": "fun.kawaii.footer",
+    "translation": "Працює на Kawaii API"
+  },
+  {
+    "id": "fun.kawaii.error",
+    "translation": "{{.Pet}}, {{.Mommy}} не змогла отримати GIF."
+  },
+  {
+    "id": "fun.kawaii.self_error",
+    "translation": "Не про себе, {{.Pet}}."
+  },
+  {
+    "id": "fun.kawaii.user_mention_only",
+    "translation": "{{.Emoji}} {{.User}}"
+  },
+  {
+    "id": "mgr.slowmode.set",
+    "translation": "Добре, {{.Pet}}. Для {{.Channel}} увімкнено повільний режим: `{{.Seconds}}s`."
+  },
+  {
+    "id": "mgr.slowmode.removed",
+    "translation": "От і все, {{.Pet}}. Повільний режим вимкнено для {{.Channel}}."
+  },
+  {
+    "id": "mgr.slowmode.error",
+    "translation": "{{.Pet}}, {{.Mommy}} не змогла змінити повільний режим."
+  },
+  {
+    "id": "mgr.nick.self_error",
+    "translation": "Я не можу змінити твій власний нік, {{.Pet}}."
+  },
+  {
+    "id": "mgr.nick.set",
+    "translation": "Добре, {{.Pet}}. {{.User}} тепер `{{.Nickname}}`."
+  },
+  {
+    "id": "mgr.nick.reset",
+    "translation": "Добре, {{.Pet}}. Я скинула нік {{.User}}."
+  },
+  {
+    "id": "mgr.nick.error",
+    "translation": "{{.Pet}}, {{.Mommy}} не змогла змінити нік {{.User}}."
+  },
+  {
+    "id": "mgr.purge.invalid_message",
+    "translation": "Це не схоже на коректний ID або посилання на повідомлення, {{.Pet}}."
+  },
+  {
+    "id": "mgr.purge.success",
+    "translation": "Чисто, {{.Pet}}. Видалила повідомлень: `{{.Count}}`."
+  },
+  {
+    "id": "mgr.purge.error",
+    "translation": "{{.Pet}}, {{.Mommy}} не змогла видалити ці повідомлення."
+  },
+  {
+    "id": "mgr.roles.invalid_colour",
+    "translation": "Цей колір не підходить, {{.Pet}}: `{{.Colour}}` (потрібно RRGGBB)."
+  },
+  {
+    "id": "mgr.roles.cannot_edit_everyone",
+    "translation": "Руки геть від `@everyone`, {{.Pet}}."
+  },
+  {
+    "id": "mgr.roles.cannot_delete_everyone",
+    "translation": "Руки геть від `@everyone`, {{.Pet}}."
+  },
+  {
+    "id": "mgr.roles.create_success",
+    "translation": "Готово, {{.Pet}}. Роль {{.Role}} створено."
+  },
+  {
+    "id": "mgr.roles.create_error",
+    "translation": "{{.Pet}}, {{.Mommy}} не змогла створити `@{{.Name}}`."
+  },
+  {
+    "id": "mgr.roles.edit_success",
+    "translation": "Готово, {{.Pet}}. Роль {{.Role}} оновлено."
+  },
+  {
+    "id": "mgr.roles.edit_error",
+    "translation": "{{.Pet}}, {{.Mommy}} не змогла змінити {{.Role}}."
+  },
+  {
+    "id": "mgr.roles.delete_success",
+    "translation": "Добре, {{.Pet}}. `@{{.Name}}` видалено."
+  },
+  {
+    "id": "mgr.roles.delete_error",
+    "translation": "{{.Pet}}, {{.Mommy}} не змогла видалити {{.Role}}."
+  },
+  {
+    "id": "mgr.roles.add_success",
+    "translation": "Готово, {{.Pet}}. У {{.User}} тепер є {{.Role}}."
+  },
+  {
+    "id": "mgr.roles.add_error",
+    "translation": "{{.Pet}}, {{.Mommy}} не змогла додати {{.Role}} до {{.User}}."
+  },
+  {
+    "id": "mgr.roles.remove_success",
+    "translation": "Готово, {{.Pet}}. {{.Role}} знято з {{.User}}."
+  },
+  {
+    "id": "mgr.roles.remove_error",
+    "translation": "{{.Pet}}, {{.Mommy}} не змогла зняти {{.Role}} з {{.User}}."
+  },
+  {
+    "id": "mgr.emojis.file_missing",
+    "translation": "{{.Pet}}, мені потрібен файл-вкладення."
+  },
+  {
+    "id": "mgr.emojis.file_too_large",
+    "translation": "{{.Pet}}, файл занадто великий ({{.Size}} байт; максимум {{.Max}})."
+  },
+  {
+    "id": "mgr.emojis.bad_extension",
+    "translation": "З таким розширенням емодзі не вийде, {{.Pet}}: `{{.Ext}}`."
+  },
+  {
+    "id": "mgr.emojis.too_many",
+    "translation": "На цьому сервері вже максимум емодзі, {{.Pet}} (макс. `{{.Max}}`)."
+  },
+  {
+    "id": "mgr.emojis.download_error",
+    "translation": "{{.Pet}}, {{.Mommy}} може завантажувати лише з CDN Discord."
+  },
+  {
+    "id": "mgr.emojis.dimensions_error",
+    "translation": "{{.Pet}}, я не змогла прочитати розміри зображення."
+  },
+  {
+    "id": "mgr.emojis.too_large_dims",
+    "translation": "{{.Pet}}, для емодзі картинка занадто велика: `{{.Width}}x{{.Height}}`."
+  },
+  {
+    "id": "mgr.emojis.bad_image",
+    "translation": "{{.Pet}}, цей формат зображення не підтримується."
+  },
+  {
+    "id": "mgr.emojis.invalid_emoji",
+    "translation": "Це не схоже на коректний емодзі, {{.Pet}}: `{{.Emoji}}`."
+  },
+  {
+    "id": "mgr.emojis.create_success",
+    "translation": "Мило! {{.Pet}}, `:{{.Name}}:` створено."
+  },
+  {
+    "id": "mgr.emojis.create_error",
+    "translation": "{{.Pet}}, {{.Mommy}} не змогла створити `:{{.Name}}:`."
+  },
+  {
+    "id": "mgr.emojis.edit_success",
+    "translation": "Добре, {{.Pet}}. Перейменувала на `{{.Name}}`."
+  },
+  {
+    "id": "mgr.emojis.edit_error",
+    "translation": "{{.Pet}}, {{.Mommy}} не змогла перейменувати цей емодзі."
+  },
+  {
+    "id": "mgr.emojis.delete_success",
+    "translation": "Добре, {{.Pet}}. Емодзі видалено."
+  },
+  {
+    "id": "mgr.emojis.delete_error",
+    "translation": "{{.Pet}}, {{.Mommy}} не змогла видалити цей емодзі."
+  },
+  {
+    "id": "mgr.stickers.file_missing",
+    "translation": "{{.Pet}}, мені потрібен файл-вкладення."
+  },
+  {
+    "id": "mgr.stickers.tags_missing",
+    "translation": "{{.Pet}}, Discord вимагає емодзі-тег."
+  },
+  {
+    "id": "mgr.stickers.file_too_large",
+    "translation": "{{.Pet}}, файл занадто великий ({{.Size}} байт; максимум {{.Max}})."
+  },
+  {
+    "id": "mgr.stickers.bad_extension",
+    "translation": "З таким розширенням стікер не вийде, {{.Pet}}: `{{.Ext}}`."
+  },
+  {
+    "id": "mgr.stickers.too_many",
+    "translation": "На цьому сервері вже максимум стікерів, {{.Pet}} (макс. `{{.Max}}`)."
+  },
+  {
+    "id": "mgr.stickers.download_error",
+    "translation": "{{.Pet}}, {{.Mommy}} може завантажувати лише з CDN Discord."
+  },
+  {
+    "id": "mgr.stickers.dimensions_error",
+    "translation": "{{.Pet}}, я не змогла прочитати розміри зображення."
+  },
+  {
+    "id": "mgr.stickers.too_large_dims",
+    "translation": "{{.Pet}}, для стікера картинка занадто велика: `{{.Width}}x{{.Height}}`."
+  },
+  {
+    "id": "mgr.stickers.invalid_id",
+    "translation": "{{.Pet}}, цей ID/посилання на стікер виглядає неправильним: `{{.ID}}`."
+  },
+  {
+    "id": "mgr.stickers.create_success",
+    "translation": "Готово, {{.Pet}}. `{{.Name}}` створено."
+  },
+  {
+    "id": "mgr.stickers.create_error",
+    "translation": "{{.Pet}}, {{.Mommy}} не змогла створити `{{.Name}}`."
+  },
+  {
+    "id": "mgr.stickers.edit_success",
+    "translation": "Готово, {{.Pet}}. `{{.Name}}` оновлено."
+  },
+  {
+    "id": "mgr.stickers.edit_error",
+    "translation": "{{.Pet}}, {{.Mommy}} не змогла змінити цей стікер."
+  },
+  {
+    "id": "mgr.stickers.delete_success",
+    "translation": "Добре, {{.Pet}}. Стікер видалено."
+  },
+  {
+    "id": "mgr.stickers.delete_error",
+    "translation": "{{.Pet}}, {{.Mommy}} не змогла видалити цей стікер."
+  },
+  {
+    "id": "ok.pong",
+    "translation": "Понг, сонечко. Я поруч."
+  },
+  {
+    "id": "err.generic",
+    "translation": "Ой, {{.Pet}}... {{.Mommy}} щось зламала. Спробуй ще раз трохи пізніше, добре?"
+  },
+  {
+    "id": "err.cooldown",
+    "translation": "Тихіше, {{.Pet}}. Дихай. Спробуй знову через {{.Seconds}}с."
+  },
+  {
+    "id": "err.not_in_guild",
+    "translation": "Це працює лише на сервері, {{.Pet}}."
+  },
+  {
+    "id": "err.restricted",
+    "translation": "Ні, {{.Pet}}. Зараз ти в тайм-ауті й не можеш користуватися мною."
+  },
+  {
+    "id": "err.restricted_links",
+    "translation": "Ні, {{.Pet}}. Зараз ти в тайм-ауті й не можеш користуватися мною.\nЯкщо думаєш, що це помилка, напиши:\nDeveloper: {{.DeveloperURL}}\nSupport: {{.SupportServerURL}}"
+  },
+  {
+    "id": "cmd.timezone.name",
+    "translation": "timezone"
+  },
+  {
+    "id": "cmd.timezone.desc",
+    "translation": "Вкажи свій часовий пояс, щоб нагадування приходили вчасно."
+  },
+  {
+    "id": "cmd.timezone.sub.set.name",
+    "translation": "set"
+  },
+  {
+    "id": "cmd.timezone.sub.set.desc",
+    "translation": "Встановити часовий пояс (IANA, наприклад Europe/Tallinn)."
+  },
+  {
+    "id": "cmd.timezone.sub.show.name",
+    "translation": "show"
+  },
+  {
+    "id": "cmd.timezone.sub.show.desc",
+    "translation": "Показати поточний часовий пояс."
+  },
+  {
+    "id": "cmd.timezone.sub.clear.name",
+    "translation": "clear"
+  },
+  {
+    "id": "cmd.timezone.sub.clear.desc",
+    "translation": "Очистити збережений часовий пояс."
+  },
+  {
+    "id": "cmd.timezone.opt.iana.name",
+    "translation": "iana"
+  },
+  {
+    "id": "cmd.timezone.opt.iana.desc",
+    "translation": "Назва часового поясу (наприклад Europe/Tallinn)."
+  },
+  {
+    "id": "wellness.timezone.invalid",
+    "translation": "Хм, {{.Pet}}... Я не впізнаю цей часовий пояс: `{{.Timezone}}`."
+  },
+  {
+    "id": "wellness.timezone.set",
+    "translation": "Добре, {{.Pet}}. Я використаю `{{.Timezone}}` для твоїх нагадувань."
+  },
+  {
+    "id": "wellness.timezone.unset",
+    "translation": "Часовий пояс ще не задано, {{.Pet}}. Використай `/timezone set`."
+  },
+  {
+    "id": "wellness.timezone.show",
+    "translation": "Зараз у тебе `{{.Timezone}}`, {{.Pet}}."
+  },
+  {
+    "id": "wellness.timezone.cleared",
+    "translation": "Готово, {{.Pet}}. Очистила."
+  },
+  {
+    "id": "cmd.checkin.name",
+    "translation": "checkin"
+  },
+  {
+    "id": "cmd.checkin.desc",
+    "translation": "Короткий чек-ін: як ти сьогодні себе почуваєш."
+  },
+  {
+    "id": "cmd.checkin.opt.mood.name",
+    "translation": "mood"
+  },
+  {
+    "id": "cmd.checkin.opt.mood.desc",
+    "translation": "Настрій: 1 (важко) - 5 (чудово)."
+  },
+  {
+    "id": "cmd.checkin.opt.history.name",
+    "translation": "history"
+  },
+  {
+    "id": "cmd.checkin.opt.history.desc",
+    "translation": "Показати останні чек-іни замість запису нового."
+  },
+  {
+    "id": "wellness.checkin.prompt",
+    "translation": "Скажи число від 1 до 5, {{.Pet}}... або постав `history=true`, щоб подивитися останні чек-іни."
+  },
+  {
+    "id": "wellness.checkin.invalid_mood",
+    "translation": "Потрібно число 1..5, {{.Pet}}."
+  },
+  {
+    "id": "wellness.checkin.saved",
+    "translation": "Дякую, {{.Pet}}. Я зберегла `{{.Mood}}/5`."
+  },
+  {
+    "id": "wellness.checkin.history.empty",
+    "translation": "Чек-інів поки немає, {{.Pet}}. Почати з малого - це сміливо."
+  },
+  {
+    "id": "wellness.checkin.history",
+    "translation": "Ось твої останні чек-іни, {{.Pet}}:\n{{.Lines}}"
+  },
+  {
+    "id": "cmd.remind.name",
+    "translation": "remind"
+  },
+  {
+    "id": "cmd.remind.desc",
+    "translation": "Налаштуй ніжні нагадування - мама лагідно нагадає."
+  },
+  {
+    "id": "cmd.remind.sub.create.name",
+    "translation": "create"
+  },
+  {
+    "id": "cmd.remind.sub.create.desc",
+    "translation": "Створити нове нагадування."
+  },
+  {
+    "id": "cmd.remind.sub.list.name",
+    "translation": "list"
+  },
+  {
+    "id": "cmd.remind.sub.list.desc",
+    "translation": "Показати твої нагадування."
+  },
+  {
+    "id": "cmd.remind.sub.delete.name",
+    "translation": "delete"
+  },
+  {
+    "id": "cmd.remind.sub.delete.desc",
+    "translation": "Видалити нагадування."
+  },
+  {
+    "id": "cmd.remind.opt.schedule.name",
+    "translation": "schedule"
+  },
+  {
+    "id": "cmd.remind.opt.schedule.desc",
+    "translation": "Cron-розклад (наприклад `0 9 * * *`) або `@hourly`."
+  },
+  {
+    "id": "cmd.remind.opt.kind.name",
+    "translation": "kind"
+  },
+  {
+    "id": "cmd.remind.opt.kind.desc",
+    "translation": "Яке це нагадування?"
+  },
+  {
+    "id": "cmd.remind.opt.note.name",
+    "translation": "note"
+  },
+  {
+    "id": "cmd.remind.opt.note.desc",
+    "translation": "Коротка нотатка (необов'язково, максимум 120 символів)."
+  },
+  {
+    "id": "cmd.remind.opt.delivery.name",
+    "translation": "delivery"
+  },
+  {
+    "id": "cmd.remind.opt.delivery.desc",
+    "translation": "Куди відправляти? (dm або channel)"
+  },
+  {
+    "id": "cmd.remind.opt.channel.name",
+    "translation": "channel"
+  },
+  {
+    "id": "cmd.remind.opt.channel.desc",
+    "translation": "У який канал? (лише якщо delivery=channel)"
+  },
+  {
+    "id": "cmd.remind.opt.id.name",
+    "translation": "id"
+  },
+  {
+    "id": "cmd.remind.opt.id.desc",
+    "translation": "ID нагадування."
+  },
+  {
+    "id": "wellness.remind.bad_schedule",
+    "translation": "Цей розклад виглядає дивно, {{.Pet}}: `{{.Schedule}}`."
+  },
+  {
+    "id": "wellness.remind.channel_required",
+    "translation": "Якщо відправляти в канал, вибери канал теж, {{.Pet}}."
+  },
+  {
+    "id": "wellness.remind.created",
+    "translation": "Готово, {{.Pet}}. Наступного разу нагадаю о {{.NextRun}} - нагадування `{{.ID}}` ({{.Kind}}, {{.Delivery}})."
+  },
+  {
+    "id": "wellness.remind.list.empty",
+    "translation": "Нагадувань поки немає, {{.Pet}}. Використай `/remind create`."
+  },
+  {
+    "id": "wellness.remind.list",
+    "translation": "Ось твої нагадування, {{.Pet}}:\n{{.Lines}}"
+  },
+  {
+    "id": "wellness.remind.delete.placeholder",
+    "translation": "Обери нагадування..."
+  },
+  {
+    "id": "wellness.remind.delete.prompt",
+    "translation": "Яке нагадування видалити, {{.Pet}}?"
+  },
+  {
+    "id": "wellness.remind.delete.expired",
+    "translation": "Це меню застаріло, {{.Pet}}. Запусти `/remind delete` ще раз."
+  },
+  {
+    "id": "wellness.remind.delete.not_owner",
+    "translation": "Руки геть, {{.Pet}}. Це не твоє."
+  },
+  {
+    "id": "wellness.remind.delete.not_found",
+    "translation": "Я не знайшла це нагадування, {{.Pet}}."
+  },
+  {
+    "id": "wellness.remind.delete.success",
+    "translation": "Видалено. Молодець, {{.Pet}}."
+  },
+  {
+    "id": "wellness.reminder.fire",
+    "translation": "Привіт, {{.Pet}}. Ніжне нагадування: {{.Kind}}.{{if .Note}} {{.Note}}{{end}}"
+  },
+  {
+    "id": "wellness.reminder.kind.hydrate",
+    "translation": "випити води"
+  },
+  {
+    "id": "wellness.reminder.kind.stretch",
+    "translation": "трохи розім'ятися"
+  },
+  {
+    "id": "wellness.reminder.kind.breathe",
+    "translation": "зробити повільний вдих"
+  },
+  {
+    "id": "wellness.reminder.kind.meds",
+    "translation": "прийняти ліки"
+  },
+  {
+    "id": "wellness.reminder.kind.sleep",
+    "translation": "час готуватися до сну"
+  },
+  {
+    "id": "wellness.reminder.kind.checkin",
+    "translation": "зробити маленький чек-ін"
+  }
+]
