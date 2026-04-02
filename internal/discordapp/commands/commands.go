@@ -1,18 +1,18 @@
 package commands
 
 import (
-	cmdadmin "github.com/xsyetopz/imotherbtw/internal/discordapp/commands/admin"
-	cmdcore "github.com/xsyetopz/imotherbtw/internal/discordapp/commands/core"
-	cmdfun "github.com/xsyetopz/imotherbtw/internal/discordapp/commands/fun"
-	cmdinfo "github.com/xsyetopz/imotherbtw/internal/discordapp/commands/info"
-	cmdmanager "github.com/xsyetopz/imotherbtw/internal/discordapp/commands/manager"
-	cmdemojis "github.com/xsyetopz/imotherbtw/internal/discordapp/commands/manager/emojis"
-	cmdroles "github.com/xsyetopz/imotherbtw/internal/discordapp/commands/manager/roles"
-	cmdstickers "github.com/xsyetopz/imotherbtw/internal/discordapp/commands/manager/stickers"
-	cmdmoderation "github.com/xsyetopz/imotherbtw/internal/discordapp/commands/moderation"
-	cmdwellness "github.com/xsyetopz/imotherbtw/internal/discordapp/commands/wellness"
+	cmdadmin "github.com/xsuetopz/go-mamusiabtw/internal/discordapp/commands/admin"
+	cmdcore "github.com/xsuetopz/go-mamusiabtw/internal/discordapp/commands/core"
+	cmdfun "github.com/xsuetopz/go-mamusiabtw/internal/discordapp/commands/fun"
+	cmdinfo "github.com/xsuetopz/go-mamusiabtw/internal/discordapp/commands/info"
+	cmdmanager "github.com/xsuetopz/go-mamusiabtw/internal/discordapp/commands/manager"
+	cmdemojis "github.com/xsuetopz/go-mamusiabtw/internal/discordapp/commands/manager/emojis"
+	cmdroles "github.com/xsuetopz/go-mamusiabtw/internal/discordapp/commands/manager/roles"
+	cmdstickers "github.com/xsuetopz/go-mamusiabtw/internal/discordapp/commands/manager/stickers"
+	cmdmoderation "github.com/xsuetopz/go-mamusiabtw/internal/discordapp/commands/moderation"
+	cmdwellness "github.com/xsuetopz/go-mamusiabtw/internal/discordapp/commands/wellness"
 
-	"github.com/xsyetopz/imotherbtw/internal/discordapp/core"
+	"github.com/xsuetopz/go-mamusiabtw/internal/discordapp/core"
 )
 
 func All() []core.SlashCommand {

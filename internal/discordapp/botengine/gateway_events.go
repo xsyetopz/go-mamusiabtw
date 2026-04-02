@@ -9,8 +9,8 @@ import (
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/snowflake/v2"
 
-	"github.com/xsyetopz/imotherbtw/internal/plugins"
-	"github.com/xsyetopz/imotherbtw/internal/store"
+	"github.com/xsuetopz/go-mamusiabtw/internal/plugins"
+	"github.com/xsuetopz/go-mamusiabtw/internal/store"
 )
 
 func (b *Bot) onGuildJoin(e *events.GuildJoin) {

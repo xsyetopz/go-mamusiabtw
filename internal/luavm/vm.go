@@ -15,9 +15,9 @@ import (
 
 	lua "github.com/yuin/gopher-lua"
 
-	"github.com/xsyetopz/imotherbtw/internal/i18n"
-	"github.com/xsyetopz/imotherbtw/internal/permissions"
-	"github.com/xsyetopz/imotherbtw/internal/store"
+	"github.com/xsuetopz/go-mamusiabtw/internal/i18n"
+	"github.com/xsuetopz/go-mamusiabtw/internal/permissions"
+	"github.com/xsuetopz/go-mamusiabtw/internal/store"
 )
 
 const defaultCallTimeout = 2 * time.Second
@@ -253,7 +253,7 @@ func (v *VM) registerHostAPI() {
 	t.RawSetString("kv_get_json", v.L.NewFunction(v.luaKVGetJSON))
 	t.RawSetString("kv_put_json", v.L.NewFunction(v.luaKVPutJSON))
 
-	v.L.SetGlobal("imotherbtw", t)
+	v.L.SetGlobal("mamusiabtw", t)
 }
 
 func (v *VM) payloadToLua(p Payload) (*lua.LTable, error) {

@@ -1,16 +1,16 @@
 services:
-  imotherbtw:
+  mamusiabtw:
     build:
       context: .
     restart: unless-stopped
     env_file:
       - .env
     environment:
-      SQLITE_PATH: /data/imotherbtw.sqlite
+      SQLITE_PATH: /data/mamusiabtw.sqlite
       MIGRATIONS_DIR: /app/migrations/sqlite
       LOCALES_DIR: /app/locales
       PLUGINS_DIR: /app/plugins
-      IMOTHERBTW_PERMISSIONS_FILE: /app/config/permissions.json
+      MAMUSIABTW_PERMISSIONS_FILE: /app/config/permissions.json
     volumes:
       - ./data:/data
       - ./plugins:/app/plugins

@@ -1,4 +1,4 @@
-module github.com/xsyetopz/imotherbtw
+module github.com/xsuetopz/go-mamusiabtw
 
 go 1.26.1
 

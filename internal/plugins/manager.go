@@ -15,10 +15,10 @@ import (
 
 	"github.com/disgoorg/disgo/discord"
 
-	"github.com/xsyetopz/imotherbtw/internal/i18n"
-	"github.com/xsyetopz/imotherbtw/internal/luavm"
-	"github.com/xsyetopz/imotherbtw/internal/permissions"
-	"github.com/xsyetopz/imotherbtw/internal/store"
+	"github.com/xsuetopz/go-mamusiabtw/internal/i18n"
+	"github.com/xsuetopz/go-mamusiabtw/internal/luavm"
+	"github.com/xsuetopz/go-mamusiabtw/internal/permissions"
+	"github.com/xsuetopz/go-mamusiabtw/internal/store"
 )
 
 type Manager struct {
@@ -319,6 +319,63 @@ func buildSubscriptions(pls map[string]*Plugin) (map[string][]string, []PluginJo
 	return ev, jobs
 }
 
+func defaultEphemeralForCommand(cmd Command, opts map[string]any) bool {
+	if opts == nil {
+		return cmd.Ephemeral
+	}
+
+	sub := readPayloadString(opts, "__subcommand")
+	if sub == "" {
+		return cmd.Ephemeral
+	}
+
+	group := readPayloadString(opts, "__group")
+
+	if group != "" {
+		return defaultEphemeralFromGroups(cmd.Groups, group, sub, cmd.Ephemeral)
+	}
+
+	return defaultEphemeralFromSubcommands(cmd.Subcommands, sub, cmd.Ephemeral)
+}
+
+func readPayloadString(opts map[string]any, key string) string {
+	if opts == nil {
+		return ""
+	}
+	v, ok := opts[key]
+	if !ok {
+		return ""
+	}
+	s, ok := v.(string)
+	if !ok {
+		return ""
+	}
+	return strings.TrimSpace(s)
+}
+
+func defaultEphemeralFromGroups(groups []CommandGroup, group, sub string, fallback bool) bool {
+	for _, g := range groups {
+		if strings.TrimSpace(g.Name) != group {
+			continue
+		}
+		return defaultEphemeralFromSubcommands(g.Subcommands, sub, fallback)
+	}
+	return fallback
+}
+
+func defaultEphemeralFromSubcommands(subs []Subcommand, sub string, fallback bool) bool {
+	for _, sc := range subs {
+		if strings.TrimSpace(sc.Name) != sub {
+			continue
+		}
+		if sc.Ephemeral != nil {
+			return *sc.Ephemeral
+		}
+		return fallback
+	}
+	return fallback
+}
+
 func (m *Manager) Commands() map[string]PluginCommand {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
@@ -420,10 +477,11 @@ func (m *Manager) HandleSlash(ctx context.Context, cmdName string, payload Paylo
 		return nil, false, pl.ID, err
 	}
 
+	defaultEphemeral := defaultEphemeralForCommand(cmd.Command, payload.Options)
 	if !hasValue {
-		return nil, cmd.Command.Ephemeral, pl.ID, nil
+		return nil, defaultEphemeral, pl.ID, nil
 	}
-	return res, cmd.Command.Ephemeral, pl.ID, nil
+	return res, defaultEphemeral, pl.ID, nil
 }
 
 func (m *Manager) HandleComponent(ctx context.Context, pluginID, localID string, payload Payload) (any, bool, error) {
@@ -636,64 +694,11 @@ func commandToCreate(
 	localize CommandLocalizer,
 ) discord.ApplicationCommandCreate {
 	var options []discord.ApplicationCommandOption
-	for _, opt := range cmd.Options {
-		switch opt.Type {
-		case "string":
-			options = append(options, discord.ApplicationCommandOptionString{
-				Name:        opt.Name,
-				Description: opt.Description,
-				Required:    opt.Required,
-			})
-		case "bool":
-			options = append(options, discord.ApplicationCommandOptionBool{
-				Name:        opt.Name,
-				Description: opt.Description,
-				Required:    opt.Required,
-			})
-		case "int":
-			options = append(options, discord.ApplicationCommandOptionInt{
-				Name:        opt.Name,
-				Description: opt.Description,
-				Required:    opt.Required,
-			})
-		case "float":
-			options = append(options, discord.ApplicationCommandOptionFloat{
-				Name:        opt.Name,
-				Description: opt.Description,
-				Required:    opt.Required,
-			})
-		case "user":
-			options = append(options, discord.ApplicationCommandOptionUser{
-				Name:        opt.Name,
-				Description: opt.Description,
-				Required:    opt.Required,
-			})
-		case "channel":
-			options = append(options, discord.ApplicationCommandOptionChannel{
-				Name:        opt.Name,
-				Description: opt.Description,
-				Required:    opt.Required,
-			})
-		case "role":
-			options = append(options, discord.ApplicationCommandOptionRole{
-				Name:        opt.Name,
-				Description: opt.Description,
-				Required:    opt.Required,
-			})
-		case "mentionable":
-			options = append(options, discord.ApplicationCommandOptionMentionable{
-				Name:        opt.Name,
-				Description: opt.Description,
-				Required:    opt.Required,
-			})
-		case "attachment":
-			options = append(options, discord.ApplicationCommandOptionAttachment{
-				Name:        opt.Name,
-				Description: opt.Description,
-				Required:    opt.Required,
-			})
-		default:
-		}
+	if len(cmd.Subcommands) > 0 || len(cmd.Groups) > 0 {
+		options = append(options, buildSubcommands(pluginID, cmd.Subcommands, locales, localize)...)
+		options = append(options, buildGroups(pluginID, cmd.Groups, locales, localize)...)
+	} else {
+		options = append(options, buildOptions(pluginID, cmd.Options, locales, localize)...)
 	}
 
 	create := discord.SlashCommandCreate{
@@ -702,20 +707,351 @@ func commandToCreate(
 		Options:     options,
 	}
 
-	descID := strings.TrimSpace(cmd.DescriptionID)
-	if descID != "" && len(locales) != 0 && localize != nil {
-		locs := map[discord.Locale]string{}
-		for _, locale := range locales {
-			s, ok := localize(pluginID, locale, descID)
-			if !ok {
-				continue
-			}
-			locs[discord.Locale(locale)] = s
-		}
-		if len(locs) != 0 {
-			create.DescriptionLocalizations = locs
-		}
+	if locs := descriptionLocalizations(pluginID, cmd.DescriptionID, locales, localize); len(locs) != 0 {
+		create.DescriptionLocalizations = locs
 	}
 
 	return create
+}
+
+func descriptionLocalizations(
+	pluginID string,
+	descriptionID string,
+	locales []string,
+	localize CommandLocalizer,
+) map[discord.Locale]string {
+	descID := strings.TrimSpace(descriptionID)
+	if descID == "" || len(locales) == 0 || localize == nil {
+		return nil
+	}
+
+	locs := map[discord.Locale]string{}
+	for _, locale := range locales {
+		s, ok := localize(pluginID, locale, descID)
+		if !ok {
+			continue
+		}
+		locs[discord.Locale(locale)] = s
+	}
+	return locs
+}
+
+func buildSubcommands(
+	pluginID string,
+	cmds []Subcommand,
+	locales []string,
+	localize CommandLocalizer,
+) []discord.ApplicationCommandOption {
+	out := make([]discord.ApplicationCommandOption, 0, len(cmds))
+	for _, sc := range cmds {
+		opt := discord.ApplicationCommandOptionSubCommand{
+			Name:        sc.Name,
+			Description: sc.Description,
+			Options:     buildOptions(pluginID, sc.Options, locales, localize),
+		}
+		if locs := descriptionLocalizations(pluginID, sc.DescriptionID, locales, localize); len(locs) != 0 {
+			opt.DescriptionLocalizations = locs
+		}
+		out = append(out, opt)
+	}
+	return out
+}
+
+func buildGroups(
+	pluginID string,
+	groups []CommandGroup,
+	locales []string,
+	localize CommandLocalizer,
+) []discord.ApplicationCommandOption {
+	out := make([]discord.ApplicationCommandOption, 0, len(groups))
+	for _, g := range groups {
+		opt := discord.ApplicationCommandOptionSubCommandGroup{
+			Name:        g.Name,
+			Description: g.Description,
+		}
+		if locs := descriptionLocalizations(pluginID, g.DescriptionID, locales, localize); len(locs) != 0 {
+			opt.DescriptionLocalizations = locs
+		}
+
+		subs := make([]discord.ApplicationCommandOptionSubCommand, 0, len(g.Subcommands))
+		for _, sc := range g.Subcommands {
+			sub := discord.ApplicationCommandOptionSubCommand{
+				Name:        sc.Name,
+				Description: sc.Description,
+				Options:     buildOptions(pluginID, sc.Options, locales, localize),
+			}
+			if locs := descriptionLocalizations(pluginID, sc.DescriptionID, locales, localize); len(locs) != 0 {
+				sub.DescriptionLocalizations = locs
+			}
+			subs = append(subs, sub)
+		}
+		opt.Options = subs
+
+		out = append(out, opt)
+	}
+	return out
+}
+
+func buildOptions(
+	pluginID string,
+	opts []CommandOption,
+	locales []string,
+	localize CommandLocalizer,
+) []discord.ApplicationCommandOption {
+	out := make([]discord.ApplicationCommandOption, 0, len(opts))
+	for _, opt := range opts {
+		if o, ok := buildOption(pluginID, opt, locales, localize); ok {
+			out = append(out, o)
+		}
+	}
+	return out
+}
+
+func buildOption(
+	pluginID string,
+	opt CommandOption,
+	locales []string,
+	localize CommandLocalizer,
+) (discord.ApplicationCommandOption, bool) {
+	typ := strings.ToLower(strings.TrimSpace(opt.Type))
+	descLocs := descriptionLocalizations(pluginID, opt.DescriptionID, locales, localize)
+	switch typ {
+	case "string":
+		return buildStringOption(opt, descLocs), true
+	case "bool":
+		return buildBoolOption(opt, descLocs), true
+	case "int":
+		return buildIntOption(opt, descLocs), true
+	case "float":
+		return buildFloatOption(opt, descLocs), true
+	case "user":
+		return buildUserOption(opt, descLocs), true
+	case "channel":
+		return buildChannelOption(opt, descLocs), true
+	case "role":
+		return buildRoleOption(opt, descLocs), true
+	case "mentionable":
+		return buildMentionableOption(opt, descLocs), true
+	case "attachment":
+		return buildAttachmentOption(opt, descLocs), true
+	default:
+		return nil, false
+	}
+}
+
+func buildStringOption(
+	opt CommandOption,
+	descLocs map[discord.Locale]string,
+) discord.ApplicationCommandOptionString {
+	o := discord.ApplicationCommandOptionString{
+		Name:        opt.Name,
+		Description: opt.Description,
+		Required:    opt.Required,
+		MinLength:   opt.MinLength,
+		MaxLength:   opt.MaxLength,
+		Choices:     buildStringChoices(opt.Choices),
+	}
+	if len(descLocs) != 0 {
+		o.DescriptionLocalizations = descLocs
+	}
+	return o
+}
+
+func buildBoolOption(
+	opt CommandOption,
+	descLocs map[discord.Locale]string,
+) discord.ApplicationCommandOptionBool {
+	o := discord.ApplicationCommandOptionBool{
+		Name:        opt.Name,
+		Description: opt.Description,
+		Required:    opt.Required,
+	}
+	if len(descLocs) != 0 {
+		o.DescriptionLocalizations = descLocs
+	}
+	return o
+}
+
+func buildIntOption(
+	opt CommandOption,
+	descLocs map[discord.Locale]string,
+) discord.ApplicationCommandOptionInt {
+	o := discord.ApplicationCommandOptionInt{
+		Name:        opt.Name,
+		Description: opt.Description,
+		Required:    opt.Required,
+		Choices:     buildIntChoices(opt.Choices),
+		MinValue:    floatToIntPtr(opt.MinValue),
+		MaxValue:    floatToIntPtr(opt.MaxValue),
+	}
+	if len(descLocs) != 0 {
+		o.DescriptionLocalizations = descLocs
+	}
+	return o
+}
+
+func buildFloatOption(
+	opt CommandOption,
+	descLocs map[discord.Locale]string,
+) discord.ApplicationCommandOptionFloat {
+	o := discord.ApplicationCommandOptionFloat{
+		Name:        opt.Name,
+		Description: opt.Description,
+		Required:    opt.Required,
+		Choices:     buildFloatChoices(opt.Choices),
+		MinValue:    opt.MinValue,
+		MaxValue:    opt.MaxValue,
+	}
+	if len(descLocs) != 0 {
+		o.DescriptionLocalizations = descLocs
+	}
+	return o
+}
+
+func buildUserOption(
+	opt CommandOption,
+	descLocs map[discord.Locale]string,
+) discord.ApplicationCommandOptionUser {
+	o := discord.ApplicationCommandOptionUser{
+		Name:        opt.Name,
+		Description: opt.Description,
+		Required:    opt.Required,
+	}
+	if len(descLocs) != 0 {
+		o.DescriptionLocalizations = descLocs
+	}
+	return o
+}
+
+func buildChannelOption(
+	opt CommandOption,
+	descLocs map[discord.Locale]string,
+) discord.ApplicationCommandOptionChannel {
+	o := discord.ApplicationCommandOptionChannel{
+		Name:         opt.Name,
+		Description:  opt.Description,
+		Required:     opt.Required,
+		ChannelTypes: buildChannelTypes(opt.ChannelTypes),
+	}
+	if len(descLocs) != 0 {
+		o.DescriptionLocalizations = descLocs
+	}
+	return o
+}
+
+func buildRoleOption(
+	opt CommandOption,
+	descLocs map[discord.Locale]string,
+) discord.ApplicationCommandOptionRole {
+	o := discord.ApplicationCommandOptionRole{
+		Name:        opt.Name,
+		Description: opt.Description,
+		Required:    opt.Required,
+	}
+	if len(descLocs) != 0 {
+		o.DescriptionLocalizations = descLocs
+	}
+	return o
+}
+
+func buildMentionableOption(
+	opt CommandOption,
+	descLocs map[discord.Locale]string,
+) discord.ApplicationCommandOptionMentionable {
+	o := discord.ApplicationCommandOptionMentionable{
+		Name:        opt.Name,
+		Description: opt.Description,
+		Required:    opt.Required,
+	}
+	if len(descLocs) != 0 {
+		o.DescriptionLocalizations = descLocs
+	}
+	return o
+}
+
+func buildAttachmentOption(
+	opt CommandOption,
+	descLocs map[discord.Locale]string,
+) discord.ApplicationCommandOptionAttachment {
+	o := discord.ApplicationCommandOptionAttachment{
+		Name:        opt.Name,
+		Description: opt.Description,
+		Required:    opt.Required,
+	}
+	if len(descLocs) != 0 {
+		o.DescriptionLocalizations = descLocs
+	}
+	return o
+}
+
+func buildStringChoices(in []OptionChoice) []discord.ApplicationCommandOptionChoiceString {
+	out := make([]discord.ApplicationCommandOptionChoiceString, 0, len(in))
+	for _, c := range in {
+		v, ok := c.Value.(string)
+		if !ok {
+			continue
+		}
+		out = append(out, discord.ApplicationCommandOptionChoiceString{Name: c.Name, Value: v})
+	}
+	return out
+}
+
+func buildIntChoices(in []OptionChoice) []discord.ApplicationCommandOptionChoiceInt {
+	out := make([]discord.ApplicationCommandOptionChoiceInt, 0, len(in))
+	for _, c := range in {
+		v, ok := floatToInt(c.Value)
+		if !ok {
+			continue
+		}
+		out = append(out, discord.ApplicationCommandOptionChoiceInt{Name: c.Name, Value: v})
+	}
+	return out
+}
+
+func buildFloatChoices(in []OptionChoice) []discord.ApplicationCommandOptionChoiceFloat {
+	out := make([]discord.ApplicationCommandOptionChoiceFloat, 0, len(in))
+	for _, c := range in {
+		switch v := c.Value.(type) {
+		case float64:
+			out = append(out, discord.ApplicationCommandOptionChoiceFloat{Name: c.Name, Value: v})
+		case int:
+			out = append(out, discord.ApplicationCommandOptionChoiceFloat{Name: c.Name, Value: float64(v)})
+		}
+	}
+	return out
+}
+
+func floatToIntPtr(v *float64) *int {
+	if v == nil {
+		return nil
+	}
+	if i, ok := floatToInt(*v); ok {
+		return &i
+	}
+	return nil
+}
+
+func floatToInt(v any) (int, bool) {
+	switch vv := v.(type) {
+	case float64:
+		if vv != float64(int(vv)) {
+			return 0, false
+		}
+		return int(vv), true
+	case int:
+		return vv, true
+	default:
+		return 0, false
+	}
+}
+
+func buildChannelTypes(in []int) []discord.ChannelType {
+	if len(in) == 0 {
+		return nil
+	}
+	out := make([]discord.ChannelType, 0, len(in))
+	for _, v := range in {
+		out = append(out, discord.ChannelType(v))
+	}
+	return out
 }

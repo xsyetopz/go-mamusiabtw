@@ -14,14 +14,14 @@ import (
 	"github.com/disgoorg/disgo/gateway"
 	"github.com/disgoorg/snowflake/v2"
 
-	"github.com/xsyetopz/imotherbtw/internal/buildinfo"
-	"github.com/xsyetopz/imotherbtw/internal/discordapp/commands"
-	"github.com/xsyetopz/imotherbtw/internal/discordapp/core"
-	"github.com/xsyetopz/imotherbtw/internal/discordapp/interactions"
-	"github.com/xsyetopz/imotherbtw/internal/i18n"
-	"github.com/xsyetopz/imotherbtw/internal/plugins"
-	"github.com/xsyetopz/imotherbtw/internal/present"
-	"github.com/xsyetopz/imotherbtw/internal/store"
+	"github.com/xsuetopz/go-mamusiabtw/internal/buildinfo"
+	"github.com/xsuetopz/go-mamusiabtw/internal/discordapp/commands"
+	"github.com/xsuetopz/go-mamusiabtw/internal/discordapp/core"
+	"github.com/xsuetopz/go-mamusiabtw/internal/discordapp/interactions"
+	"github.com/xsuetopz/go-mamusiabtw/internal/i18n"
+	"github.com/xsuetopz/go-mamusiabtw/internal/plugins"
+	"github.com/xsuetopz/go-mamusiabtw/internal/present"
+	"github.com/xsuetopz/go-mamusiabtw/internal/store"
 )
 
 type Dependencies struct {

@@ -11,11 +11,11 @@ import (
 	"github.com/disgoorg/snowflake/v2"
 	"github.com/google/uuid"
 
-	"github.com/xsyetopz/imotherbtw/internal/discordapp/core"
-	"github.com/xsyetopz/imotherbtw/internal/discordapp/interactions"
-	"github.com/xsyetopz/imotherbtw/internal/present"
-	"github.com/xsyetopz/imotherbtw/internal/store"
-	"github.com/xsyetopz/imotherbtw/internal/wellness"
+	"github.com/xsuetopz/go-mamusiabtw/internal/discordapp/core"
+	"github.com/xsuetopz/go-mamusiabtw/internal/discordapp/interactions"
+	"github.com/xsuetopz/go-mamusiabtw/internal/present"
+	"github.com/xsuetopz/go-mamusiabtw/internal/store"
+	"github.com/xsuetopz/go-mamusiabtw/internal/wellness"
 )
 
 const (

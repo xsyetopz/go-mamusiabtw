@@ -2,7 +2,7 @@
 -- Shows scoped KV usage and safe logging via the host API.
 
 local function get_counter(guild_id)
-  local v, ok = imotherbtw.kv_get(guild_id, "counter")
+  local v, ok = mamusiabtw.kv_get(guild_id, "counter")
   if ok and type(v) == "number" then
     return v
   end
@@ -10,14 +10,14 @@ local function get_counter(guild_id)
 end
 
 local function set_counter(guild_id, n)
-  imotherbtw.kv_put(guild_id, "counter", n)
+  mamusiabtw.kv_put(guild_id, "counter", n)
 end
 
 local function render(n, msg_type)
   return {
     type = msg_type or "message",
     ephemeral = true,
-    content = imotherbtw.t("example.counter", { Count = n }, nil),
+    content = mamusiabtw.t("example.counter", { Count = n }, nil),
     components = {
       {
         { type = "button", id = "inc", label = "Increment", style = "primary" },
@@ -28,15 +28,15 @@ local function render(n, msg_type)
 end
 
 function Handle(cmd, ctx)
-  imotherbtw.log("Handle " .. cmd)
+  mamusiabtw.log("Handle " .. cmd)
 
   local guild_id = ctx.guild_id
   if guild_id == "" then
     return {
       present = {
         kind = "error",
-        title = imotherbtw.t("example.not_in_guild.title", nil, nil),
-        body = imotherbtw.t("example.not_in_guild.body", nil, nil)
+        title = mamusiabtw.t("example.not_in_guild.title", nil, nil),
+        body = mamusiabtw.t("example.not_in_guild.body", nil, nil)
       },
       ephemeral = true
     }
@@ -63,9 +63,9 @@ function HandleComponent(id, ctx)
     return {
       type = "modal",
       id = "set_counter",
-      title = imotherbtw.t("example.set.title", nil, nil),
+      title = mamusiabtw.t("example.set.title", nil, nil),
       components = {
-        { id = "value", label = imotherbtw.t("example.set.label", nil, nil), style = "short", required = true, placeholder = "123" }
+        { id = "value", label = mamusiabtw.t("example.set.label", nil, nil), style = "short", required = true, placeholder = "123" }
       }
     }
   end
@@ -90,8 +90,8 @@ function HandleModal(id, ctx)
     return {
       present = {
         kind = "error",
-        title = imotherbtw.t("example.invalid.title", nil, nil),
-        body = imotherbtw.t("example.invalid.body", { Raw = tostring(raw) }, nil)
+        title = mamusiabtw.t("example.invalid.title", nil, nil),
+        body = mamusiabtw.t("example.invalid.body", { Raw = tostring(raw) }, nil)
       },
       ephemeral = true
     }

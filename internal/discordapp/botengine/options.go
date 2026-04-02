@@ -7,7 +7,7 @@ import (
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/snowflake/v2"
 
-	"github.com/xsyetopz/imotherbtw/internal/plugins"
+	"github.com/xsuetopz/go-mamusiabtw/internal/plugins"
 )
 
 func snowflakePtrToString(id *snowflake.ID) string {
@@ -19,6 +19,19 @@ func snowflakePtrToString(id *snowflake.ID) string {
 
 func pluginOptions(data discord.SlashCommandInteractionData) map[string]any {
 	opts := map[string]any{}
+
+	if data.SubCommandGroupName != nil {
+		name := strings.TrimSpace(*data.SubCommandGroupName)
+		if name != "" {
+			opts["__group"] = name
+		}
+	}
+	if data.SubCommandName != nil {
+		name := strings.TrimSpace(*data.SubCommandName)
+		if name != "" {
+			opts["__subcommand"] = name
+		}
+	}
 
 	for _, opt := range data.All() {
 		name := strings.TrimSpace(opt.Name)

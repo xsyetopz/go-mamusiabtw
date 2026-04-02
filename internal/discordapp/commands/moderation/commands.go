@@ -15,11 +15,11 @@ import (
 	"github.com/disgoorg/snowflake/v2"
 	"github.com/google/uuid"
 
-	"github.com/xsyetopz/imotherbtw/internal/discordapp/core"
-	"github.com/xsyetopz/imotherbtw/internal/discordapp/interactions"
-	"github.com/xsyetopz/imotherbtw/internal/i18n"
-	"github.com/xsyetopz/imotherbtw/internal/present"
-	"github.com/xsyetopz/imotherbtw/internal/store"
+	"github.com/xsuetopz/go-mamusiabtw/internal/discordapp/core"
+	"github.com/xsuetopz/go-mamusiabtw/internal/discordapp/interactions"
+	"github.com/xsuetopz/go-mamusiabtw/internal/i18n"
+	"github.com/xsuetopz/go-mamusiabtw/internal/present"
+	"github.com/xsuetopz/go-mamusiabtw/internal/store"
 )
 
 const (
@@ -501,7 +501,7 @@ func sendDM(_ context.Context, client *bot.Client, userID snowflake.ID, create d
 }
 
 func buildUnwarnCustomID(actorID, guildID, targetID uint64, issuedAt int64) string {
-	return "imotherbtw:unwarn:" + strconv.FormatUint(
+	return "mamusiabtw:unwarn:" + strconv.FormatUint(
 		actorID,
 		10,
 	) + ":" + strconv.FormatUint(
@@ -523,7 +523,7 @@ func parseUnwarnCustomID(customID string) (uint64, uint64, uint64, int64, bool) 
 	if len(parts) != unwarnCustomIDParts {
 		return 0, 0, 0, 0, false
 	}
-	if parts[0] != "imotherbtw" || parts[1] != "unwarn" {
+	if parts[0] != "mamusiabtw" || parts[1] != "unwarn" {
 		return 0, 0, 0, 0, false
 	}
 

@@ -12,12 +12,12 @@ import (
 	"github.com/disgoorg/disgo/events"
 	"github.com/google/uuid"
 
-	"github.com/xsyetopz/imotherbtw/internal/discordapp/core"
-	"github.com/xsyetopz/imotherbtw/internal/discordapp/interactions"
-	"github.com/xsyetopz/imotherbtw/internal/i18n"
-	"github.com/xsyetopz/imotherbtw/internal/present"
-	"github.com/xsyetopz/imotherbtw/internal/store"
-	"github.com/xsyetopz/imotherbtw/internal/wellness"
+	"github.com/xsuetopz/go-mamusiabtw/internal/discordapp/core"
+	"github.com/xsuetopz/go-mamusiabtw/internal/discordapp/interactions"
+	"github.com/xsuetopz/go-mamusiabtw/internal/i18n"
+	"github.com/xsuetopz/go-mamusiabtw/internal/present"
+	"github.com/xsuetopz/go-mamusiabtw/internal/store"
+	"github.com/xsuetopz/go-mamusiabtw/internal/wellness"
 )
 
 const (
@@ -731,7 +731,7 @@ func parseScheduleSpec(spec string) (wellness.Schedule, bool) {
 }
 
 func buildRemindDeleteCustomID(userID uint64, issuedAt int64) string {
-	return "imotherbtw:reminddel:" + strconv.FormatUint(userID, 10) + ":" + strconv.FormatInt(issuedAt, 10)
+	return "mamusiabtw:reminddel:" + strconv.FormatUint(userID, 10) + ":" + strconv.FormatInt(issuedAt, 10)
 }
 
 func parseRemindDeleteCustomID(customID string) (uint64, int64, bool) {
@@ -740,7 +740,7 @@ func parseRemindDeleteCustomID(customID string) (uint64, int64, bool) {
 	if len(parts) != partsCount {
 		return 0, 0, false
 	}
-	if parts[0] != "imotherbtw" || parts[1] != "reminddel" {
+	if parts[0] != "mamusiabtw" || parts[1] != "reminddel" {
 		return 0, 0, false
 	}
 	userID, err := strconv.ParseUint(strings.TrimSpace(parts[2]), 10, 64)

@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/xsyetopz/imotherbtw/internal/migrate"
-	"github.com/xsyetopz/imotherbtw/internal/sqlite"
-	"github.com/xsyetopz/imotherbtw/internal/store"
-	"github.com/xsyetopz/imotherbtw/internal/store/sqlitestore"
+	"github.com/xsuetopz/go-mamusiabtw/internal/migrate"
+	"github.com/xsuetopz/go-mamusiabtw/internal/sqlite"
+	"github.com/xsuetopz/go-mamusiabtw/internal/store"
+	"github.com/xsuetopz/go-mamusiabtw/internal/store/sqlitestore"
 )
 
 func mustNoErr(t *testing.T, err error, msg string) {

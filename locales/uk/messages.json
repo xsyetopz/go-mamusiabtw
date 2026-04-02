@@ -877,7 +877,7 @@
   },
   {
     "id": "info.about.title",
-    "translation": "imotherbtw {{.Version}}"
+    "translation": "mamusiabtw {{.Version}}"
   },
   {
     "id": "info.lookup.user.error",

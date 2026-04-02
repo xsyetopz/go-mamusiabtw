@@ -1,6 +1,6 @@
 ---@meta
 
----@class JagpdaAPI
+---@class MamusiaBtwAPI
 ---@field log fun(msg: string)
 ---@field include fun(path: string): boolean
 ---@field t fun(message_id: string, data: table|nil, plural_count: any|nil): string
@@ -11,16 +11,16 @@
 ---@field kv_put_json fun(guild_id: string, key: string, value_json: string): boolean
 
 ---Global injected by the host at runtime.
----@type JagpdaAPI
-imotherbtw = imotherbtw
+---@type MamusiaBtwAPI
+mamusiabtw = mamusiabtw
 
----@class JagpdaPresent
+---@class MamusiaBtwPresent
 ---@field kind? 'info'|'success'|'warning'|'error'|'ok'|'warn'|'err'
 ---@field title? string
 ---@field body? string
 ---@field fields? { name: string, value: string, inline?: boolean }[]
 
----@class JagpdaButton
+---@class MamusiaBtwButton
 ---@field type 'button'
 ---@field id string
 ---@field label? string
@@ -28,21 +28,21 @@ imotherbtw = imotherbtw
 ---@field url? string
 ---@field disabled? boolean
 
----@class JagpdaStringSelectOption
+---@class MamusiaBtwStringSelectOption
 ---@field label string
 ---@field value string
 ---@field description? string
 
----@class JagpdaStringSelect
+---@class MamusiaBtwStringSelect
 ---@field type 'string_select'
 ---@field id string
 ---@field placeholder? string
 ---@field min_values? integer
 ---@field max_values? integer
 ---@field disabled? boolean
----@field options JagpdaStringSelectOption[]
+---@field options MamusiaBtwStringSelectOption[]
 
----@class JagpdaUserSelect
+---@class MamusiaBtwUserSelect
 ---@field type 'user_select'
 ---@field id string
 ---@field placeholder? string
@@ -50,7 +50,7 @@ imotherbtw = imotherbtw
 ---@field max_values? integer
 ---@field disabled? boolean
 
----@class JagpdaRoleSelect
+---@class MamusiaBtwRoleSelect
 ---@field type 'role_select'
 ---@field id string
 ---@field placeholder? string
@@ -58,7 +58,7 @@ imotherbtw = imotherbtw
 ---@field max_values? integer
 ---@field disabled? boolean
 
----@class JagpdaMentionableSelect
+---@class MamusiaBtwMentionableSelect
 ---@field type 'mentionable_select'
 ---@field id string
 ---@field placeholder? string
@@ -66,7 +66,7 @@ imotherbtw = imotherbtw
 ---@field max_values? integer
 ---@field disabled? boolean
 
----@class JagpdaChannelSelect
+---@class MamusiaBtwChannelSelect
 ---@field type 'channel_select'
 ---@field id string
 ---@field placeholder? string
@@ -75,21 +75,21 @@ imotherbtw = imotherbtw
 ---@field disabled? boolean
 ---@field channel_types? integer[]
 
----@alias JagpdaComponent JagpdaButton|JagpdaStringSelect|JagpdaUserSelect|JagpdaRoleSelect|JagpdaMentionableSelect|JagpdaChannelSelect
+---@alias MamusiaBtwComponent MamusiaBtwButton|MamusiaBtwStringSelect|MamusiaBtwUserSelect|MamusiaBtwRoleSelect|MamusiaBtwMentionableSelect|MamusiaBtwChannelSelect
 
----@class JagpdaEmbedField
+---@class MamusiaBtwEmbedField
 ---@field name string
 ---@field value string
 ---@field inline? boolean
 
----@class JagpdaEmbed
+---@class MamusiaBtwEmbed
 ---@field title? string
 ---@field description? string
 ---@field url? string
 ---@field color? integer
----@field fields? JagpdaEmbedField[]
+---@field fields? MamusiaBtwEmbedField[]
 
----@class JagpdaModalField
+---@class MamusiaBtwModalField
 ---@field id string
 ---@field label string
 ---@field description? string
@@ -100,20 +100,20 @@ imotherbtw = imotherbtw
 ---@field min_length? integer
 ---@field max_length? integer
 
----@class JagpdaResponseBase
+---@class MamusiaBtwResponseBase
 ---@field ephemeral? boolean
 ---@field content? string
----@field embeds? JagpdaEmbed[]
----@field present? JagpdaPresent
+---@field embeds? MamusiaBtwEmbed[]
+---@field present? MamusiaBtwPresent
 
----@class JagpdaMessageResponse: JagpdaResponseBase
+---@class MamusiaBtwMessageResponse: MamusiaBtwResponseBase
 ---@field type? 'message'|'update'
----@field components? JagpdaComponent[][]
+---@field components? MamusiaBtwComponent[][]
 
----@class JagpdaModalResponse
+---@class MamusiaBtwModalResponse
 ---@field type 'modal'
 ---@field id? string
 ---@field title? string
----@field components JagpdaModalField[]
+---@field components MamusiaBtwModalField[]
 
----@alias JagpdaResponse JagpdaMessageResponse|JagpdaModalResponse
+---@alias MamusiaBtwResponse MamusiaBtwMessageResponse|MamusiaBtwModalResponse

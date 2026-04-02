@@ -2,10 +2,10 @@
   "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
   "runtime.version": "Lua 5.1",
   "workspace.library": [
-    "./plugins/jagpda_api.lua"
+    "./plugins/mamusiabtw_api.lua"
   ],
   "workspace.checkThirdParty": false,
   "diagnostics.globals": [
-    "imotherbtw"
+    "mamusiabtw"
   ]
 }

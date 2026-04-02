@@ -9,12 +9,12 @@ import (
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 
-	cmdmoderation "github.com/xsyetopz/imotherbtw/internal/discordapp/commands/moderation"
-	cmdwellness "github.com/xsyetopz/imotherbtw/internal/discordapp/commands/wellness"
-	"github.com/xsyetopz/imotherbtw/internal/discordapp/core"
-	"github.com/xsyetopz/imotherbtw/internal/discordapp/interactions"
-	"github.com/xsyetopz/imotherbtw/internal/plugins"
-	"github.com/xsyetopz/imotherbtw/internal/present"
+	cmdmoderation "github.com/xsuetopz/go-mamusiabtw/internal/discordapp/commands/moderation"
+	cmdwellness "github.com/xsuetopz/go-mamusiabtw/internal/discordapp/commands/wellness"
+	"github.com/xsuetopz/go-mamusiabtw/internal/discordapp/core"
+	"github.com/xsuetopz/go-mamusiabtw/internal/discordapp/interactions"
+	"github.com/xsuetopz/go-mamusiabtw/internal/plugins"
+	"github.com/xsuetopz/go-mamusiabtw/internal/present"
 )
 
 func (b *Bot) onCommand(e *events.ApplicationCommandInteractionCreate) {
@@ -98,15 +98,25 @@ func slashCooldownKey(e *events.ApplicationCommandInteractionCreate, cmdName str
 	if key == "" || e == nil {
 		return key
 	}
-	sub := e.SlashCommandInteractionData().SubCommandName
-	if sub == nil {
+	data := e.SlashCommandInteractionData()
+
+	group := ""
+	if data.SubCommandGroupName != nil {
+		group = strings.ToLower(strings.TrimSpace(*data.SubCommandGroupName))
+	}
+
+	sub := ""
+	if data.SubCommandName != nil {
+		sub = strings.ToLower(strings.TrimSpace(*data.SubCommandName))
+	}
+	if sub == "" {
 		return key
 	}
-	subKey := strings.ToLower(strings.TrimSpace(*sub))
-	if subKey == "" {
-		return key
+
+	if group != "" {
+		return key + ":" + group + ":" + sub
 	}
-	return key + ":" + subKey
+	return key + ":" + sub
 }
 
 func (b *Bot) handleRegisteredSlash(
@@ -264,7 +274,7 @@ func (b *Bot) handleUnwarnComponent(
 	locale discord.Locale,
 	customID string,
 ) bool {
-	if !strings.HasPrefix(customID, "imotherbtw:unwarn:") {
+	if !strings.HasPrefix(customID, "mamusiabtw:unwarn:") {
 		return false
 	}
 
@@ -302,7 +312,7 @@ func (b *Bot) handleRemindDeleteComponent(
 	t core.Translator,
 	customID string,
 ) bool {
-	if !strings.HasPrefix(customID, "imotherbtw:reminddel:") {
+	if !strings.HasPrefix(customID, "mamusiabtw:reminddel:") {
 		return false
 	}
 

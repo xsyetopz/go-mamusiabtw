@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/xsyetopz/imotherbtw/internal/plugins"
+	"github.com/xsuetopz/go-mamusiabtw/internal/plugins"
 )
 
 func (b *Bot) commandCooldown(cmdName string) time.Duration {
@@ -67,8 +67,8 @@ func componentCooldownKey(customID string) string {
 	if pid, _, ok := plugins.ParseCustomID(cid); ok {
 		return "component:" + pid
 	}
-	if strings.HasPrefix(cid, "imotherbtw:") {
-		return "component:imotherbtw"
+	if strings.HasPrefix(cid, "mamusiabtw:") {
+		return "component:mamusiabtw"
 	}
 	return "component:other"
 }
@@ -81,8 +81,8 @@ func modalCooldownKey(customID string) string {
 	if pid, _, ok := plugins.ParseCustomID(cid); ok {
 		return "modal:" + pid
 	}
-	if strings.HasPrefix(cid, "imotherbtw:") {
-		return "modal:imotherbtw"
+	if strings.HasPrefix(cid, "mamusiabtw:") {
+		return "modal:mamusiabtw"
 	}
 	return "modal:other"
 }

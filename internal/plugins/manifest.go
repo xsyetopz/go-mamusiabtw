@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/xsyetopz/imotherbtw/internal/permissions"
+	"github.com/xsuetopz/go-mamusiabtw/internal/permissions"
 )
 
 type Manifest struct {
@@ -34,13 +34,51 @@ type Command struct {
 	Ephemeral     bool   `json:"ephemeral"`
 
 	Options []CommandOption `json:"options"`
+
+	Subcommands []Subcommand   `json:"subcommands,omitempty"`
+	Groups      []CommandGroup `json:"groups,omitempty"`
 }
 
 type CommandOption struct {
 	Name        string `json:"name"`
 	Type        string `json:"type"`
 	Description string `json:"description"`
-	Required    bool   `json:"required"`
+	// DescriptionID is an optional i18n key used for option description localization.
+	DescriptionID string `json:"description_id,omitempty"`
+	Required      bool   `json:"required"`
+
+	Choices []OptionChoice `json:"choices,omitempty"`
+
+	MinValue *float64 `json:"min_value,omitempty"`
+	MaxValue *float64 `json:"max_value,omitempty"`
+
+	MinLength *int `json:"min_length,omitempty"`
+	MaxLength *int `json:"max_length,omitempty"`
+
+	ChannelTypes []int `json:"channel_types,omitempty"`
+}
+
+type Subcommand struct {
+	Name          string `json:"name"`
+	Description   string `json:"description"`
+	DescriptionID string `json:"description_id,omitempty"`
+
+	Ephemeral *bool `json:"ephemeral,omitempty"`
+
+	Options []CommandOption `json:"options"`
+}
+
+type CommandGroup struct {
+	Name          string `json:"name"`
+	Description   string `json:"description"`
+	DescriptionID string `json:"description_id,omitempty"`
+
+	Subcommands []Subcommand `json:"subcommands"`
+}
+
+type OptionChoice struct {
+	Name  string `json:"name"`
+	Value any    `json:"value"`
 }
 
 type Job struct {

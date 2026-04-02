@@ -16,7 +16,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/xsyetopz/imotherbtw/internal/store"
+	"github.com/xsuetopz/go-mamusiabtw/internal/store"
 )
 
 type Signature struct {

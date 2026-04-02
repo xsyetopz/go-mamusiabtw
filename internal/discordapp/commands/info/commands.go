@@ -1,6 +1,6 @@
 package cmdinfo
 
-import "github.com/xsyetopz/imotherbtw/internal/discordapp/core"
+import "github.com/xsuetopz/go-mamusiabtw/internal/discordapp/core"
 
 const (
 	infoEmbedColor      = 0x5865F2

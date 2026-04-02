@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/xsyetopz/imotherbtw/internal/store"
+	"github.com/xsuetopz/go-mamusiabtw/internal/store"
 )
 
 type Store struct {

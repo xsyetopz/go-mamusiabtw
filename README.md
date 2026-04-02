@@ -1,4 +1,4 @@
-# imotherbtw
+# mamusiabtw
 
 A nurturing and protective Discord app.
 
@@ -11,9 +11,9 @@ A nurturing and protective Discord app.
 
 1. Copy `.env.example` to `.env` and fill in at least `DISCORD_TOKEN`.
 2. (Recommended) Set `DISCORD_DEV_GUILD_ID` for fast command registration.
-3. Start: `go run ./cmd/imotherbtw`
+3. Start: `go run ./cmd/mamusiabtw`
 
-imotherbtw creates/opens the SQLite DB at `SQLITE_PATH` and applies migrations automatically on startup.
+mamusiabtw creates/opens the SQLite DB at `SQLITE_PATH` and applies migrations automatically on startup.
 
 ## Docker
 
@@ -44,9 +44,9 @@ Plugins live under `plugins/<plugin>/` with:
 
 Plugins are sandboxed: no filesystem or network access. Any plugin capability must be both:
 1) requested in `plugin.json`, and
-2) granted by the host in `config/permissions.json` (default `IMOTHERBTW_PERMISSIONS_FILE`).
+2) granted by the host in `config/permissions.json` (default `MAMUSIABTW_PERMISSIONS_FILE`).
 
-The host injects a global `imotherbtw` table into plugin scripts (see `plugins/jagpda_api.lua:1` for the editor stub).
+The host injects a global `mamusiabtw` table into plugin scripts (see `plugins/mamusiabtw_api.lua:1` for the editor stub).
 
 The repo ships a minimal example plugin in `plugins/example` which exposes `/example`.
 
@@ -54,7 +54,7 @@ The repo ships a minimal example plugin in `plugins/example` which exposes `/exa
 
 If a plugin has `plugins/<id>/locales/<locale>/messages.json`, the host loads it and exposes:
 
-- `imotherbtw.t(message_id, data?, plural_count?)` inside Lua handlers.
+- `mamusiabtw.t(message_id, data?, plural_count?)` inside Lua handlers.
 - `commands[].description_id` in `plugin.json` to localize slash command descriptions.
 
 ### Plugin Entry Points
@@ -65,7 +65,7 @@ Plugins can implement:
 - `HandleComponent(id, ctx)` (optional; message components)
 - `HandleModal(id, ctx)` (optional; modal submits)
 
-`cmd`/`id` is the *local* ID. The host namespaces all Discord `custom_id`s as `imotherbtw:pl:<plugin_id>:<local_id>` and routes them back to the plugin.
+`cmd`/`id` is the *local* ID. The host namespaces all Discord `custom_id`s as `mamusiabtw:pl:<plugin_id>:<local_id>` and routes them back to the plugin.
 
 ### Plugin Responses
 
@@ -78,7 +78,7 @@ Handlers may return either:
   - `{ type="modal", id=..., title=..., components={...text inputs...} }`
   - `{ present={ kind=..., title=..., body=..., fields=... }, ephemeral=true|false }`
 
-For a full schema reference, see the LuaLS type stubs in `plugins/jagpda_api.lua:1`.
+For a full schema reference, see the LuaLS type stubs in `plugins/mamusiabtw_api.lua:1`.
 
 Plugin responses are validated against Discord limits (content lengths, embed limits, component limits). Invalid responses are rejected.
 
@@ -88,27 +88,27 @@ Use `/plugins reload` (owner-only) to reload plugins from disk and re-register c
 
 ### Signing (prod)
 
-When `IMOTHERBTW_PROD_MODE=1` and `IMOTHERBTW_WALLOW_UNSIGNED_PLUGINS=0`, plugins must include `signature.json` and be signed by a trusted key.
+When `MAMUSIABTW_PROD_MODE=1` and `MAMUSIABTW_ALLOW_UNSIGNED_PLUGINS=0`, plugins must include `signature.json` and be signed by a trusted key.
 
-- Seed keys via `IMOTHERBTW_TRUSTED_KEYS_FILE`
+- Seed keys via `MAMUSIABTW_TRUSTED_KEYS_FILE`
 - Additional trusted keys are stored in SQLite (`trusted_signers`)
 
 ## Legacy Parity Options
 
 ### Cooldowns
 
-- Global: `IMOTHERBTW_SLASH_COOLDOWN_MS`
-- Overrides: `IMOTHERBTW_SLASH_COOLDOWN_OVERRIDES_MS` (comma-separated `name=ms`, supports subcommands like `lookup:user=2500`)
+- Global: `MAMUSIABTW_SLASH_COOLDOWN_MS`
+- Overrides: `MAMUSIABTW_SLASH_COOLDOWN_OVERRIDES_MS` (comma-separated `name=ms`, supports subcommands like `lookup:user=2500` and grouped subcommands like `manager:roles:add=2500`)
 
 ### Command Registration
 
-By default, imotherbtw registers slash commands globally (unless `DISCORD_DEV_GUILD_ID` is set).
+By default, mamusiabtw registers slash commands globally (unless `DISCORD_DEV_GUILD_ID` is set).
 
 Configure:
 
-- `IMOTHERBTW_COMMAND_REGISTRATION_MODE=global|guilds|hybrid`
-- `IMOTHERBTW_COMMAND_GUILD_IDS=...` (comma-separated)
-- `IMOTHERBTW_COMMAND_REGISTER_ALL_GUILDS=1` (attempt to register in every cached guild)
+- `MAMUSIABTW_COMMAND_REGISTRATION_MODE=global|guilds|hybrid`
+- `MAMUSIABTW_COMMAND_GUILD_IDS=...` (comma-separated)
+- `MAMUSIABTW_COMMAND_REGISTER_ALL_GUILDS=1` (attempt to register in every cached guild)
 
 ### Restricted Message Links (build-time)
 

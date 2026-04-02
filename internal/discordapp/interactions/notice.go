@@ -5,7 +5,7 @@ import (
 
 	"github.com/disgoorg/disgo/discord"
 
-	"github.com/xsyetopz/imotherbtw/internal/present"
+	"github.com/xsuetopz/go-mamusiabtw/internal/present"
 )
 
 func NoticeEmbed(kind present.Kind, title string, body string) discord.Embed {

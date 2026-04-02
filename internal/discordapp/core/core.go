@@ -9,12 +9,12 @@ import (
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 
-	"github.com/xsyetopz/imotherbtw/internal/discordapp/interactions"
-	"github.com/xsyetopz/imotherbtw/internal/i18n"
-	"github.com/xsyetopz/imotherbtw/internal/integrations/kawaii"
-	"github.com/xsyetopz/imotherbtw/internal/persona"
-	"github.com/xsyetopz/imotherbtw/internal/plugins"
-	"github.com/xsyetopz/imotherbtw/internal/store"
+	"github.com/xsuetopz/go-mamusiabtw/internal/discordapp/interactions"
+	"github.com/xsuetopz/go-mamusiabtw/internal/i18n"
+	"github.com/xsuetopz/go-mamusiabtw/internal/integrations/kawaii"
+	"github.com/xsuetopz/go-mamusiabtw/internal/persona"
+	"github.com/xsuetopz/go-mamusiabtw/internal/plugins"
+	"github.com/xsuetopz/go-mamusiabtw/internal/store"
 )
 
 type Store interface {

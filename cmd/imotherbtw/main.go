@@ -8,9 +8,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/xsyetopz/imotherbtw/internal/app"
-	"github.com/xsyetopz/imotherbtw/internal/config"
-	"github.com/xsyetopz/imotherbtw/internal/logging"
+	"github.com/xsuetopz/go-mamusiabtw/internal/app"
+	"github.com/xsuetopz/go-mamusiabtw/internal/config"
+	"github.com/xsuetopz/go-mamusiabtw/internal/logging"
 )
 
 func main() {
@@ -42,16 +42,16 @@ func runMain() int {
 }
 
 func run(ctx context.Context, logger *slog.Logger, cfg config.Config) error {
-	imotherbtw, err := app.New(app.Dependencies{
+	mamusiabtw, err := app.New(app.Dependencies{
 		Logger: logger,
 		Config: cfg,
 	})
 	if err != nil {
 		return err
 	}
-	defer imotherbtw.Close()
+	defer mamusiabtw.Close()
 
-	if startErr := imotherbtw.Start(ctx); startErr != nil {
+	if startErr := mamusiabtw.Start(ctx); startErr != nil {
 		if errors.Is(startErr, context.Canceled) {
 			return nil
 		}
