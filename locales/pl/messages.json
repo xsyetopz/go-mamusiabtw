@@ -873,7 +873,7 @@
   },
   {
     "id": "mod.unwarn.success",
-    "translation": "Gotowe, {{.Pet}}. {{.User}} ma czysta karte."
+    "translation": "Gotowe, {{.Pet}}~. {{.User}} ma czysta karte. ❤️"
   },
   {
     "id": "info.about.title",
@@ -929,7 +929,7 @@
   },
   {
     "id": "mgr.slowmode.removed",
-    "translation": "No i super, {{.Pet}}. Slowmode wylaczony na {{.Channel}}."
+    "translation": "No i super, {{.Pet}}~. Slowmode wylaczony na {{.Channel}}. ❤️"
   },
   {
     "id": "mgr.slowmode.error",
@@ -1113,7 +1113,7 @@
   },
   {
     "id": "mgr.stickers.create_success",
-    "translation": "Gotowe, {{.Pet}}. `{{.Name}}` zostala utworzona."
+    "translation": "Gotowe, {{.Pet}}~. `{{.Name}}` zostala utworzona. ❤️"
   },
   {
     "id": "mgr.stickers.create_error",
@@ -1121,7 +1121,7 @@
   },
   {
     "id": "mgr.stickers.edit_success",
-    "translation": "Gotowe, {{.Pet}}. `{{.Name}}` zostala zaktualizowana."
+    "translation": "Gotowe, {{.Pet}}~. `{{.Name}}` zostala zaktualizowana. ❤️"
   },
   {
     "id": "mgr.stickers.edit_error",
@@ -1129,7 +1129,7 @@
   },
   {
     "id": "mgr.stickers.delete_success",
-    "translation": "Dobrze, {{.Pet}}. Naklejka usunieta."
+    "translation": "Dobrze, {{.Pet}}~. Naklejka usunieta. ❤️"
   },
   {
     "id": "mgr.stickers.delete_error",
@@ -1137,7 +1137,7 @@
   },
   {
     "id": "ok.pong",
-    "translation": "Pong, kochanie. Mama jest tutaj."
+    "translation": "Pong, kochanie. Mama jest tutaj.~ ❤️"
   },
   {
     "id": "err.generic",
@@ -1205,7 +1205,7 @@
   },
   {
     "id": "wellness.timezone.set",
-    "translation": "Dobrze, {{.Pet}}. Uzyje `{{.Timezone}}` dla twoich przypomnien."
+    "translation": "Dobrze, {{.Pet}}~. Uzyje `{{.Timezone}}` dla twoich przypomnien. ❤️"
   },
   {
     "id": "wellness.timezone.unset",
@@ -1217,7 +1217,7 @@
   },
   {
     "id": "wellness.timezone.cleared",
-    "translation": "Gotowe, {{.Pet}}. Wyczyszczone."
+    "translation": "Gotowe, {{.Pet}}~. Wyczyszczone. ❤️"
   },
   {
     "id": "cmd.checkin.name",
@@ -1253,7 +1253,7 @@
   },
   {
     "id": "wellness.checkin.saved",
-    "translation": "Dziekuje, {{.Pet}}. Zapisalam `{{.Mood}}/5`."
+    "translation": "Dziekuje, {{.Pet}}~. Zapisalam `{{.Mood}}/5`. ❤️"
   },
   {
     "id": "wellness.checkin.history.empty",
@@ -1353,7 +1353,7 @@
   },
   {
     "id": "wellness.remind.created",
-    "translation": "Gotowe, {{.Pet}}. Nastepny raz przypomne o {{.NextRun}} - `{{.ID}}` ({{.Kind}}, {{.Delivery}})."
+    "translation": "Gotowe, {{.Pet}}~. Nastepny raz przypomne o {{.NextRun}} - `{{.ID}}` ({{.Kind}}, {{.Delivery}}). ❤️"
   },
   {
     "id": "wellness.remind.list.empty",
@@ -1385,7 +1385,7 @@
   },
   {
     "id": "wellness.remind.delete.success",
-    "translation": "Usuniete. Dobra robota, {{.Pet}}."
+    "translation": "Usuniete. Dobra robota, {{.Pet}}~. ❤️"
   },
   {
     "id": "wellness.reminder.fire",

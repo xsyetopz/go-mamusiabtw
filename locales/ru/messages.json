@@ -873,7 +873,7 @@
   },
   {
     "id": "mod.unwarn.success",
-    "translation": "Готово, {{.Pet}}. У {{.User}} чистый лист."
+    "translation": "Готово, {{.Pet}}~. У {{.User}} чистый лист. ❤️"
   },
   {
     "id": "info.about.title",
@@ -929,7 +929,7 @@
   },
   {
     "id": "mgr.slowmode.removed",
-    "translation": "Вот и все, {{.Pet}}. Медленный режим выключен для {{.Channel}}."
+    "translation": "Вот и все, {{.Pet}}~. Медленный режим выключен для {{.Channel}}. ❤️"
   },
   {
     "id": "mgr.slowmode.error",
@@ -1113,7 +1113,7 @@
   },
   {
     "id": "mgr.stickers.create_success",
-    "translation": "Готово, {{.Pet}}. `{{.Name}}` создан."
+    "translation": "Готово, {{.Pet}}~. `{{.Name}}` создан. ❤️"
   },
   {
     "id": "mgr.stickers.create_error",
@@ -1121,7 +1121,7 @@
   },
   {
     "id": "mgr.stickers.edit_success",
-    "translation": "Готово, {{.Pet}}. `{{.Name}}` обновлен."
+    "translation": "Готово, {{.Pet}}~. `{{.Name}}` обновлен. ❤️"
   },
   {
     "id": "mgr.stickers.edit_error",
@@ -1129,7 +1129,7 @@
   },
   {
     "id": "mgr.stickers.delete_success",
-    "translation": "Хорошо, {{.Pet}}. Стикер удален."
+    "translation": "Хорошо, {{.Pet}}~. Стикер удален. ❤️"
   },
   {
     "id": "mgr.stickers.delete_error",
@@ -1137,7 +1137,7 @@
   },
   {
     "id": "ok.pong",
-    "translation": "Понг, солнышко. Я рядом."
+    "translation": "Понг, солнышко. Я рядом.~ ❤️"
   },
   {
     "id": "err.generic",
@@ -1205,7 +1205,7 @@
   },
   {
     "id": "wellness.timezone.set",
-    "translation": "Хорошо, {{.Pet}}. Буду использовать `{{.Timezone}}` для напоминаний."
+    "translation": "Хорошо, {{.Pet}}~. Буду использовать `{{.Timezone}}` для напоминаний. ❤️"
   },
   {
     "id": "wellness.timezone.unset",
@@ -1217,7 +1217,7 @@
   },
   {
     "id": "wellness.timezone.cleared",
-    "translation": "Готово, {{.Pet}}. Очистила."
+    "translation": "Готово, {{.Pet}}~. Очистила. ❤️"
   },
   {
     "id": "cmd.checkin.name",
@@ -1253,7 +1253,7 @@
   },
   {
     "id": "wellness.checkin.saved",
-    "translation": "Спасибо, {{.Pet}}. Я сохранила `{{.Mood}}/5`."
+    "translation": "Спасибо, {{.Pet}}~. Я сохранила `{{.Mood}}/5`. ❤️"
   },
   {
     "id": "wellness.checkin.history.empty",
@@ -1353,7 +1353,7 @@
   },
   {
     "id": "wellness.remind.created",
-    "translation": "Готово, {{.Pet}}. Следующий раз напомню в {{.NextRun}} - напоминание `{{.ID}}` ({{.Kind}}, {{.Delivery}})."
+    "translation": "Готово, {{.Pet}}~. Следующий раз напомню в {{.NextRun}} - напоминание `{{.ID}}` ({{.Kind}}, {{.Delivery}}). ❤️"
   },
   {
     "id": "wellness.remind.list.empty",
@@ -1385,7 +1385,7 @@
   },
   {
     "id": "wellness.remind.delete.success",
-    "translation": "Удалено. Молодец, {{.Pet}}."
+    "translation": "Удалено. Молодец, {{.Pet}}~. ❤️"
   },
   {
     "id": "wellness.reminder.fire",

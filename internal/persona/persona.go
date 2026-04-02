@@ -9,63 +9,67 @@ import (
 )
 
 func Mommy(locale discord.Locale) string {
+	const (
+		mommyDefault = "mommy"
+
+		mommyMummy  = "mummy"
+		mommyMama   = "mama"
+		mommyMamma  = "mamma"
+		mommyMami   = "mami"
+		mommyGerman = "Mama"
+		mommyFrench = "Maman"
+		mommyCzech  = "máma"
+		mommyFinn   = "äiti"
+		mommyViet   = "mẹ"
+		mommyLith   = "mamytė"
+
+		mommySpanishES = "mamá"
+		mommyCyrillic  = "мама"
+
+		mommyJapanese = "ママ"
+		mommyKorean   = "엄마"
+		mommyZHCN     = "妈妈"
+		mommyZHTW     = "媽咪"
+	)
+
 	// Keep the persona fixed, but allow minor locale-adjacent wording.
 	code := strings.ToLower(strings.TrimSpace(locale.Code()))
-	if code == "en-gb" {
-		return "mummy"
+	switch code {
+	case "en-gb":
+		return mommyMummy
+	case "es-es":
+		return mommySpanishES
+	case "es-419":
+		return mommyMami
+	case "de":
+		return mommyGerman
+	case "fr":
+		return mommyFrench
+	case "cs":
+		return mommyCzech
+	case "pl", "nl", "id":
+		return mommyMama
+	case "it", "sv-se", "no":
+		return mommyMamma
+	case "fi":
+		return mommyFinn
+	case "lt":
+		return mommyLith
+	case "bg", "ru", "uk":
+		return mommyCyrillic
+	case "vi":
+		return mommyViet
+	case "ja":
+		return mommyJapanese
+	case "ko":
+		return mommyKorean
+	case "zh-cn":
+		return mommyZHCN
+	case "zh-tw":
+		return mommyZHTW
+	default:
+		return mommyDefault
 	}
-	if code == "es-es" {
-		return "mamá"
-	}
-	if code == "es-419" {
-		return "mami"
-	}
-	if code == "de" {
-		return "Mama"
-	}
-	if code == "fr" {
-		return "Maman"
-	}
-	if code == "cs" {
-		return "máma"
-	}
-	if code == "pl" {
-		return "mama"
-	}
-	if code == "bg" {
-		return "мама"
-	}
-	if code == "vi" {
-		return "mẹ"
-	}
-	if code == "id" {
-		return "mama"
-	}
-	if code == "ru" || code == "uk" {
-		return "мама"
-	}
-	if code == "sv-se" {
-		return "mamma"
-	}
-	if code == "no" {
-		return "mamma"
-	}
-	if code == "fi" {
-		return "äiti"
-	}
-	if code == "ja" {
-		return "ママ"
-	}
-	if code == "ko" {
-		return "엄마"
-	}
-	if code == "zh-cn" {
-		return "妈妈"
-	}
-	if code == "zh-tw" {
-		return "媽咪"
-	}
-	return "mommy"
 }
 
 func PetName(locale discord.Locale, userID uint64, messageID string) string {

@@ -865,7 +865,7 @@
   },
   {
     "id": "mod.unwarn.placeholder",
-    "translation": "하나 골라봐요, {{.Pet}}~"
+    "translation": "하나 골라봐요, {{.Pet}}..."
   },
   {
     "id": "mod.unwarn.expired",
@@ -873,7 +873,7 @@
   },
   {
     "id": "mod.unwarn.success",
-    "translation": "됐어요, {{.Pet}}~ {{.User}}은(는) 깨끗해요."
+    "translation": "됐어요, {{.Pet}}~ {{.User}}은(는) 깨끗해요. ❤️"
   },
   {
     "id": "info.about.title",
@@ -929,7 +929,7 @@
   },
   {
     "id": "mgr.slowmode.removed",
-    "translation": "됐어요, {{.Pet}}~ {{.Channel}} 슬로우모드를 껐어요."
+    "translation": "됐어요, {{.Pet}}~ {{.Channel}} 슬로우모드를 껐어요. ❤️"
   },
   {
     "id": "mgr.slowmode.error",
@@ -1113,7 +1113,7 @@
   },
   {
     "id": "mgr.stickers.create_success",
-    "translation": "됐어요, {{.Pet}}. `{{.Name}}` 만들었어요."
+    "translation": "됐어요, {{.Pet}}~. `{{.Name}}` 만들었어요. ❤️"
   },
   {
     "id": "mgr.stickers.create_error",
@@ -1121,7 +1121,7 @@
   },
   {
     "id": "mgr.stickers.edit_success",
-    "translation": "됐어요, {{.Pet}}~ `{{.Name}}` 업데이트했어요."
+    "translation": "됐어요, {{.Pet}}~ `{{.Name}}` 업데이트했어요. ❤️"
   },
   {
     "id": "mgr.stickers.edit_error",
@@ -1129,7 +1129,7 @@
   },
   {
     "id": "mgr.stickers.delete_success",
-    "translation": "좋아요, {{.Pet}}~ 스티커를 삭제했어요."
+    "translation": "좋아요, {{.Pet}}~ 스티커를 삭제했어요. ❤️"
   },
   {
     "id": "mgr.stickers.delete_error",
@@ -1137,7 +1137,7 @@
   },
   {
     "id": "ok.pong",
-    "translation": "퐁, 아가~ 엄마 여기 있어요."
+    "translation": "퐁, 아가~ 엄마 여기 있어요. ❤️"
   },
   {
     "id": "err.generic",
@@ -1205,7 +1205,7 @@
   },
   {
     "id": "wellness.timezone.set",
-    "translation": "좋아요, {{.Pet}}~ 리마인더는 `{{.Timezone}}`로 보낼게요."
+    "translation": "좋아요, {{.Pet}}~ 리마인더는 `{{.Timezone}}`로 보낼게요. ❤️"
   },
   {
     "id": "wellness.timezone.unset",
@@ -1217,7 +1217,7 @@
   },
   {
     "id": "wellness.timezone.cleared",
-    "translation": "지웠어요, {{.Pet}}~"
+    "translation": "지웠어요, {{.Pet}}~ ❤️"
   },
   {
     "id": "cmd.checkin.name",
@@ -1253,7 +1253,7 @@
   },
   {
     "id": "wellness.checkin.saved",
-    "translation": "말해줘서 고마워요, {{.Pet}}~ `{{.Mood}}/5` 저장했어요."
+    "translation": "말해줘서 고마워요, {{.Pet}}~ `{{.Mood}}/5` 저장했어요. ❤️"
   },
   {
     "id": "wellness.checkin.history.empty",
@@ -1353,7 +1353,7 @@
   },
   {
     "id": "wellness.remind.created",
-    "translation": "됐어요, {{.Pet}}~ 다음은 {{.NextRun}}에 살짝 알려줄게요 - `{{.ID}}` ({{.Kind}}, {{.Delivery}})."
+    "translation": "됐어요, {{.Pet}}~ 다음은 {{.NextRun}}에 살짝 알려줄게요 - `{{.ID}}` ({{.Kind}}, {{.Delivery}}). ❤️"
   },
   {
     "id": "wellness.remind.list.empty",
@@ -1365,7 +1365,7 @@
   },
   {
     "id": "wellness.remind.delete.placeholder",
-    "translation": "리마인더를 골라요~"
+    "translation": "리마인더를 골라요..."
   },
   {
     "id": "wellness.remind.delete.prompt",
@@ -1385,7 +1385,7 @@
   },
   {
     "id": "wellness.remind.delete.success",
-    "translation": "지웠어요~ 잘했어요, {{.Pet}}."
+    "translation": "지웠어요~ 잘했어요, {{.Pet}}. ❤️"
   },
   {
     "id": "wellness.reminder.fire",

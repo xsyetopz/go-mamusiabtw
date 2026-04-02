@@ -873,7 +873,7 @@
   },
   {
     "id": "mod.unwarn.success",
-    "translation": "Alles erledigt, {{.Pet}}. {{.User}} hat wieder eine weiße Weste."
+    "translation": "Alles erledigt, {{.Pet}}~. {{.User}} hat wieder eine weiße Weste. ❤️"
   },
   {
     "id": "info.about.title",
@@ -929,7 +929,7 @@
   },
   {
     "id": "mgr.slowmode.removed",
-    "translation": "So, {{.Pet}}. Slowmode ist aus für {{.Channel}}."
+    "translation": "So, {{.Pet}}~. Slowmode ist aus für {{.Channel}}. ❤️"
   },
   {
     "id": "mgr.slowmode.error",
@@ -1113,7 +1113,7 @@
   },
   {
     "id": "mgr.stickers.create_success",
-    "translation": "Alles klar, {{.Pet}}. `{{.Name}}` wurde erstellt."
+    "translation": "Alles klar, {{.Pet}}~. `{{.Name}}` wurde erstellt. ❤️"
   },
   {
     "id": "mgr.stickers.create_error",
@@ -1121,7 +1121,7 @@
   },
   {
     "id": "mgr.stickers.edit_success",
-    "translation": "Alles klar, {{.Pet}}. `{{.Name}}` wurde aktualisiert."
+    "translation": "Alles klar, {{.Pet}}~. `{{.Name}}` wurde aktualisiert. ❤️"
   },
   {
     "id": "mgr.stickers.edit_error",
@@ -1129,7 +1129,7 @@
   },
   {
     "id": "mgr.stickers.delete_success",
-    "translation": "Okay, {{.Pet}}. Sticker gelöscht."
+    "translation": "Okay, {{.Pet}}~. Sticker gelöscht. ❤️"
   },
   {
     "id": "mgr.stickers.delete_error",
@@ -1137,7 +1137,7 @@
   },
   {
     "id": "ok.pong",
-    "translation": "Pong, Schatz. Ich bin hier."
+    "translation": "Pong, Schatz. Ich bin hier.~ ❤️"
   },
   {
     "id": "err.generic",
@@ -1205,7 +1205,7 @@
   },
   {
     "id": "wellness.timezone.set",
-    "translation": "Okay, {{.Pet}}. Ich nutze `{{.Timezone}}` für deine Erinnerungen."
+    "translation": "Okay, {{.Pet}}~. Ich nutze `{{.Timezone}}` für deine Erinnerungen. ❤️"
   },
   {
     "id": "wellness.timezone.unset",
@@ -1217,7 +1217,7 @@
   },
   {
     "id": "wellness.timezone.cleared",
-    "translation": "Alles gelöscht, {{.Pet}}."
+    "translation": "Alles gelöscht, {{.Pet}}~. ❤️"
   },
   {
     "id": "cmd.checkin.name",
@@ -1253,7 +1253,7 @@
   },
   {
     "id": "wellness.checkin.saved",
-    "translation": "Danke, {{.Pet}}. Ich habe `{{.Mood}}/5` gespeichert."
+    "translation": "Danke, {{.Pet}}~. Ich habe `{{.Mood}}/5` gespeichert. ❤️"
   },
   {
     "id": "wellness.checkin.history.empty",
@@ -1353,7 +1353,7 @@
   },
   {
     "id": "wellness.remind.created",
-    "translation": "Alles klar, {{.Pet}}. Ich erinnere dich nächstes Mal um {{.NextRun}} - `{{.ID}}` ({{.Kind}}, {{.Delivery}})."
+    "translation": "Alles klar, {{.Pet}}~. Ich erinnere dich nächstes Mal um {{.NextRun}} - `{{.ID}}` ({{.Kind}}, {{.Delivery}}). ❤️"
   },
   {
     "id": "wellness.remind.list.empty",
@@ -1385,7 +1385,7 @@
   },
   {
     "id": "wellness.remind.delete.success",
-    "translation": "Gelöscht. Gut gemacht, {{.Pet}}."
+    "translation": "Gelöscht. Gut gemacht, {{.Pet}}~. ❤️"
   },
   {
     "id": "wellness.reminder.fire",

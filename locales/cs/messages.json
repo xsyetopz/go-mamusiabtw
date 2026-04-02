@@ -873,7 +873,7 @@
   },
   {
     "id": "mod.unwarn.success",
-    "translation": "Hotovo, {{.Pet}}. {{.User}} ma cisty stit."
+    "translation": "Hotovo, {{.Pet}}~. {{.User}} ma cisty stit. ❤️"
   },
   {
     "id": "info.about.title",
@@ -929,7 +929,7 @@
   },
   {
     "id": "mgr.slowmode.removed",
-    "translation": "Tak jo, {{.Pet}}. Slowmode je vypnuty pro {{.Channel}}."
+    "translation": "Tak jo, {{.Pet}}~. Slowmode je vypnuty pro {{.Channel}}. ❤️"
   },
   {
     "id": "mgr.slowmode.error",
@@ -1113,7 +1113,7 @@
   },
   {
     "id": "mgr.stickers.create_success",
-    "translation": "Hotovo, {{.Pet}}. `{{.Name}}` bylo vytvoreno."
+    "translation": "Hotovo, {{.Pet}}~. `{{.Name}}` bylo vytvoreno. ❤️"
   },
   {
     "id": "mgr.stickers.create_error",
@@ -1121,7 +1121,7 @@
   },
   {
     "id": "mgr.stickers.edit_success",
-    "translation": "Hotovo, {{.Pet}}. `{{.Name}}` bylo upraveno."
+    "translation": "Hotovo, {{.Pet}}~. `{{.Name}}` bylo upraveno. ❤️"
   },
   {
     "id": "mgr.stickers.edit_error",
@@ -1129,7 +1129,7 @@
   },
   {
     "id": "mgr.stickers.delete_success",
-    "translation": "Dobre, {{.Pet}}. Sticker smazan."
+    "translation": "Dobre, {{.Pet}}~. Sticker smazan. ❤️"
   },
   {
     "id": "mgr.stickers.delete_error",
@@ -1137,7 +1137,7 @@
   },
   {
     "id": "ok.pong",
-    "translation": "Pong, zlaticko. Jsem tady."
+    "translation": "Pong, zlaticko. Jsem tady.~ ❤️"
   },
   {
     "id": "err.generic",
@@ -1205,7 +1205,7 @@
   },
   {
     "id": "wellness.timezone.set",
-    "translation": "Dobre, {{.Pet}}. Pro pripominky pouziju `{{.Timezone}}`."
+    "translation": "Dobre, {{.Pet}}~. Pro pripominky pouziju `{{.Timezone}}`. ❤️"
   },
   {
     "id": "wellness.timezone.unset",
@@ -1217,7 +1217,7 @@
   },
   {
     "id": "wellness.timezone.cleared",
-    "translation": "Hotovo, {{.Pet}}. Smazano."
+    "translation": "Hotovo, {{.Pet}}~. Smazano. ❤️"
   },
   {
     "id": "cmd.checkin.name",
@@ -1253,7 +1253,7 @@
   },
   {
     "id": "wellness.checkin.saved",
-    "translation": "Diky, {{.Pet}}. Ulozila jsem `{{.Mood}}/5`."
+    "translation": "Diky, {{.Pet}}~. Ulozila jsem `{{.Mood}}/5`. ❤️"
   },
   {
     "id": "wellness.checkin.history.empty",
@@ -1353,7 +1353,7 @@
   },
   {
     "id": "wellness.remind.created",
-    "translation": "Hotovo, {{.Pet}}. Priste pripomenu v {{.NextRun}} - `{{.ID}}` ({{.Kind}}, {{.Delivery}})."
+    "translation": "Hotovo, {{.Pet}}~. Priste pripomenu v {{.NextRun}} - `{{.ID}}` ({{.Kind}}, {{.Delivery}}). ❤️"
   },
   {
     "id": "wellness.remind.list.empty",
@@ -1385,7 +1385,7 @@
   },
   {
     "id": "wellness.remind.delete.success",
-    "translation": "Smazano. Dobry, {{.Pet}}."
+    "translation": "Smazano. Dobry, {{.Pet}}~. ❤️"
   },
   {
     "id": "wellness.reminder.fire",

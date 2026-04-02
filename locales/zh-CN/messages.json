@@ -865,7 +865,7 @@
   },
   {
     "id": "mod.unwarn.placeholder",
-    "translation": "选一个吧，{{.Pet}}～"
+    "translation": "选一个吧，{{.Pet}}…"
   },
   {
     "id": "mod.unwarn.expired",
@@ -873,7 +873,7 @@
   },
   {
     "id": "mod.unwarn.success",
-    "translation": "好了，{{.Pet}}～ {{.User}}的警告已移除。"
+    "translation": "好了，{{.Pet}}～ {{.User}}的警告已移除。 ❤️"
   },
   {
     "id": "info.about.title",
@@ -929,7 +929,7 @@
   },
   {
     "id": "mgr.slowmode.removed",
-    "translation": "好啦，{{.Pet}}～ {{.Channel}} 的慢速模式已关闭。"
+    "translation": "好啦，{{.Pet}}～ {{.Channel}} 的慢速模式已关闭。 ❤️"
   },
   {
     "id": "mgr.slowmode.error",
@@ -1113,7 +1113,7 @@
   },
   {
     "id": "mgr.stickers.create_success",
-    "translation": "好啦，{{.Pet}}。`{{.Name}}` 已创建。"
+    "translation": "好啦，{{.Pet}}～。`{{.Name}}` 已创建。 ❤️"
   },
   {
     "id": "mgr.stickers.create_error",
@@ -1121,7 +1121,7 @@
   },
   {
     "id": "mgr.stickers.edit_success",
-    "translation": "好啦，{{.Pet}}～ `{{.Name}}` 已更新。"
+    "translation": "好啦，{{.Pet}}～ `{{.Name}}` 已更新。 ❤️"
   },
   {
     "id": "mgr.stickers.edit_error",
@@ -1129,7 +1129,7 @@
   },
   {
     "id": "mgr.stickers.delete_success",
-    "translation": "好啦，{{.Pet}}～ 贴纸已删除。"
+    "translation": "好啦，{{.Pet}}～ 贴纸已删除。 ❤️"
   },
   {
     "id": "mgr.stickers.delete_error",
@@ -1137,7 +1137,7 @@
   },
   {
     "id": "ok.pong",
-    "translation": "Pong，{{.Pet}}～ {{.Mommy}}在这儿。"
+    "translation": "Pong，{{.Pet}}～ {{.Mommy}}在这儿。 ❤️"
   },
   {
     "id": "err.generic",
@@ -1205,7 +1205,7 @@
   },
   {
     "id": "wellness.timezone.set",
-    "translation": "好啦，{{.Pet}}～ {{.Mommy}}会用 `{{.Timezone}}` 来安排提醒。"
+    "translation": "好啦，{{.Pet}}～ {{.Mommy}}会用 `{{.Timezone}}` 来安排提醒。 ❤️"
   },
   {
     "id": "wellness.timezone.unset",
@@ -1217,7 +1217,7 @@
   },
   {
     "id": "wellness.timezone.cleared",
-    "translation": "好了，{{.Pet}}～ 时区已清除。"
+    "translation": "好了，{{.Pet}}～ 时区已清除。 ❤️"
   },
   {
     "id": "cmd.checkin.name",
@@ -1253,7 +1253,7 @@
   },
   {
     "id": "wellness.checkin.saved",
-    "translation": "谢谢你告诉{{.Mommy}}，{{.Pet}}～ 我保存了 `{{.Mood}}/5`。"
+    "translation": "谢谢你告诉{{.Mommy}}，{{.Pet}}～ 我保存了 `{{.Mood}}/5`。 ❤️"
   },
   {
     "id": "wellness.checkin.history.empty",
@@ -1353,7 +1353,7 @@
   },
   {
     "id": "wellness.remind.created",
-    "translation": "好啦，{{.Pet}}～ 下次在 {{.NextRun}} 提醒你。提醒 `{{.ID}}`（{{.Kind}}，{{.Delivery}}）。"
+    "translation": "好啦，{{.Pet}}～ 下次在 {{.NextRun}} 提醒你。提醒 `{{.ID}}`（{{.Kind}}，{{.Delivery}}）。 ❤️"
   },
   {
     "id": "wellness.remind.list.empty",
@@ -1365,7 +1365,7 @@
   },
   {
     "id": "wellness.remind.delete.placeholder",
-    "translation": "选一个提醒～"
+    "translation": "选一个提醒…"
   },
   {
     "id": "wellness.remind.delete.prompt",
@@ -1385,7 +1385,7 @@
   },
   {
     "id": "wellness.remind.delete.success",
-    "translation": "删掉了～ {{.Pet}}，你做得很好。"
+    "translation": "删掉了～ {{.Pet}}，你做得很好。 ❤️"
   },
   {
     "id": "wellness.reminder.fire",

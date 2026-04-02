@@ -865,7 +865,7 @@
   },
   {
     "id": "mod.unwarn.placeholder",
-    "translation": "{{.Pet}}、ママのために選んでね〜"
+    "translation": "{{.Pet}}、ママのために選んでね…"
   },
   {
     "id": "mod.unwarn.expired",
@@ -873,7 +873,7 @@
   },
   {
     "id": "mod.unwarn.success",
-    "translation": "できたよ、{{.Pet}}〜。{{.User}}はまっさらだよ。"
+    "translation": "できたよ、{{.Pet}}〜。{{.User}}はまっさらだよ。 ❤️"
   },
   {
     "id": "info.about.title",
@@ -929,7 +929,7 @@
   },
   {
     "id": "mgr.slowmode.removed",
-    "translation": "よし、{{.Pet}}〜。{{.Channel}}のスローモードはオフだよ。"
+    "translation": "よし、{{.Pet}}〜。{{.Channel}}のスローモードはオフだよ。 ❤️"
   },
   {
     "id": "mgr.slowmode.error",
@@ -1113,7 +1113,7 @@
   },
   {
     "id": "mgr.stickers.create_success",
-    "translation": "できたよ、{{.Pet}}。`{{.Name}}` を作ったよ。"
+    "translation": "できたよ、{{.Pet}}〜。`{{.Name}}` を作ったよ。 ❤️"
   },
   {
     "id": "mgr.stickers.create_error",
@@ -1121,7 +1121,7 @@
   },
   {
     "id": "mgr.stickers.edit_success",
-    "translation": "できたよ、{{.Pet}}〜。`{{.Name}}` を更新したよ。"
+    "translation": "できたよ、{{.Pet}}〜。`{{.Name}}` を更新したよ。 ❤️"
   },
   {
     "id": "mgr.stickers.edit_error",
@@ -1129,7 +1129,7 @@
   },
   {
     "id": "mgr.stickers.delete_success",
-    "translation": "うん、{{.Pet}}〜。スタンプを削除したよ。"
+    "translation": "うん、{{.Pet}}〜。スタンプを削除したよ。 ❤️"
   },
   {
     "id": "mgr.stickers.delete_error",
@@ -1137,7 +1137,7 @@
   },
   {
     "id": "ok.pong",
-    "translation": "ポン、いい子〜。ママはここにいるよ。"
+    "translation": "ポン、いい子〜。ママはここにいるよ。 ❤️"
   },
   {
     "id": "err.generic",
@@ -1201,11 +1201,11 @@
   },
   {
     "id": "wellness.timezone.invalid",
-    "translation": "うーん、{{.Pet}}... そのタイムゾーンは分からないよ: `{{.Timezone}}`。"
+    "translation": "うーん、{{.Pet}}… そのタイムゾーンは分からないよ: `{{.Timezone}}`。"
   },
   {
     "id": "wellness.timezone.set",
-    "translation": "うん、{{.Pet}}〜。リマインダーは `{{.Timezone}}` で送るね。"
+    "translation": "うん、{{.Pet}}〜。リマインダーは `{{.Timezone}}` で送るね。 ❤️"
   },
   {
     "id": "wellness.timezone.unset",
@@ -1217,7 +1217,7 @@
   },
   {
     "id": "wellness.timezone.cleared",
-    "translation": "消したよ、{{.Pet}}〜。"
+    "translation": "消したよ、{{.Pet}}〜。 ❤️"
   },
   {
     "id": "cmd.checkin.name",
@@ -1245,7 +1245,7 @@
   },
   {
     "id": "wellness.checkin.prompt",
-    "translation": "{{.Pet}}、1から5の数字を教えて... それか `history=true` で最近のチェックインを見るよ。"
+    "translation": "{{.Pet}}、1から5の数字を教えて… それか `history=true` で最近のチェックインを見るよ。"
   },
   {
     "id": "wellness.checkin.invalid_mood",
@@ -1253,7 +1253,7 @@
   },
   {
     "id": "wellness.checkin.saved",
-    "translation": "教えてくれてありがとう、{{.Pet}}〜。`{{.Mood}}/5` を保存したよ。"
+    "translation": "教えてくれてありがとう、{{.Pet}}〜。`{{.Mood}}/5` を保存したよ。 ❤️"
   },
   {
     "id": "wellness.checkin.history.empty",
@@ -1353,7 +1353,7 @@
   },
   {
     "id": "wellness.remind.created",
-    "translation": "できたよ、{{.Pet}}〜。次は {{.NextRun}} にそっと教えるね - `{{.ID}}` ({{.Kind}}, {{.Delivery}})。"
+    "translation": "できたよ、{{.Pet}}〜。次は {{.NextRun}} にそっと教えるね - `{{.ID}}` ({{.Kind}}, {{.Delivery}})。 ❤️"
   },
   {
     "id": "wellness.remind.list.empty",
@@ -1365,7 +1365,7 @@
   },
   {
     "id": "wellness.remind.delete.placeholder",
-    "translation": "リマインダーを選んでね〜"
+    "translation": "リマインダーを選んでね…"
   },
   {
     "id": "wellness.remind.delete.prompt",
@@ -1385,7 +1385,7 @@
   },
   {
     "id": "wellness.remind.delete.success",
-    "translation": "消したよ〜。えらいね、{{.Pet}}。"
+    "translation": "消したよ〜。えらいね、{{.Pet}}。 ❤️"
   },
   {
     "id": "wellness.reminder.fire",

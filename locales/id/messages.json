@@ -865,7 +865,7 @@
   },
   {
     "id": "mod.unwarn.placeholder",
-    "translation": "Pilih satu buat Mama, {{.Pet}}~"
+    "translation": "Pilih satu buat Mama, {{.Pet}}..."
   },
   {
     "id": "mod.unwarn.expired",
@@ -873,7 +873,7 @@
   },
   {
     "id": "mod.unwarn.success",
-    "translation": "All done, {{.Pet}}~ {{.User}} has a clean slate."
+    "translation": "All done, {{.Pet}}~ {{.User}} has a clean slate. ❤️"
   },
   {
     "id": "info.about.title",
@@ -929,7 +929,7 @@
   },
   {
     "id": "mgr.slowmode.removed",
-    "translation": "There we go, {{.Pet}}~ Slowmode is off for {{.Channel}}."
+    "translation": "There we go, {{.Pet}}~ Slowmode is off for {{.Channel}}. ❤️"
   },
   {
     "id": "mgr.slowmode.error",
@@ -1113,7 +1113,7 @@
   },
   {
     "id": "mgr.stickers.create_success",
-    "translation": "All set, {{.Pet}}. `{{.Name}}` was created."
+    "translation": "All set, {{.Pet}}~. `{{.Name}}` was created. ❤️"
   },
   {
     "id": "mgr.stickers.create_error",
@@ -1121,7 +1121,7 @@
   },
   {
     "id": "mgr.stickers.edit_success",
-    "translation": "All set, {{.Pet}}~ `{{.Name}}` was updated."
+    "translation": "All set, {{.Pet}}~ `{{.Name}}` was updated. ❤️"
   },
   {
     "id": "mgr.stickers.edit_error",
@@ -1129,7 +1129,7 @@
   },
   {
     "id": "mgr.stickers.delete_success",
-    "translation": "Okay, {{.Pet}}~ Sticker deleted."
+    "translation": "Okay, {{.Pet}}~ Sticker deleted. ❤️"
   },
   {
     "id": "mgr.stickers.delete_error",
@@ -1137,7 +1137,7 @@
   },
   {
     "id": "ok.pong",
-    "translation": "Pong, {{.Pet}}~ {{.Mommy}} di sini."
+    "translation": "Pong, {{.Pet}}~ {{.Mommy}} di sini. ❤️"
   },
   {
     "id": "err.generic",
@@ -1205,7 +1205,7 @@
   },
   {
     "id": "wellness.timezone.set",
-    "translation": "Okay, {{.Pet}}~ I'll use `{{.Timezone}}` for your reminders."
+    "translation": "Okay, {{.Pet}}~ I'll use `{{.Timezone}}` for your reminders. ❤️"
   },
   {
     "id": "wellness.timezone.unset",
@@ -1217,7 +1217,7 @@
   },
   {
     "id": "wellness.timezone.cleared",
-    "translation": "All cleared, {{.Pet}}~"
+    "translation": "All cleared, {{.Pet}}~ ❤️"
   },
   {
     "id": "cmd.checkin.name",
@@ -1253,7 +1253,7 @@
   },
   {
     "id": "wellness.checkin.saved",
-    "translation": "Thank you for telling me, {{.Pet}}~ I saved `{{.Mood}}/5`."
+    "translation": "Thank you for telling me, {{.Pet}}~ I saved `{{.Mood}}/5`. ❤️"
   },
   {
     "id": "wellness.checkin.history.empty",
@@ -1353,7 +1353,7 @@
   },
   {
     "id": "wellness.remind.created",
-    "translation": "All set, {{.Pet}}~ I'll nudge you next at {{.NextRun}} - reminder `{{.ID}}` ({{.Kind}}, {{.Delivery}})."
+    "translation": "All set, {{.Pet}}~ I'll nudge you next at {{.NextRun}} - reminder `{{.ID}}` ({{.Kind}}, {{.Delivery}}). ❤️"
   },
   {
     "id": "wellness.remind.list.empty",
@@ -1365,7 +1365,7 @@
   },
   {
     "id": "wellness.remind.delete.placeholder",
-    "translation": "Pilih pengingat buat Mama~"
+    "translation": "Pilih pengingat buat Mama..."
   },
   {
     "id": "wellness.remind.delete.prompt",
@@ -1385,7 +1385,7 @@
   },
   {
     "id": "wellness.remind.delete.success",
-    "translation": "Deleted~ Good job taking care of yourself, {{.Pet}}."
+    "translation": "Deleted. Good job taking care of yourself, {{.Pet}}~. ❤️"
   },
   {
     "id": "wellness.reminder.fire",
