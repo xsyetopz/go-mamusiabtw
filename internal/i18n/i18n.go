@@ -32,7 +32,7 @@ func LoadCore(localesDir string) (Registry, error) {
 		return Registry{}, err
 	}
 
-	bundle := i18n.NewBundle(language.MustParse("en-GB"))
+	bundle := i18n.NewBundle(language.MustParse("en-US"))
 	bundle.RegisterUnmarshalFunc("json", json.Unmarshal)
 
 	for _, locale := range locales {
@@ -64,7 +64,7 @@ func (r *Registry) LoadPluginLocales(pluginID, pluginLocalesDir string) error {
 		return err
 	}
 
-	bundle := i18n.NewBundle(language.MustParse("en-GB"))
+	bundle := i18n.NewBundle(language.MustParse("en-US"))
 	bundle.RegisterUnmarshalFunc("json", json.Unmarshal)
 
 	for _, locale := range locales {
@@ -107,7 +107,7 @@ func (r *Registry) ResetPluginLocales() {
 func normalizeLocale(locale string) string {
 	locale = strings.TrimSpace(locale)
 	if locale == "" {
-		return "en-GB"
+		return "en-US"
 	}
 	return locale
 }
@@ -131,7 +131,8 @@ func (r *Registry) Localize(cfg Config) (string, error) {
 	}
 
 	locale := normalizeLocale(cfg.Locale)
-	fallback := "en-GB"
+	fallbackPrimary := "en-US"
+	fallbackSecondary := "en-GB"
 
 	if cfg.PluginID != "" {
 		r.state.mu.RLock()
@@ -141,7 +142,7 @@ func (r *Registry) Localize(cfg Config) (string, error) {
 			return "", fmt.Errorf("missing plugin locale bundle for %q", cfg.PluginID)
 		}
 
-		localizer := i18n.NewLocalizer(bundle, locale, fallback)
+		localizer := i18n.NewLocalizer(bundle, locale, fallbackPrimary, fallbackSecondary)
 		return localizer.Localize(&i18n.LocalizeConfig{
 			MessageID:    messageID,
 			TemplateData: cfg.TemplateData,
@@ -152,7 +153,7 @@ func (r *Registry) Localize(cfg Config) (string, error) {
 	r.state.mu.RLock()
 	core := r.state.core
 	r.state.mu.RUnlock()
-	localizer := i18n.NewLocalizer(core, locale, fallback)
+	localizer := i18n.NewLocalizer(core, locale, fallbackPrimary, fallbackSecondary)
 	return localizer.Localize(&i18n.LocalizeConfig{
 		MessageID:    messageID,
 		TemplateData: cfg.TemplateData,

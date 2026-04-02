@@ -11,13 +11,29 @@ func (b *Bot) commandCooldown(cmdName string) time.Duration {
 	if b == nil {
 		return 0
 	}
-	name := strings.ToLower(strings.TrimSpace(cmdName))
-	if name == "" {
+	key := strings.ToLower(strings.TrimSpace(cmdName))
+	if key == "" {
 		return 0
 	}
-	if _, ok := b.slashBypass[name]; ok {
+
+	root := key
+	if idx := strings.IndexByte(root, ':'); idx >= 0 {
+		root = root[:idx]
+	}
+
+	if _, ok := b.slashBypass[root]; ok {
 		return 0
 	}
+
+	if d, ok := b.slashCooldownOverrides[key]; ok {
+		return d
+	}
+	if root != key {
+		if d, ok := b.slashCooldownOverrides[root]; ok {
+			return d
+		}
+	}
+
 	if b.slashCooldown <= 0 {
 		return 0
 	}

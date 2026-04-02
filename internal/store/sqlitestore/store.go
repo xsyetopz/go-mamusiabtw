@@ -59,3 +59,15 @@ func (s *Store) Guilds() store.GuildStore {
 func (s *Store) GuildMembers() store.GuildMemberStore {
 	return guildMemberStore{db: s.db, now: s.now}
 }
+
+func (s *Store) UserSettings() store.UserSettingsStore {
+	return userSettingsStore{db: s.db, now: s.now}
+}
+
+func (s *Store) Reminders() store.ReminderStore {
+	return reminderStore{db: s.db, now: s.now}
+}
+
+func (s *Store) CheckIns() store.CheckInStore {
+	return checkInStore{db: s.db, now: s.now}
+}

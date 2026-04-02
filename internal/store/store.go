@@ -108,3 +108,78 @@ type GuildMemberStore interface {
 	MarkMemberJoined(ctx context.Context, guildID, userID uint64, joinedAt time.Time) error
 	MarkMemberLeft(ctx context.Context, guildID, userID uint64, leftAt time.Time) error
 }
+
+type UserSettings struct {
+	UserID      uint64
+	Timezone    string
+	DMChannelID *uint64
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
+type UserSettingsStore interface {
+	GetUserSettings(ctx context.Context, userID uint64) (UserSettings, bool, error)
+	UpsertUserTimezone(ctx context.Context, userID uint64, timezone string) error
+	ClearUserTimezone(ctx context.Context, userID uint64) error
+	UpsertUserDMChannelID(ctx context.Context, userID uint64, dmChannelID uint64) error
+}
+
+type ReminderDelivery string
+
+const (
+	ReminderDeliveryDM      ReminderDelivery = "dm"
+	ReminderDeliveryChannel ReminderDelivery = "channel"
+)
+
+type Reminder struct {
+	ID           string
+	UserID       uint64
+	Schedule     string
+	Kind         string
+	Note         string
+	Delivery     ReminderDelivery
+	GuildID      *uint64
+	ChannelID    *uint64
+	Enabled      bool
+	NextRunAt    time.Time
+	LastRunAt    *time.Time
+	FailureCount int
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+}
+
+type ReminderStore interface {
+	CreateReminder(ctx context.Context, r Reminder) error
+	ListReminders(ctx context.Context, userID uint64, limit int) ([]Reminder, error)
+	DeleteReminder(ctx context.Context, userID uint64, reminderID string) (bool, error)
+
+	ClaimDueReminders(
+		ctx context.Context,
+		now time.Time,
+		leaseID string,
+		leaseDuration time.Duration,
+		limit int,
+	) ([]Reminder, error)
+
+	FinishReminderRun(
+		ctx context.Context,
+		reminderID string,
+		leaseID string,
+		lastRunAt time.Time,
+		nextRunAt time.Time,
+		failureCount int,
+		enabled bool,
+	) error
+}
+
+type CheckIn struct {
+	ID        string
+	UserID    uint64
+	Mood      int
+	CreatedAt time.Time
+}
+
+type CheckInStore interface {
+	CreateCheckIn(ctx context.Context, c CheckIn) error
+	ListCheckIns(ctx context.Context, userID uint64, limit int) ([]CheckIn, error)
+}

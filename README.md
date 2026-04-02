@@ -1,6 +1,6 @@
 # imotherbtw
 
-Just Another General-Purpose Discord App.
+A nurturing and protective Discord app.
 
 - Engine: Go
 - Discord API: `DisgoOrg/disgo`
@@ -27,9 +27,10 @@ imotherbtw creates/opens the SQLite DB at `SQLITE_PATH` and applies migrations a
 - `/ping`
 - `/help`
 - `/about`
-- `/lookup user|guild`
+- `/lookup user|guild|role|channel`
 - `/warn` and `/unwarn` (interactive select-menu)
 - `/block` and `/unblock` (owner-only; owner IDs via `OWNER_USER_IDS`)
+- Wellness: `/timezone`, `/checkin`, `/remind`
 - Fun: `/flip`, `/roll`, `/8ball`, `/hug`, `/pat`, `/poke`, `/shrug`
 - Manager: `/slowmode`, `/nick`, `/purge`, `/roles`, `/emojis`, `/stickers`
 
@@ -93,6 +94,11 @@ When `IMOTHERBTW_PROD_MODE=1` and `IMOTHERBTW_WALLOW_UNSIGNED_PLUGINS=0`, plugin
 - Additional trusted keys are stored in SQLite (`trusted_signers`)
 
 ## Legacy Parity Options
+
+### Cooldowns
+
+- Global: `IMOTHERBTW_SLASH_COOLDOWN_MS`
+- Overrides: `IMOTHERBTW_SLASH_COOLDOWN_OVERRIDES_MS` (comma-separated `name=ms`, supports subcommands like `lookup:user=2500`)
 
 ### Command Registration
 

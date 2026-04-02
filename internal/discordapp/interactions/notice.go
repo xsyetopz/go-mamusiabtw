@@ -71,21 +71,21 @@ func noticeColor(kind present.Kind) int {
 func noticePrefix(kind present.Kind) string {
 	switch kind {
 	case present.KindSuccess:
-		return "✅ "
+		return "🌷 "
 	case present.KindInfo:
-		return "ℹ️ "
+		return "🫶 "
 	case present.KindWarning:
-		return "⚠️ "
+		return "💛 "
 	case present.KindError:
-		return "❌ "
+		return "😾 "
 	default:
 		return ""
 	}
 }
 
 const (
-	noticeColorSuccess = 0x57F287
-	noticeColorWarning = 0xFEE75C
-	noticeColorError   = 0xED4245
-	noticeColorInfo    = 0x5865F2
+	noticeColorSuccess = 0xA7F3D0
+	noticeColorWarning = 0xFDE68A
+	noticeColorError   = 0xFCA5A5
+	noticeColorInfo    = 0xC4B5FD
 )

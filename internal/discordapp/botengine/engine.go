@@ -44,10 +44,11 @@ type Dependencies struct {
 	I18n  i18n.Registry
 	Store core.Store
 
-	SlashCooldown       time.Duration
-	ComponentCooldown   time.Duration
-	ModalCooldown       time.Duration
-	SlashCooldownBypass []string
+	SlashCooldown          time.Duration
+	ComponentCooldown      time.Duration
+	ModalCooldown          time.Duration
+	SlashCooldownBypass    []string
+	SlashCooldownOverrides map[string]time.Duration
 }
 
 type Bot struct {
@@ -60,10 +61,11 @@ type Bot struct {
 
 	cooldowns *cooldownTracker
 
-	slashCooldown        time.Duration
-	componentCooldownDur time.Duration
-	modalCooldownDur     time.Duration
-	slashBypass          map[string]struct{}
+	slashCooldown          time.Duration
+	componentCooldownDur   time.Duration
+	modalCooldownDur       time.Duration
+	slashBypass            map[string]struct{}
+	slashCooldownOverrides map[string]time.Duration
 
 	devGuildID *uint64
 	owners     map[uint64]struct{}
@@ -112,6 +114,7 @@ func New(deps Dependencies) (*Bot, error) {
 	b.componentCooldownDur = deps.ComponentCooldown
 	b.modalCooldownDur = deps.ModalCooldown
 	b.slashBypass = buildSlashBypass(deps.SlashCooldownBypass)
+	b.slashCooldownOverrides = cloneCooldownOverrides(deps.SlashCooldownOverrides)
 	b.order, b.commands = buildCommands()
 
 	if initErr := b.initPlugins(deps); initErr != nil {
@@ -161,6 +164,24 @@ func buildSlashBypass(names []string) map[string]struct{} {
 			continue
 		}
 		out[n] = struct{}{}
+	}
+	return out
+}
+
+func cloneCooldownOverrides(in map[string]time.Duration) map[string]time.Duration {
+	if len(in) == 0 {
+		return nil
+	}
+	out := make(map[string]time.Duration, len(in))
+	for k, v := range in {
+		key := strings.ToLower(strings.TrimSpace(k))
+		if key == "" {
+			continue
+		}
+		out[key] = v
+	}
+	if len(out) == 0 {
+		return nil
 	}
 	return out
 }
@@ -249,6 +270,8 @@ func (b *Bot) Start(ctx context.Context) error {
 	if err := b.client.OpenGateway(ctx); err != nil {
 		return err
 	}
+
+	b.startReminderScheduler(ctx)
 	return nil
 }
 

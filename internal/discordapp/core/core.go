@@ -3,6 +3,8 @@ package core
 import (
 	"context"
 	"log/slog"
+	"maps"
+	"strings"
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
@@ -10,6 +12,7 @@ import (
 	"github.com/xsyetopz/imotherbtw/internal/discordapp/interactions"
 	"github.com/xsyetopz/imotherbtw/internal/i18n"
 	"github.com/xsyetopz/imotherbtw/internal/integrations/kawaii"
+	"github.com/xsyetopz/imotherbtw/internal/persona"
 	"github.com/xsyetopz/imotherbtw/internal/plugins"
 	"github.com/xsyetopz/imotherbtw/internal/store"
 )
@@ -23,14 +26,21 @@ type Store interface {
 	Users() store.UserStore
 	Guilds() store.GuildStore
 	GuildMembers() store.GuildMemberStore
+	UserSettings() store.UserSettingsStore
+	Reminders() store.ReminderStore
+	CheckIns() store.CheckInStore
 }
 
 type Translator struct {
 	Registry i18n.Registry
 	Locale   discord.Locale
+	UserID   uint64
 }
 
 func (t Translator) S(messageID string, data map[string]any) string {
+	if t.UserID != 0 {
+		data = withPersonaTemplateData(data, t.Locale, t.UserID, messageID)
+	}
 	return t.Registry.MustLocalize(i18n.Config{
 		Locale:       t.Locale.Code(),
 		MessageID:    messageID,
@@ -38,11 +48,54 @@ func (t Translator) S(messageID string, data map[string]any) string {
 	})
 }
 
+func withPersonaTemplateData(
+	data map[string]any,
+	locale discord.Locale,
+	userID uint64,
+	messageID string,
+) map[string]any {
+	if data == nil {
+		data = map[string]any{}
+	} else {
+		clone := make(map[string]any, len(data)+1)
+		maps.Copy(clone, data)
+		data = clone
+	}
+
+	if _, ok := data["Pet"]; !ok {
+		data["Pet"] = personaPet(locale, userID, messageID)
+	}
+	if _, ok := data["Mommy"]; !ok {
+		data["Mommy"] = personaMommy(locale)
+	}
+	return data
+}
+
+func personaPet(locale discord.Locale, userID uint64, messageID string) string {
+	return persona.PetName(locale, userID, messageID)
+}
+
+func personaMommy(locale discord.Locale) string {
+	return persona.Mommy(locale)
+}
+
 func LocalizeMap(locales []string, fn func(locale string) string) map[discord.Locale]string {
+	const baseLocale = "en-US"
+	base := strings.TrimSpace(fn(baseLocale))
+
 	out := map[discord.Locale]string{}
 	for _, locale := range locales {
+		locale = strings.TrimSpace(locale)
+		if locale == "" || strings.EqualFold(locale, baseLocale) {
+			continue
+		}
+
 		translated := fn(locale)
+		translated = strings.TrimSpace(translated)
 		if translated == "" {
+			continue
+		}
+		if base != "" && translated == base {
 			continue
 		}
 		out[discord.Locale(locale)] = translated

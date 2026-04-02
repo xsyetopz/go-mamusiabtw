@@ -3,6 +3,7 @@ package cmdmoderation
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -26,6 +27,8 @@ const (
 	unwarnListLimit       = 25
 	unwarnVerifyListLimit = 100
 )
+
+const warnTimeoutDuration = 10 * time.Minute
 
 func Commands() []core.SlashCommand {
 	return []core.SlashCommand{
@@ -160,26 +163,81 @@ func warnHandle(
 
 	warnAppendAudit(ctx, s.Store, guildIDU64, actorID, targetID, now)
 
-	_ = sendDM(
-		ctx,
-		e.Client(),
-		user.ID,
-		interactions.NoticeMessage(
-			present.KindWarning,
-			"",
-			t.S("mod.warn.dm", map[string]any{"Reason": reason}),
-			false,
-		),
-	)
+	timeoutMinutes := 0
+	timeoutFailed := false
+	if count+1 >= warnMaxWarnings {
+		until := now.Add(warnTimeoutDuration)
+		if timeoutErr := warnApplyTimeout(e, *guildID, user.ID, until); timeoutErr != nil {
+			timeoutFailed = true
+		} else {
+			timeoutMinutes = int(warnTimeoutDuration.Minutes())
+			warnAppendTimeoutAudit(ctx, s.Store, guildIDU64, actorID, targetID, now, until)
+		}
+	}
+
+	warnNotifyTarget(ctx, e, withTargetUserID(t, targetID), user.ID, reason, timeoutMinutes)
 
 	return interactions.SlashMessage{
 		Create: interactions.NoticeMessage(
 			present.KindSuccess,
 			"",
-			t.S("mod.warn.success", map[string]any{"User": user.Mention(), "Reason": reason}),
+			t.S("mod.warn.success", map[string]any{
+				"User":           user.Mention(),
+				"Reason":         reason,
+				"TimeoutMinutes": timeoutMinutes,
+				"TimeoutFailed":  timeoutFailed,
+			}),
 			true,
 		),
 	}, nil
+}
+
+func withTargetUserID(t core.Translator, userID uint64) core.Translator {
+	t.UserID = userID
+	return t
+}
+
+func warnNotifyTarget(
+	ctx context.Context,
+	e *events.ApplicationCommandInteractionCreate,
+	t core.Translator,
+	userID snowflake.ID,
+	reason string,
+	timeoutMinutes int,
+) {
+	if e == nil {
+		return
+	}
+	_ = sendDM(
+		ctx,
+		e.Client(),
+		userID,
+		interactions.NoticeMessage(
+			present.KindWarning,
+			"",
+			t.S("mod.warn.dm", map[string]any{
+				"Reason":         reason,
+				"TimeoutMinutes": timeoutMinutes,
+			}),
+			false,
+		),
+	)
+}
+
+func warnApplyTimeout(
+	e *events.ApplicationCommandInteractionCreate,
+	guildID snowflake.ID,
+	userID snowflake.ID,
+	until time.Time,
+) error {
+	if e == nil {
+		return errors.New("interaction is nil")
+	}
+
+	_, err := e.Client().Rest.UpdateMember(guildID, userID, discord.MemberUpdate{
+		CommunicationDisabledUntil: omit.NewPtr(until),
+	})
+	return err
 }
 
 func warnAppendAudit(ctx context.Context, s core.Store, guildID, actorID, targetID uint64, now time.Time) {
@@ -199,6 +257,32 @@ func warnAppendAudit(ctx context.Context, s core.Store, guildID, actorID, target
 		TargetID:   &auditTargetID,
 		CreatedAt:  now,
 		MetaJSON:   "{}",
+	})
+}
+
+func warnAppendTimeoutAudit(
+	ctx context.Context,
+	s core.Store,
+	guildID, actorID, targetID uint64,
+	now time.Time,
+	until time.Time,
+) {
+	if s == nil {
+		return
+	}
+
+	auditGuildID := guildID
+	auditActorID := actorID
+	auditTargetID := targetID
+	auditTargetType := store.TargetTypeUser
+	_ = s.Audit().Append(ctx, store.AuditEntry{
+		GuildID:    &auditGuildID,
+		ActorID:    &auditActorID,
+		Action:     "warn.timeout",
+		TargetType: &auditTargetType,
+		TargetID:   &auditTargetID,
+		CreatedAt:  now,
+		MetaJSON:   fmt.Sprintf("{\"until\":%d}", until.Unix()),
 	})
 }
 

@@ -10,6 +10,7 @@ import (
 	cmdroles "github.com/xsyetopz/imotherbtw/internal/discordapp/commands/manager/roles"
 	cmdstickers "github.com/xsyetopz/imotherbtw/internal/discordapp/commands/manager/stickers"
 	cmdmoderation "github.com/xsyetopz/imotherbtw/internal/discordapp/commands/moderation"
+	cmdwellness "github.com/xsyetopz/imotherbtw/internal/discordapp/commands/wellness"
 
 	"github.com/xsyetopz/imotherbtw/internal/discordapp/core"
 )
@@ -25,5 +26,6 @@ func All() []core.SlashCommand {
 	out = append(out, cmdroles.Commands()...)
 	out = append(out, cmdemojis.Commands()...)
 	out = append(out, cmdstickers.Commands()...)
+	out = append(out, cmdwellness.Commands()...)
 	return out
 }

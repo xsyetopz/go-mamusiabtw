@@ -6,7 +6,7 @@ package buildinfo
 var (
 	Version     = "dev"
 	Repository  = "UNKNOWN"
-	Description = "Just Another General-Purpose Discord App."
+	Description = "A nurturing and protective Discord app."
 
 	DeveloperURL     = "UNKNOWN"
 	SupportServerURL = "UNKNOWN"

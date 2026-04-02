@@ -30,10 +30,11 @@ type Config struct {
 	AllowUnsignedPlugins bool
 	TrustedKeysFile      string
 
-	SlashCooldown       time.Duration
-	ComponentCooldown   time.Duration
-	ModalCooldown       time.Duration
-	SlashCooldownBypass []string
+	SlashCooldown          time.Duration
+	ComponentCooldown      time.Duration
+	ModalCooldown          time.Duration
+	SlashCooldownBypass    []string
+	SlashCooldownOverrides map[string]time.Duration
 }
 
 const (
@@ -114,6 +115,10 @@ func LoadFromEnv() (Config, error) {
 	if len(slashBypass) == 0 {
 		slashBypass = []string{"ping", "help", "plugins", "block", "unblock"}
 	}
+	slashOverrides, err := parseCooldownOverridesMS(os.Getenv("IMOTHERBTW_SLASH_COOLDOWN_OVERRIDES_MS"))
+	if err != nil {
+		return Config{}, err
+	}
 
 	return Config{
 		DiscordToken:    discordToken,
@@ -135,10 +140,11 @@ func LoadFromEnv() (Config, error) {
 		AllowUnsignedPlugins: allowUnsigned,
 		TrustedKeysFile:      trustedKeysFile,
 
-		SlashCooldown:       slashCooldown,
-		ComponentCooldown:   componentCooldown,
-		ModalCooldown:       modalCooldown,
-		SlashCooldownBypass: slashBypass,
+		SlashCooldown:          slashCooldown,
+		ComponentCooldown:      componentCooldown,
+		ModalCooldown:          modalCooldown,
+		SlashCooldownBypass:    slashBypass,
+		SlashCooldownOverrides: slashOverrides,
 	}, nil
 }
 
@@ -208,6 +214,39 @@ func parseCSV(raw string) []string {
 		out = append(out, s)
 	}
 	return out
+}
+
+func parseCooldownOverridesMS(raw string) (map[string]time.Duration, error) {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return map[string]time.Duration{}, nil
+	}
+	items := parseCSV(raw)
+	if len(items) == 0 {
+		return map[string]time.Duration{}, nil
+	}
+
+	out := make(map[string]time.Duration, len(items))
+	for _, item := range items {
+		key, msRaw, ok := strings.Cut(item, "=")
+		if !ok {
+			return nil, fmt.Errorf("invalid cooldown override %q (expected name=ms)", item)
+		}
+
+		key = strings.ToLower(strings.TrimSpace(key))
+		if key == "" {
+			return nil, fmt.Errorf("invalid cooldown override %q (empty name)", item)
+		}
+
+		msRaw = strings.TrimSpace(msRaw)
+		ms, err := strconv.Atoi(msRaw)
+		if err != nil || ms < 0 {
+			return nil, fmt.Errorf("invalid cooldown override %q (invalid ms %q)", item, msRaw)
+		}
+
+		out[key] = time.Duration(ms) * time.Millisecond
+	}
+	return out, nil
 }
 
 func parseUint64List(raw string, envName string) ([]uint64, error) {

@@ -19,7 +19,7 @@ func (b *Bot) commandCreates(locales []string) []discord.ApplicationCommandCreat
 	for _, cmd := range b.order {
 		creates = append(
 			creates,
-			cmd.CreateCommand(locales, core.Translator{Registry: b.i18n, Locale: discord.LocaleEnglishGB}),
+			cmd.CreateCommand(locales, core.Translator{Registry: b.i18n, Locale: discord.LocaleEnglishUS}),
 		)
 	}
 	if b.plugins != nil {

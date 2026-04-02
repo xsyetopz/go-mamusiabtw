@@ -10,6 +10,7 @@ import (
 	"github.com/disgoorg/disgo/events"
 
 	cmdmoderation "github.com/xsyetopz/imotherbtw/internal/discordapp/commands/moderation"
+	cmdwellness "github.com/xsyetopz/imotherbtw/internal/discordapp/commands/wellness"
 	"github.com/xsyetopz/imotherbtw/internal/discordapp/core"
 	"github.com/xsyetopz/imotherbtw/internal/discordapp/interactions"
 	"github.com/xsyetopz/imotherbtw/internal/plugins"
@@ -20,7 +21,7 @@ func (b *Bot) onCommand(e *events.ApplicationCommandInteractionCreate) {
 	ctx := context.Background()
 
 	locale := e.Locale()
-	t := core.Translator{Registry: b.i18n, Locale: locale}
+	t := core.Translator{Registry: b.i18n, Locale: locale, UserID: uint64(e.User().ID)}
 
 	data := e.SlashCommandInteractionData()
 	cmdName := data.CommandName()
@@ -76,8 +77,9 @@ func (b *Bot) takeCommandCooldown(
 	cmdName string,
 	now time.Time,
 ) bool {
-	if d := b.commandCooldown(cmdName); d > 0 {
-		if remaining, ok := b.cooldowns.Take(uint64(e.User().ID), cmdName, d, now); !ok {
+	key := slashCooldownKey(e, cmdName)
+	if d := b.commandCooldown(key); d > 0 {
+		if remaining, ok := b.cooldowns.Take(uint64(e.User().ID), key, d, now); !ok {
 			msg := interactions.NoticeMessage(
 				present.KindWarning,
 				"",
@@ -89,6 +91,22 @@ func (b *Bot) takeCommandCooldown(
 		}
 	}
 	return true
+}
+
+func slashCooldownKey(e *events.ApplicationCommandInteractionCreate, cmdName string) string {
+	key := strings.ToLower(strings.TrimSpace(cmdName))
+	if key == "" || e == nil {
+		return key
+	}
+	sub := e.SlashCommandInteractionData().SubCommandName
+	if sub == nil {
+		return key
+	}
+	subKey := strings.ToLower(strings.TrimSpace(*sub))
+	if subKey == "" {
+		return key
+	}
+	return key + ":" + subKey
 }
 
 func (b *Bot) handleRegisteredSlash(
@@ -200,7 +218,7 @@ func (b *Bot) onComponent(e *events.ComponentInteractionCreate) {
 	ctx := context.Background()
 
 	locale := e.Locale()
-	t := core.Translator{Registry: b.i18n, Locale: locale}
+	t := core.Translator{Registry: b.i18n, Locale: locale, UserID: uint64(e.User().ID)}
 
 	customID := e.Data.CustomID()
 	if !b.takeComponentCooldown(e, t, customID, time.Now()) {
@@ -208,6 +226,10 @@ func (b *Bot) onComponent(e *events.ComponentInteractionCreate) {
 	}
 
 	if b.handleUnwarnComponent(ctx, e, t, locale, customID) {
+		return
+	}
+
+	if b.handleRemindDeleteComponent(ctx, e, t, customID) {
 		return
 	}
 
@@ -248,6 +270,49 @@ func (b *Bot) handleUnwarnComponent(
 
 	data := e.StringSelectMenuInteractionData()
 	action, err := cmdmoderation.HandleUnwarnSelection(ctx, e, t, b.services(locale), customID, data.Values)
+	if err != nil {
+		b.logger.ErrorContext(
+			ctx,
+			"component failed",
+			slog.String("custom_id", customID),
+			slog.String("err", err.Error()),
+		)
+		_ = e.CreateMessage(interactions.NoticeMessage(present.KindError, "", t.S("err.generic", nil), true))
+		return true
+	}
+	if action == nil {
+		_ = e.Acknowledge()
+		return true
+	}
+	if execErr := action.Execute(e); execErr != nil {
+		b.logger.ErrorContext(
+			ctx,
+			"component action failed",
+			slog.String("custom_id", customID),
+			slog.String("err", execErr.Error()),
+		)
+		_ = e.CreateMessage(interactions.NoticeMessage(present.KindError, "", t.S("err.generic", nil), true))
+	}
+	return true
+}
+
+func (b *Bot) handleRemindDeleteComponent(
+	ctx context.Context,
+	e *events.ComponentInteractionCreate,
+	t core.Translator,
+	customID string,
+) bool {
+	if !strings.HasPrefix(customID, "imotherbtw:reminddel:") {
+		return false
+	}
+
+	if b.store == nil {
+		_ = e.CreateMessage(interactions.NoticeMessage(present.KindError, "", t.S("err.generic", nil), true))
+		return true
+	}
+
+	data := e.StringSelectMenuInteractionData()
+	action, err := cmdwellness.HandleRemindDeleteSelection(ctx, e, t, b.store, customID, data.Values)
 	if err != nil {
 		b.logger.ErrorContext(
 			ctx,
@@ -350,7 +415,7 @@ func (b *Bot) onModal(e *events.ModalSubmitInteractionCreate) {
 	ctx := context.Background()
 
 	locale := e.Locale()
-	t := core.Translator{Registry: b.i18n, Locale: locale}
+	t := core.Translator{Registry: b.i18n, Locale: locale, UserID: uint64(e.User().ID)}
 
 	customID := strings.TrimSpace(e.Data.CustomID)
 	if d := b.modalCooldown(customID); d > 0 {

@@ -133,10 +133,11 @@ func (a *App) initDiscordBot() error {
 		ProdMode:                 a.cfg.ProdMode,
 		TrustedKeysFile:          a.cfg.TrustedKeysFile,
 
-		SlashCooldown:       a.cfg.SlashCooldown,
-		ComponentCooldown:   a.cfg.ComponentCooldown,
-		ModalCooldown:       a.cfg.ModalCooldown,
-		SlashCooldownBypass: a.cfg.SlashCooldownBypass,
+		SlashCooldown:          a.cfg.SlashCooldown,
+		ComponentCooldown:      a.cfg.ComponentCooldown,
+		ModalCooldown:          a.cfg.ModalCooldown,
+		SlashCooldownBypass:    a.cfg.SlashCooldownBypass,
+		SlashCooldownOverrides: a.cfg.SlashCooldownOverrides,
 
 		I18n:  a.i18n,
 		Store: a.store,

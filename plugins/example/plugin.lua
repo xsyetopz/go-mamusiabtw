@@ -21,7 +21,7 @@ local function render(n, msg_type)
     components = {
       {
         { type = "button", id = "inc", label = "Increment", style = "primary" },
-        { type = "button", id = "set", label = "Set…", style = "secondary" }
+        { type = "button", id = "set", label = "Set...",    style = "secondary" }
       }
     }
   }
