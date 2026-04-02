@@ -8,9 +8,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/xsuetopz/go-mamusiabtw/internal/app"
-	"github.com/xsuetopz/go-mamusiabtw/internal/config"
-	"github.com/xsuetopz/go-mamusiabtw/internal/logging"
+	"github.com/xsyetopz/go-mamusiabtw/internal/app"
+	"github.com/xsyetopz/go-mamusiabtw/internal/config"
+	"github.com/xsyetopz/go-mamusiabtw/internal/logging"
 )
 
 func main() {
