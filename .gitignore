@@ -17,4 +17,5 @@
 /config/trusted_keys.json
 
 # Executables
+!cmd/mamusiabtw
 mamusiabtw
