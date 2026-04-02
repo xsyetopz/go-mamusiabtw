@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/xsyetopz/go-mamusiabtw/refs/heads/refs/heads/main/schemas/messages.schema.v1.json",
+  "$id": "https://raw.githubusercontent.com/xsyetopz/go-mamusiabtw/refs/heads/main/schemas/messages.schema.v1.json",
   "title": "mamusiabtw messages.json (go-i18n)",
   "type": "array",
   "items": {
