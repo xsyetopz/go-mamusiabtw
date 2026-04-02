@@ -1,8 +1,8 @@
 # go-mamusiabtw
 
-A nurturing and protective Discord app... Mommy for your server. She comforts the good kids, and steps in when someone gets naughty...~
+A Discord bot for helping run and care for your server.
 
-One important thing, honey: this repo’s stable internal name is `mamusiabtw` (env vars, IDs, and `custom_id` prefixes). Keep it consistent unless you *really* mean to rename everything.
+Important: the repo’s stable internal name is `mamusiabtw` (env vars, IDs, and `custom_id` prefixes). Keep it consistent unless you really want to rename everything.
 
 - Engine: Go
 - Discord API: `DisgoOrg/disgo`
@@ -11,13 +11,13 @@ One important thing, honey: this repo’s stable internal name is `mamusiabtw` (
 
 ## Running
 
-1. Copy `.env.example` to `.env` and fill in at least `DISCORD_TOKEN`.
-2. (Recommended) Set `DISCORD_DEV_GUILD_ID` for fast command registration.
+1. Copy `.env.example` to `.env` and fill in `DISCORD_TOKEN`.
+2. (Recommended) Set `DISCORD_DEV_GUILD_ID` for quicker command registration.
 3. Start: `go run ./cmd/mamusiabtw`
 
-mamusiabtw creates/opens the SQLite DB at `SQLITE_PATH` and applies migrations automatically on startup... Mommy handles the chores.~
+mamusiabtw creates or opens the SQLite database at `SQLITE_PATH` and applies migrations automatically on startup.
 
-The direct-binary flow and the Docker flow use the same env vars and the same `config/`, `plugins/`, `locales/`, and `migrations/` inputs.
+The direct-binary flow and the Docker flow use the same env vars and the same `config/`, `plugins/`, `locales/`, and `migrations/` folders.
 
 ## Docker
 
@@ -155,7 +155,3 @@ To include a mascot image in `/about`, build with `buildinfo.MascotImageURL`.
 ## License
 
 [MIT](LICENSE)
-
----
-
-Made with (artificial) love ❤️
