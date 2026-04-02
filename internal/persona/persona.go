@@ -14,6 +14,18 @@ func Mommy(locale discord.Locale) string {
 	if code == "en-gb" {
 		return "mummy"
 	}
+	if code == "es-es" {
+		return "mamá"
+	}
+	if code == "es-419" {
+		return "mami"
+	}
+	if code == "zh-cn" {
+		return "妈妈"
+	}
+	if code == "zh-tw" {
+		return "媽咪"
+	}
 	return "mommy"
 }
 
@@ -47,6 +59,9 @@ func petTerms(locale discord.Locale) []string {
 		return defaultPetTerms()
 	}
 
+	if terms := petTermsSpanish(code); len(terms) > 0 {
+		return terms
+	}
 	if terms := petTermsEurope(code); len(terms) > 0 {
 		return terms
 	}
@@ -62,6 +77,17 @@ func petTerms(locale discord.Locale) []string {
 
 func defaultPetTerms() []string {
 	return []string{"kiddo", "sweetie", "little one", "honey", "pumpkin", "sunshine", "love", "dear"}
+}
+
+func petTermsSpanish(code string) []string {
+	switch code {
+	case "es-es":
+		return []string{"cariño", "cielo", "tesoro", "corazón", "peque", "amor"}
+	case "es-419":
+		return []string{"cariño", "cielito", "tesoro", "corazón", "chiqui", "mi amor"}
+	default:
+		return nil
+	}
 }
 
 func petTermsEurope(code string) []string {

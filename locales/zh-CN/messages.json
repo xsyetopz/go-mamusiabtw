@@ -1,1 +1,1418 @@
-[]
+[
+  {
+    "id": "cmd.ping.name",
+    "translation": "ping"
+  },
+  {
+    "id": "cmd.ping.desc",
+    "translation": "快速检查：确认妈妈醒着并在守护你们。"
+  },
+  {
+    "id": "cmd.help.name",
+    "translation": "help"
+  },
+  {
+    "id": "cmd.help.desc",
+    "translation": "看看妈妈能为你做什么。"
+  },
+  {
+    "id": "cmd.help.content",
+    "translation": "{{.Pet}}，给你：{{.Mommy}}能做这些：{{.Commands}}"
+  },
+  {
+    "id": "cmd.warn.name",
+    "translation": "warn"
+  },
+  {
+    "id": "cmd.warn.desc",
+    "translation": "给某人一个温柔的警告（需要时让他冷静一下）。"
+  },
+  {
+    "id": "cmd.warn.opt.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.warn.opt.user.desc",
+    "translation": "要警告谁？"
+  },
+  {
+    "id": "cmd.warn.opt.reason.name",
+    "translation": "reason"
+  },
+  {
+    "id": "cmd.warn.opt.reason.desc",
+    "translation": "发生了什么？"
+  },
+  {
+    "id": "cmd.unwarn.name",
+    "translation": "unwarn"
+  },
+  {
+    "id": "cmd.unwarn.desc",
+    "translation": "移除一个警告，让他们重新来过。"
+  },
+  {
+    "id": "cmd.unwarn.opt.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.unwarn.opt.user.desc",
+    "translation": "要给谁移除警告？"
+  },
+  {
+    "id": "cmd.block.name",
+    "translation": "block"
+  },
+  {
+    "id": "cmd.block.desc",
+    "translation": "让某个用户或服务器暂时不能使用我。"
+  },
+  {
+    "id": "cmd.block.sub.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.block.sub.user.desc",
+    "translation": "让某个用户暂时不能使用我。"
+  },
+  {
+    "id": "cmd.block.sub.guild.name",
+    "translation": "guild"
+  },
+  {
+    "id": "cmd.block.sub.guild.desc",
+    "translation": "让某个服务器暂时不能使用我。"
+  },
+  {
+    "id": "cmd.block.opt.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.block.opt.user.desc",
+    "translation": "哪个用户需要暂停？"
+  },
+  {
+    "id": "cmd.block.opt.reason.name",
+    "translation": "reason"
+  },
+  {
+    "id": "cmd.block.opt.reason.desc",
+    "translation": "为什么要暂停？"
+  },
+  {
+    "id": "cmd.block.opt.guild_id.name",
+    "translation": "guild_id"
+  },
+  {
+    "id": "cmd.block.opt.guild_id.desc",
+    "translation": "要暂停的服务器 ID。"
+  },
+  {
+    "id": "cmd.unblock.name",
+    "translation": "unblock"
+  },
+  {
+    "id": "cmd.unblock.desc",
+    "translation": "解除暂停。"
+  },
+  {
+    "id": "cmd.unblock.sub.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.unblock.sub.user.desc",
+    "translation": "让用户再次可以使用我。"
+  },
+  {
+    "id": "cmd.unblock.sub.guild.name",
+    "translation": "guild"
+  },
+  {
+    "id": "cmd.unblock.sub.guild.desc",
+    "translation": "让服务器再次可以使用我。"
+  },
+  {
+    "id": "cmd.unblock.opt.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.unblock.opt.user.desc",
+    "translation": "要解除哪个用户？"
+  },
+  {
+    "id": "cmd.unblock.opt.guild_id.name",
+    "translation": "guild_id"
+  },
+  {
+    "id": "cmd.unblock.opt.guild_id.desc",
+    "translation": "要解除的服务器 ID。"
+  },
+  {
+    "id": "cmd.plugins.name",
+    "translation": "plugins"
+  },
+  {
+    "id": "cmd.plugins.desc",
+    "translation": "管理我的插件。"
+  },
+  {
+    "id": "cmd.plugins.sub.list.name",
+    "translation": "list"
+  },
+  {
+    "id": "cmd.plugins.sub.list.desc",
+    "translation": "查看已加载的插件。"
+  },
+  {
+    "id": "cmd.plugins.sub.reload.name",
+    "translation": "reload"
+  },
+  {
+    "id": "cmd.plugins.sub.reload.desc",
+    "translation": "从磁盘重新加载插件。"
+  },
+  {
+    "id": "cmd.about.name",
+    "translation": "about"
+  },
+  {
+    "id": "cmd.about.desc",
+    "translation": "查看关于我和版本的信息。"
+  },
+  {
+    "id": "cmd.lookup.name",
+    "translation": "lookup"
+  },
+  {
+    "id": "cmd.lookup.desc",
+    "translation": "查询用户、服务器、身份组和频道的信息。"
+  },
+  {
+    "id": "cmd.lookup.sub.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.lookup.sub.user.desc",
+    "translation": "查询用户信息。"
+  },
+  {
+    "id": "cmd.lookup.sub.user.opt.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.lookup.sub.user.opt.user.desc",
+    "translation": "要查询的用户（留空则是你）。"
+  },
+  {
+    "id": "cmd.lookup.sub.guild.name",
+    "translation": "guild"
+  },
+  {
+    "id": "cmd.lookup.sub.guild.desc",
+    "translation": "查询这个服务器的信息。"
+  },
+  {
+    "id": "cmd.lookup.sub.role.name",
+    "translation": "role"
+  },
+  {
+    "id": "cmd.lookup.sub.role.desc",
+    "translation": "查询身份组信息。"
+  },
+  {
+    "id": "cmd.lookup.sub.role.opt.role.name",
+    "translation": "role"
+  },
+  {
+    "id": "cmd.lookup.sub.role.opt.role.desc",
+    "translation": "要查询的身份组。"
+  },
+  {
+    "id": "cmd.lookup.sub.channel.name",
+    "translation": "channel"
+  },
+  {
+    "id": "cmd.lookup.sub.channel.desc",
+    "translation": "查询频道信息。"
+  },
+  {
+    "id": "cmd.lookup.sub.channel.opt.channel.name",
+    "translation": "channel"
+  },
+  {
+    "id": "cmd.lookup.sub.channel.opt.channel.desc",
+    "translation": "要查询的频道。"
+  },
+  {
+    "id": "info.lookup.user.field.bot",
+    "translation": "🤖 机器人"
+  },
+  {
+    "id": "info.lookup.user.field.system",
+    "translation": "🖥️ 系统"
+  },
+  {
+    "id": "info.lookup.user.field.locale",
+    "translation": "🌐 语言"
+  },
+  {
+    "id": "info.lookup.user.field.created",
+    "translation": "📅 创建"
+  },
+  {
+    "id": "info.lookup.user.field.joined",
+    "translation": "📥 加入"
+  },
+  {
+    "id": "info.lookup.user.field.roles",
+    "translation": "🛡️ 身份组"
+  },
+  {
+    "id": "info.lookup.guild.field.roles",
+    "translation": "🛡️ 身份组"
+  },
+  {
+    "id": "info.lookup.guild.field.emojis",
+    "translation": "😃 表情"
+  },
+  {
+    "id": "info.lookup.guild.field.stickers",
+    "translation": "🖼️ 贴纸"
+  },
+  {
+    "id": "info.lookup.guild.field.members",
+    "translation": "👥 成员"
+  },
+  {
+    "id": "info.lookup.guild.field.channels",
+    "translation": "🌐 频道"
+  },
+  {
+    "id": "info.lookup.guild.field.created",
+    "translation": "📅 创建"
+  },
+  {
+    "id": "info.lookup.role.field.mention",
+    "translation": "🏷️ 提及"
+  },
+  {
+    "id": "info.lookup.role.field.position",
+    "translation": "📌 位置"
+  },
+  {
+    "id": "info.lookup.role.field.hoist",
+    "translation": "📌 单独显示"
+  },
+  {
+    "id": "info.lookup.role.field.mentionable",
+    "translation": "🔔 可提及"
+  },
+  {
+    "id": "info.lookup.role.field.managed",
+    "translation": "🤖 托管"
+  },
+  {
+    "id": "info.lookup.role.field.permissions",
+    "translation": "🔐 权限"
+  },
+  {
+    "id": "info.lookup.role.field.created",
+    "translation": "📅 创建"
+  },
+  {
+    "id": "info.lookup.channel.field.mention",
+    "translation": "🔗 提及"
+  },
+  {
+    "id": "info.lookup.channel.field.type",
+    "translation": "📁 类型"
+  },
+  {
+    "id": "info.lookup.channel.field.parent",
+    "translation": "🗂️ 分类"
+  },
+  {
+    "id": "info.lookup.channel.field.permissions",
+    "translation": "🔐 权限"
+  },
+  {
+    "id": "info.lookup.channel.field.created",
+    "translation": "📅 创建"
+  },
+  {
+    "id": "cmd.flip.name",
+    "translation": "flip"
+  },
+  {
+    "id": "cmd.flip.desc",
+    "translation": "抛硬币。"
+  },
+  {
+    "id": "cmd.roll.name",
+    "translation": "roll"
+  },
+  {
+    "id": "cmd.roll.desc",
+    "translation": "掷骰子。"
+  },
+  {
+    "id": "cmd.roll.opt.number.name",
+    "translation": "number"
+  },
+  {
+    "id": "cmd.roll.opt.number.desc",
+    "translation": "骰子数量。"
+  },
+  {
+    "id": "cmd.roll.opt.sides.name",
+    "translation": "sides"
+  },
+  {
+    "id": "cmd.roll.opt.sides.desc",
+    "translation": "每个骰子的面数。"
+  },
+  {
+    "id": "cmd.roll.opt.modifier.name",
+    "translation": "modifier"
+  },
+  {
+    "id": "cmd.roll.opt.modifier.desc",
+    "translation": "要加的修正值（可选）。"
+  },
+  {
+    "id": "cmd.8ball.name",
+    "translation": "8ball"
+  },
+  {
+    "id": "cmd.8ball.desc",
+    "translation": "问魔法 8 号球一个问题。"
+  },
+  {
+    "id": "cmd.8ball.opt.question.name",
+    "translation": "question"
+  },
+  {
+    "id": "cmd.8ball.opt.question.desc",
+    "translation": "要问的问题。"
+  },
+  {
+    "id": "cmd.hug.name",
+    "translation": "hug"
+  },
+  {
+    "id": "cmd.hug.desc",
+    "translation": "给一个暖暖的拥抱。"
+  },
+  {
+    "id": "cmd.hug.opt.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.hug.opt.user.desc",
+    "translation": "要抱谁？"
+  },
+  {
+    "id": "cmd.pat.name",
+    "translation": "pat"
+  },
+  {
+    "id": "cmd.pat.desc",
+    "translation": "给一个轻轻的摸头。"
+  },
+  {
+    "id": "cmd.pat.opt.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.pat.opt.user.desc",
+    "translation": "要摸谁？"
+  },
+  {
+    "id": "cmd.poke.name",
+    "translation": "poke"
+  },
+  {
+    "id": "cmd.poke.desc",
+    "translation": "轻轻戳一下。"
+  },
+  {
+    "id": "cmd.poke.opt.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.poke.opt.user.desc",
+    "translation": "要戳谁？"
+  },
+  {
+    "id": "cmd.shrug.name",
+    "translation": "shrug"
+  },
+  {
+    "id": "cmd.shrug.desc",
+    "translation": "发送一个耸肩。"
+  },
+  {
+    "id": "cmd.shrug.opt.message.name",
+    "translation": "message"
+  },
+  {
+    "id": "cmd.shrug.opt.message.desc",
+    "translation": "要附带的文字（可选）。"
+  },
+  {
+    "id": "cmd.slowmode.name",
+    "translation": "slowmode"
+  },
+  {
+    "id": "cmd.slowmode.desc",
+    "translation": "给频道开启慢速模式，让聊天冷静一点。"
+  },
+  {
+    "id": "cmd.slowmode.opt.channel.name",
+    "translation": "channel"
+  },
+  {
+    "id": "cmd.slowmode.opt.channel.desc",
+    "translation": "要设置的频道。"
+  },
+  {
+    "id": "cmd.slowmode.opt.seconds.name",
+    "translation": "seconds"
+  },
+  {
+    "id": "cmd.slowmode.opt.seconds.desc",
+    "translation": "消息间隔秒数（0 表示关闭）。"
+  },
+  {
+    "id": "cmd.nick.name",
+    "translation": "nick"
+  },
+  {
+    "id": "cmd.nick.desc",
+    "translation": "修改用户昵称。"
+  },
+  {
+    "id": "cmd.nick.opt.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.nick.opt.user.desc",
+    "translation": "要修改谁的昵称？"
+  },
+  {
+    "id": "cmd.nick.opt.nickname.name",
+    "translation": "nickname"
+  },
+  {
+    "id": "cmd.nick.opt.nickname.desc",
+    "translation": "新的昵称（留空重置）。"
+  },
+  {
+    "id": "cmd.purge.name",
+    "translation": "purge"
+  },
+  {
+    "id": "cmd.purge.desc",
+    "translation": "清理消息。"
+  },
+  {
+    "id": "cmd.purge.sub.all.name",
+    "translation": "all"
+  },
+  {
+    "id": "cmd.purge.sub.all.desc",
+    "translation": "删除最近的消息。"
+  },
+  {
+    "id": "cmd.purge.sub.before.name",
+    "translation": "before"
+  },
+  {
+    "id": "cmd.purge.sub.before.desc",
+    "translation": "删除某条消息之前的消息。"
+  },
+  {
+    "id": "cmd.purge.sub.after.name",
+    "translation": "after"
+  },
+  {
+    "id": "cmd.purge.sub.after.desc",
+    "translation": "删除某条消息之后的消息。"
+  },
+  {
+    "id": "cmd.purge.sub.around.name",
+    "translation": "around"
+  },
+  {
+    "id": "cmd.purge.sub.around.desc",
+    "translation": "删除某条消息附近的消息。"
+  },
+  {
+    "id": "cmd.purge.opt.count.name",
+    "translation": "count"
+  },
+  {
+    "id": "cmd.purge.opt.count.desc",
+    "translation": "要删除的数量（可选）。"
+  },
+  {
+    "id": "cmd.purge.opt.message.name",
+    "translation": "message"
+  },
+  {
+    "id": "cmd.purge.opt.message.desc",
+    "translation": "消息 ID 或消息链接。"
+  },
+  {
+    "id": "cmd.roles.name",
+    "translation": "roles"
+  },
+  {
+    "id": "cmd.roles.desc",
+    "translation": "管理服务器身份组。"
+  },
+  {
+    "id": "cmd.roles.sub.create.name",
+    "translation": "create"
+  },
+  {
+    "id": "cmd.roles.sub.create.desc",
+    "translation": "创建一个身份组。"
+  },
+  {
+    "id": "cmd.roles.sub.edit.name",
+    "translation": "edit"
+  },
+  {
+    "id": "cmd.roles.sub.edit.desc",
+    "translation": "编辑一个身份组。"
+  },
+  {
+    "id": "cmd.roles.sub.delete.name",
+    "translation": "delete"
+  },
+  {
+    "id": "cmd.roles.sub.delete.desc",
+    "translation": "删除一个身份组。"
+  },
+  {
+    "id": "cmd.roles.sub.add.name",
+    "translation": "add"
+  },
+  {
+    "id": "cmd.roles.sub.add.desc",
+    "translation": "给成员添加身份组。"
+  },
+  {
+    "id": "cmd.roles.sub.remove.name",
+    "translation": "remove"
+  },
+  {
+    "id": "cmd.roles.sub.remove.desc",
+    "translation": "从成员移除身份组。"
+  },
+  {
+    "id": "cmd.roles.opt.role.name",
+    "translation": "role"
+  },
+  {
+    "id": "cmd.roles.opt.role.desc",
+    "translation": "要使用的身份组。"
+  },
+  {
+    "id": "cmd.roles.opt.member.name",
+    "translation": "member"
+  },
+  {
+    "id": "cmd.roles.opt.member.desc",
+    "translation": "要操作的成员。"
+  },
+  {
+    "id": "cmd.roles.opt.name.name",
+    "translation": "name"
+  },
+  {
+    "id": "cmd.roles.opt.name.desc",
+    "translation": "要设置的名称。"
+  },
+  {
+    "id": "cmd.roles.opt.colour.name",
+    "translation": "colour"
+  },
+  {
+    "id": "cmd.roles.opt.colour.desc",
+    "translation": "颜色（RRGGBB）。"
+  },
+  {
+    "id": "cmd.roles.opt.hoist.name",
+    "translation": "hoist"
+  },
+  {
+    "id": "cmd.roles.opt.hoist.desc",
+    "translation": "是否在成员列表中单独显示？"
+  },
+  {
+    "id": "cmd.roles.opt.mentionable.name",
+    "translation": "mentionable"
+  },
+  {
+    "id": "cmd.roles.opt.mentionable.desc",
+    "translation": "是否允许被提及？"
+  },
+  {
+    "id": "cmd.emojis.name",
+    "translation": "emojis"
+  },
+  {
+    "id": "cmd.emojis.desc",
+    "translation": "管理服务器表情。"
+  },
+  {
+    "id": "cmd.emojis.sub.create.name",
+    "translation": "create"
+  },
+  {
+    "id": "cmd.emojis.sub.create.desc",
+    "translation": "创建一个表情。"
+  },
+  {
+    "id": "cmd.emojis.sub.edit.name",
+    "translation": "edit"
+  },
+  {
+    "id": "cmd.emojis.sub.edit.desc",
+    "translation": "重命名一个表情。"
+  },
+  {
+    "id": "cmd.emojis.sub.delete.name",
+    "translation": "delete"
+  },
+  {
+    "id": "cmd.emojis.sub.delete.desc",
+    "translation": "删除一个表情。"
+  },
+  {
+    "id": "cmd.emojis.opt.name.name",
+    "translation": "name"
+  },
+  {
+    "id": "cmd.emojis.opt.name.desc",
+    "translation": "名称。"
+  },
+  {
+    "id": "cmd.emojis.opt.file.name",
+    "translation": "file"
+  },
+  {
+    "id": "cmd.emojis.opt.file.desc",
+    "translation": "表情图片。"
+  },
+  {
+    "id": "cmd.emojis.opt.emoji.name",
+    "translation": "emoji"
+  },
+  {
+    "id": "cmd.emojis.opt.emoji.desc",
+    "translation": "表情提及（<:name:id>）或 ID。"
+  },
+  {
+    "id": "cmd.stickers.name",
+    "translation": "stickers"
+  },
+  {
+    "id": "cmd.stickers.desc",
+    "translation": "管理服务器贴纸。"
+  },
+  {
+    "id": "cmd.stickers.sub.create.name",
+    "translation": "create"
+  },
+  {
+    "id": "cmd.stickers.sub.create.desc",
+    "translation": "创建一个贴纸。"
+  },
+  {
+    "id": "cmd.stickers.sub.edit.name",
+    "translation": "edit"
+  },
+  {
+    "id": "cmd.stickers.sub.edit.desc",
+    "translation": "编辑一个贴纸。"
+  },
+  {
+    "id": "cmd.stickers.sub.delete.name",
+    "translation": "delete"
+  },
+  {
+    "id": "cmd.stickers.sub.delete.desc",
+    "translation": "删除一个贴纸。"
+  },
+  {
+    "id": "cmd.stickers.opt.id.name",
+    "translation": "id"
+  },
+  {
+    "id": "cmd.stickers.opt.id.desc",
+    "translation": "贴纸 ID 或贴纸链接。"
+  },
+  {
+    "id": "cmd.stickers.opt.name.name",
+    "translation": "name"
+  },
+  {
+    "id": "cmd.stickers.opt.name.desc",
+    "translation": "名称。"
+  },
+  {
+    "id": "cmd.stickers.opt.description.name",
+    "translation": "description"
+  },
+  {
+    "id": "cmd.stickers.opt.description.desc",
+    "translation": "描述（可选）。"
+  },
+  {
+    "id": "cmd.stickers.opt.emoji_tag.name",
+    "translation": "emoji_tag"
+  },
+  {
+    "id": "cmd.stickers.opt.emoji_tag.desc",
+    "translation": "表情标签（Discord 要求）。"
+  },
+  {
+    "id": "cmd.stickers.opt.file.name",
+    "translation": "file"
+  },
+  {
+    "id": "cmd.stickers.opt.file.desc",
+    "translation": "贴纸图片。"
+  },
+  {
+    "id": "admin.not_owner",
+    "translation": "不行哦，{{.Pet}}。这个只有{{.Mommy}}的主人能用。"
+  },
+  {
+    "id": "admin.block.user.success",
+    "translation": "好啦，{{.Pet}}。{{.User}}现在不能用我了。"
+  },
+  {
+    "id": "admin.block.guild.invalid",
+    "translation": "{{.Pet}}，这个服务器 ID 看起来不对：`{{.GuildID}}`。"
+  },
+  {
+    "id": "admin.block.guild.success",
+    "translation": "好啦，{{.Pet}}。服务器 `{{.GuildID}}` 现在不能用我了。"
+  },
+  {
+    "id": "admin.unblock.user.success",
+    "translation": "乖。{{.Pet}}，{{.User}}又可以用我了。"
+  },
+  {
+    "id": "admin.unblock.guild.invalid",
+    "translation": "{{.Pet}}，这个服务器 ID 看起来不对：`{{.GuildID}}`。"
+  },
+  {
+    "id": "admin.unblock.guild.success",
+    "translation": "好啦，{{.Pet}}。服务器 `{{.GuildID}}` 又可以用我了。"
+  },
+  {
+    "id": "admin.plugins.not_configured",
+    "translation": "{{.Pet}}，插件还没配置好。"
+  },
+  {
+    "id": "admin.plugins.none",
+    "translation": "{{.Pet}}，没有加载任何插件。"
+  },
+  {
+    "id": "admin.plugins.list",
+    "translation": "{{.Pet}}，我加载的插件（{{.Count}}）：\n{{.List}}"
+  },
+  {
+    "id": "admin.plugins.reloaded",
+    "translation": "好了，{{.Pet}}。插件已重新加载。"
+  },
+  {
+    "id": "mod.warn.self",
+    "translation": "不行，{{.Pet}}。{{.Mommy}}也要保护你。"
+  },
+  {
+    "id": "mod.warn.bot",
+    "translation": "{{.Pet}}，{{.Mommy}}不会对机器人或系统用户用这些。"
+  },
+  {
+    "id": "mod.warn.too_many",
+    "translation": "够了，{{.Pet}}。{{.User}}已经到警告上限了。"
+  },
+  {
+    "id": "mod.warn.success",
+    "translation": "好啦，{{.Pet}}。我给 {{.User}} 记了一次警告：`{{.Reason}}`。{{if .TimeoutMinutes}}我也让他们冷静 {{.TimeoutMinutes}} 分钟。{{end}}{{if .TimeoutFailed}}我想让他们冷静一下，但没成功。{{end}}"
+  },
+  {
+    "id": "mod.warn.dm",
+    "translation": "嗨，{{.Pet}}。{{.Mommy}}需要你慢一点、温柔一点。你因为 `{{.Reason}}` 被警告了。{{if .TimeoutMinutes}}你需要冷静 {{.TimeoutMinutes}} 分钟。{{end}}"
+  },
+  {
+    "id": "mod.unwarn.self",
+    "translation": "不行，{{.Pet}}。"
+  },
+  {
+    "id": "mod.unwarn.none",
+    "translation": "{{.Pet}}，我没找到 {{.User}} 的任何警告。"
+  },
+  {
+    "id": "mod.unwarn.prompt",
+    "translation": "{{.Pet}}，{{.Mommy}}要移除哪一条警告？"
+  },
+  {
+    "id": "mod.unwarn.placeholder",
+    "translation": "选一个吧，{{.Pet}}..."
+  },
+  {
+    "id": "mod.unwarn.expired",
+    "translation": "这个选项过期了，{{.Pet}}。再运行一次 `/unwarn`。"
+  },
+  {
+    "id": "mod.unwarn.success",
+    "translation": "好了，{{.Pet}}。{{.User}}的警告已移除。"
+  },
+  {
+    "id": "info.about.title",
+    "translation": "imotherbtw {{.Version}}"
+  },
+  {
+    "id": "info.lookup.user.error",
+    "translation": "{{.Pet}}，{{.Mommy}}没能获取那个用户的信息。"
+  },
+  {
+    "id": "info.lookup.guild.error",
+    "translation": "{{.Pet}}，{{.Mommy}}没能获取这个服务器的信息。"
+  },
+  {
+    "id": "fun.flip.result",
+    "translation": ":coin: {{.Pet}}，猜正反？{{.User}} 抛出了 `{{.Result}}`。"
+  },
+  {
+    "id": "fun.roll.invalid_sides",
+    "translation": "这个骰子面数不支持，{{.Pet}}：`{{.Sides}}`。试试 4、6、8、10、12 或 20。"
+  },
+  {
+    "id": "fun.roll.result",
+    "translation": ":game_die: {{.Pet}}，{{.User}} 掷了 `{{.Notation}}`，结果是 `{{.Total}}`。"
+  },
+  {
+    "id": "fun.8ball.question_error",
+    "translation": "{{.Pet}}，这不像是开放式问题：`{{.Question}}`"
+  },
+  {
+    "id": "fun.8ball.result",
+    "translation": ":8ball: {{.Answer}}，{{.Pet}}。"
+  },
+  {
+    "id": "fun.kawaii.footer",
+    "translation": "由 Kawaii API 提供"
+  },
+  {
+    "id": "fun.kawaii.error",
+    "translation": "{{.Pet}}，{{.Mommy}}没能拿到 GIF。"
+  },
+  {
+    "id": "fun.kawaii.self_error",
+    "translation": "不可以选你自己，{{.Pet}}。"
+  },
+  {
+    "id": "fun.kawaii.user_mention_only",
+    "translation": "{{.Emoji}} {{.User}}"
+  },
+  {
+    "id": "mgr.slowmode.set",
+    "translation": "好啦，{{.Pet}}。{{.Channel}} 已开启慢速模式：`{{.Seconds}}s`。"
+  },
+  {
+    "id": "mgr.slowmode.removed",
+    "translation": "好啦，{{.Pet}}。{{.Channel}} 的慢速模式已关闭。"
+  },
+  {
+    "id": "mgr.slowmode.error",
+    "translation": "{{.Pet}}，{{.Mommy}}没能更新慢速模式。"
+  },
+  {
+    "id": "mgr.nick.self_error",
+    "translation": "{{.Pet}}，{{.Mommy}}不能改你自己的昵称。"
+  },
+  {
+    "id": "mgr.nick.set",
+    "translation": "好啦，{{.Pet}}。{{.User}} 现在叫 `{{.Nickname}}`。"
+  },
+  {
+    "id": "mgr.nick.reset",
+    "translation": "好啦，{{.Pet}}。{{.User}} 的昵称已重置。"
+  },
+  {
+    "id": "mgr.nick.error",
+    "translation": "{{.Pet}}，{{.Mommy}}没能更新 {{.User}} 的昵称。"
+  },
+  {
+    "id": "mgr.purge.invalid_message",
+    "translation": "{{.Pet}}，这不像是有效的消息 ID 或链接。"
+  },
+  {
+    "id": "mgr.purge.success",
+    "translation": "清理好了，{{.Pet}}。已删除 `{{.Count}}` 条消息。"
+  },
+  {
+    "id": "mgr.purge.error",
+    "translation": "{{.Pet}}，{{.Mommy}}没能删除这些消息。"
+  },
+  {
+    "id": "mgr.roles.invalid_colour",
+    "translation": "{{.Pet}}，这个颜色不对：`{{.Colour}}`（需要 RRGGBB）。"
+  },
+  {
+    "id": "mgr.roles.cannot_edit_everyone",
+    "translation": "{{.Pet}}，不要动 `@everyone`。"
+  },
+  {
+    "id": "mgr.roles.cannot_delete_everyone",
+    "translation": "{{.Pet}}，不要删 `@everyone`。"
+  },
+  {
+    "id": "mgr.roles.create_success",
+    "translation": "好了，{{.Pet}}。{{.Role}} 已创建。"
+  },
+  {
+    "id": "mgr.roles.create_error",
+    "translation": "{{.Pet}}，{{.Mommy}}没能创建 `@{{.Name}}`。"
+  },
+  {
+    "id": "mgr.roles.edit_success",
+    "translation": "好了，{{.Pet}}。{{.Role}} 已更新。"
+  },
+  {
+    "id": "mgr.roles.edit_error",
+    "translation": "{{.Pet}}，{{.Mommy}}没能编辑 {{.Role}}。"
+  },
+  {
+    "id": "mgr.roles.delete_success",
+    "translation": "好啦，{{.Pet}}。`@{{.Name}}` 已删除。"
+  },
+  {
+    "id": "mgr.roles.delete_error",
+    "translation": "{{.Pet}}，{{.Mommy}}没能删除 {{.Role}}。"
+  },
+  {
+    "id": "mgr.roles.add_success",
+    "translation": "好啦，{{.Pet}}。已把 {{.Role}} 加到 {{.User}}。"
+  },
+  {
+    "id": "mgr.roles.add_error",
+    "translation": "{{.Pet}}，{{.Mommy}}没能把 {{.Role}} 加到 {{.User}}。"
+  },
+  {
+    "id": "mgr.roles.remove_success",
+    "translation": "好啦，{{.Pet}}。已从 {{.User}} 移除 {{.Role}}。"
+  },
+  {
+    "id": "mgr.roles.remove_error",
+    "translation": "{{.Pet}}，{{.Mommy}}没能从 {{.User}} 移除 {{.Role}}。"
+  },
+  {
+    "id": "mgr.emojis.file_missing",
+    "translation": "{{.Pet}}，需要一个附件。"
+  },
+  {
+    "id": "mgr.emojis.file_too_large",
+    "translation": "{{.Pet}}，文件太大了（{{.Size}} 字节；上限 {{.Max}}）。"
+  },
+  {
+    "id": "mgr.emojis.bad_extension",
+    "translation": "{{.Pet}}，这个扩展名不能当表情：`{{.Ext}}`。"
+  },
+  {
+    "id": "mgr.emojis.too_many",
+    "translation": "{{.Pet}}，这个服务器的表情已经到上限了（最多 `{{.Max}}` 个）。"
+  },
+  {
+    "id": "mgr.emojis.download_error",
+    "translation": "{{.Pet}}，{{.Mommy}}只能从 Discord 的 CDN 下载。"
+  },
+  {
+    "id": "mgr.emojis.dimensions_error",
+    "translation": "{{.Pet}}，{{.Mommy}}没能读取图片尺寸。"
+  },
+  {
+    "id": "mgr.emojis.too_large_dims",
+    "translation": "{{.Pet}}，这个尺寸太大了：`{{.Width}}x{{.Height}}`。"
+  },
+  {
+    "id": "mgr.emojis.bad_image",
+    "translation": "{{.Pet}}，不支持这种图片类型。"
+  },
+  {
+    "id": "mgr.emojis.invalid_emoji",
+    "translation": "{{.Pet}}，这个表情不对：`{{.Emoji}}`（需要 <:name:id> 或 ID）。"
+  },
+  {
+    "id": "mgr.emojis.create_success",
+    "translation": "真可爱，{{.Pet}}。`:{{.Name}}:` 已创建。"
+  },
+  {
+    "id": "mgr.emojis.create_error",
+    "translation": "{{.Pet}}，{{.Mommy}}没能创建 `:{{.Name}}:`。"
+  },
+  {
+    "id": "mgr.emojis.edit_success",
+    "translation": "好啦，{{.Pet}}。已改名为 `{{.Name}}`。"
+  },
+  {
+    "id": "mgr.emojis.edit_error",
+    "translation": "{{.Pet}}，{{.Mommy}}没能重命名这个表情。"
+  },
+  {
+    "id": "mgr.emojis.delete_success",
+    "translation": "好啦，{{.Pet}}。表情已删除。"
+  },
+  {
+    "id": "mgr.emojis.delete_error",
+    "translation": "{{.Pet}}，{{.Mommy}}没能删除这个表情。"
+  },
+  {
+    "id": "mgr.stickers.file_missing",
+    "translation": "{{.Pet}}，需要一个附件。"
+  },
+  {
+    "id": "mgr.stickers.tags_missing",
+    "translation": "{{.Pet}}，Discord 需要一个表情标签。"
+  },
+  {
+    "id": "mgr.stickers.file_too_large",
+    "translation": "{{.Pet}}，文件太大了（{{.Size}} 字节；上限 {{.Max}}）。"
+  },
+  {
+    "id": "mgr.stickers.bad_extension",
+    "translation": "{{.Pet}}，这个扩展名不能当贴纸：`{{.Ext}}`。"
+  },
+  {
+    "id": "mgr.stickers.too_many",
+    "translation": "{{.Pet}}，这个服务器的贴纸已经到上限了（最多 `{{.Max}}` 个）。"
+  },
+  {
+    "id": "mgr.stickers.download_error",
+    "translation": "{{.Pet}}，{{.Mommy}}只能从 Discord 的 CDN 下载。"
+  },
+  {
+    "id": "mgr.stickers.dimensions_error",
+    "translation": "{{.Pet}}，{{.Mommy}}没能读取图片尺寸。"
+  },
+  {
+    "id": "mgr.stickers.too_large_dims",
+    "translation": "{{.Pet}}，这个尺寸太大了：`{{.Width}}x{{.Height}}`。"
+  },
+  {
+    "id": "mgr.stickers.invalid_id",
+    "translation": "{{.Pet}}，这个贴纸 ID 或链接不对：`{{.ID}}`。"
+  },
+  {
+    "id": "mgr.stickers.create_success",
+    "translation": "好啦，{{.Pet}}。`{{.Name}}` 已创建。"
+  },
+  {
+    "id": "mgr.stickers.create_error",
+    "translation": "{{.Pet}}，{{.Mommy}}没能创建 `{{.Name}}`。"
+  },
+  {
+    "id": "mgr.stickers.edit_success",
+    "translation": "好啦，{{.Pet}}。`{{.Name}}` 已更新。"
+  },
+  {
+    "id": "mgr.stickers.edit_error",
+    "translation": "{{.Pet}}，{{.Mommy}}没能编辑这个贴纸。"
+  },
+  {
+    "id": "mgr.stickers.delete_success",
+    "translation": "好啦，{{.Pet}}。贴纸已删除。"
+  },
+  {
+    "id": "mgr.stickers.delete_error",
+    "translation": "{{.Pet}}，{{.Mommy}}没能删除这个贴纸。"
+  },
+  {
+    "id": "ok.pong",
+    "translation": "Pong，{{.Pet}}。{{.Mommy}}在这儿。"
+  },
+  {
+    "id": "err.generic",
+    "translation": "哎呀，{{.Pet}}... {{.Mommy}}出错了。等一下再试，好吗？"
+  },
+  {
+    "id": "err.cooldown",
+    "translation": "慢一点，{{.Pet}}。深呼吸。{{.Seconds}} 秒后再试。"
+  },
+  {
+    "id": "err.not_in_guild",
+    "translation": "这个只能在服务器里用，{{.Pet}}。"
+  },
+  {
+    "id": "err.restricted",
+    "translation": "不行，{{.Pet}}。你现在被{{.Mommy}}暂停使用我了。"
+  },
+  {
+    "id": "err.restricted_links",
+    "translation": "不行，{{.Pet}}。你现在被{{.Mommy}}暂停使用我了。\n如果你觉得这是误会，可以联系：\n开发者：{{.DeveloperURL}}\n支持：{{.SupportServerURL}}"
+  },
+  {
+    "id": "cmd.timezone.name",
+    "translation": "timezone"
+  },
+  {
+    "id": "cmd.timezone.desc",
+    "translation": "设置你的时区，让妈妈的提醒在合适的时间送达。"
+  },
+  {
+    "id": "cmd.timezone.sub.set.name",
+    "translation": "set"
+  },
+  {
+    "id": "cmd.timezone.sub.set.desc",
+    "translation": "设置时区（IANA，例如 Europe/Tallinn）。"
+  },
+  {
+    "id": "cmd.timezone.sub.show.name",
+    "translation": "show"
+  },
+  {
+    "id": "cmd.timezone.sub.show.desc",
+    "translation": "查看当前时区。"
+  },
+  {
+    "id": "cmd.timezone.sub.clear.name",
+    "translation": "clear"
+  },
+  {
+    "id": "cmd.timezone.sub.clear.desc",
+    "translation": "清除已保存的时区。"
+  },
+  {
+    "id": "cmd.timezone.opt.iana.name",
+    "translation": "iana"
+  },
+  {
+    "id": "cmd.timezone.opt.iana.desc",
+    "translation": "时区名称（例如 Europe/Tallinn）。"
+  },
+  {
+    "id": "wellness.timezone.invalid",
+    "translation": "{{.Pet}}，{{.Mommy}}不认识这个时区：`{{.Timezone}}`。"
+  },
+  {
+    "id": "wellness.timezone.set",
+    "translation": "好啦，{{.Pet}}。{{.Mommy}}会用 `{{.Timezone}}` 来安排提醒。"
+  },
+  {
+    "id": "wellness.timezone.unset",
+    "translation": "{{.Pet}}，你还没设置时区。用 `/timezone set`。"
+  },
+  {
+    "id": "wellness.timezone.show",
+    "translation": "{{.Pet}}，你现在的时区是 `{{.Timezone}}`。"
+  },
+  {
+    "id": "wellness.timezone.cleared",
+    "translation": "好了，{{.Pet}}。时区已清除。"
+  },
+  {
+    "id": "cmd.checkin.name",
+    "translation": "checkin"
+  },
+  {
+    "id": "cmd.checkin.desc",
+    "translation": "告诉妈妈你今天过得怎么样。"
+  },
+  {
+    "id": "cmd.checkin.opt.mood.name",
+    "translation": "mood"
+  },
+  {
+    "id": "cmd.checkin.opt.mood.desc",
+    "translation": "心情：1（很糟）到 5（很好）。"
+  },
+  {
+    "id": "cmd.checkin.opt.history.name",
+    "translation": "history"
+  },
+  {
+    "id": "cmd.checkin.opt.history.desc",
+    "translation": "查看最近记录，而不是写入新的。"
+  },
+  {
+    "id": "wellness.checkin.prompt",
+    "translation": "{{.Pet}}，给{{.Mommy}}一个 1 到 5 的数字吧。或者设置 `history=true` 看最近记录。"
+  },
+  {
+    "id": "wellness.checkin.invalid_mood",
+    "translation": "{{.Pet}}，必须是 1 到 5。"
+  },
+  {
+    "id": "wellness.checkin.saved",
+    "translation": "谢谢你告诉{{.Mommy}}，{{.Pet}}。我保存了 `{{.Mood}}/5`。"
+  },
+  {
+    "id": "wellness.checkin.history.empty",
+    "translation": "{{.Pet}}，还没有记录。慢慢来就好。"
+  },
+  {
+    "id": "wellness.checkin.history",
+    "translation": "{{.Pet}}，这是你最近的记录：\n{{.Lines}}"
+  },
+  {
+    "id": "cmd.remind.name",
+    "translation": "remind"
+  },
+  {
+    "id": "cmd.remind.desc",
+    "translation": "设置温柔的提醒（妈妈会轻轻提醒你）。"
+  },
+  {
+    "id": "cmd.remind.sub.create.name",
+    "translation": "create"
+  },
+  {
+    "id": "cmd.remind.sub.create.desc",
+    "translation": "创建一个提醒。"
+  },
+  {
+    "id": "cmd.remind.sub.list.name",
+    "translation": "list"
+  },
+  {
+    "id": "cmd.remind.sub.list.desc",
+    "translation": "列出你的提醒。"
+  },
+  {
+    "id": "cmd.remind.sub.delete.name",
+    "translation": "delete"
+  },
+  {
+    "id": "cmd.remind.sub.delete.desc",
+    "translation": "删除一个提醒。"
+  },
+  {
+    "id": "cmd.remind.opt.schedule.name",
+    "translation": "schedule"
+  },
+  {
+    "id": "cmd.remind.opt.schedule.desc",
+    "translation": "Cron 时间表（例如 `0 9 * * *`）或 `@hourly`。"
+  },
+  {
+    "id": "cmd.remind.opt.kind.name",
+    "translation": "kind"
+  },
+  {
+    "id": "cmd.remind.opt.kind.desc",
+    "translation": "提醒类型。"
+  },
+  {
+    "id": "cmd.remind.opt.note.name",
+    "translation": "note"
+  },
+  {
+    "id": "cmd.remind.opt.note.desc",
+    "translation": "短备注（可选，最多 120 字符）。"
+  },
+  {
+    "id": "cmd.remind.opt.delivery.name",
+    "translation": "delivery"
+  },
+  {
+    "id": "cmd.remind.opt.delivery.desc",
+    "translation": "发送到哪里（dm 或 channel）。"
+  },
+  {
+    "id": "cmd.remind.opt.channel.name",
+    "translation": "channel"
+  },
+  {
+    "id": "cmd.remind.opt.channel.desc",
+    "translation": "发送到的频道（仅当 delivery=channel）。"
+  },
+  {
+    "id": "cmd.remind.opt.id.name",
+    "translation": "id"
+  },
+  {
+    "id": "cmd.remind.opt.id.desc",
+    "translation": "提醒 ID。"
+  },
+  {
+    "id": "wellness.remind.bad_schedule",
+    "translation": "{{.Pet}}，这个时间表看起来不对：`{{.Schedule}}`。"
+  },
+  {
+    "id": "wellness.remind.channel_required",
+    "translation": "{{.Pet}}，如果选择发送到频道，就要选一个频道。"
+  },
+  {
+    "id": "wellness.remind.created",
+    "translation": "好啦，{{.Pet}}。下次在 {{.NextRun}} 提醒你。提醒 `{{.ID}}`（{{.Kind}}，{{.Delivery}}）。"
+  },
+  {
+    "id": "wellness.remind.list.empty",
+    "translation": "{{.Pet}}，你还没有提醒。用 `/remind create`。"
+  },
+  {
+    "id": "wellness.remind.list",
+    "translation": "{{.Pet}}，这是你的提醒：\n{{.Lines}}"
+  },
+  {
+    "id": "wellness.remind.delete.placeholder",
+    "translation": "选一个提醒..."
+  },
+  {
+    "id": "wellness.remind.delete.prompt",
+    "translation": "{{.Pet}}，想让{{.Mommy}}删掉哪个提醒？"
+  },
+  {
+    "id": "wellness.remind.delete.expired",
+    "translation": "{{.Pet}}，这个菜单过期了。再运行一次 `/remind delete`。"
+  },
+  {
+    "id": "wellness.remind.delete.not_owner",
+    "translation": "不可以，{{.Pet}}。这不是你的。"
+  },
+  {
+    "id": "wellness.remind.delete.not_found",
+    "translation": "{{.Pet}}，{{.Mommy}}没找到那个提醒。"
+  },
+  {
+    "id": "wellness.remind.delete.success",
+    "translation": "删掉了。{{.Pet}}，你做得很好。"
+  },
+  {
+    "id": "wellness.reminder.fire",
+    "translation": "嗨，{{.Pet}}。温柔提醒：{{.Kind}}。{{if .Note}} {{.Note}}{{end}}"
+  },
+  {
+    "id": "wellness.reminder.kind.hydrate",
+    "translation": "喝点水"
+  },
+  {
+    "id": "wellness.reminder.kind.stretch",
+    "translation": "伸伸懒腰"
+  },
+  {
+    "id": "wellness.reminder.kind.breathe",
+    "translation": "慢慢呼吸"
+  },
+  {
+    "id": "wellness.reminder.kind.meds",
+    "translation": "吃药"
+  },
+  {
+    "id": "wellness.reminder.kind.sleep",
+    "translation": "准备睡觉"
+  },
+  {
+    "id": "wellness.reminder.kind.checkin",
+    "translation": "做个小小的自检"
+  }
+]
