@@ -13,10 +13,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/disgoorg/disgo/discord"
 	lua "github.com/yuin/gopher-lua"
 
 	"github.com/xsyetopz/go-mamusiabtw/internal/i18n"
+	"github.com/xsyetopz/go-mamusiabtw/internal/integrations/kawaii"
 	"github.com/xsyetopz/go-mamusiabtw/internal/permissions"
+	"github.com/xsyetopz/go-mamusiabtw/internal/persona"
 	"github.com/xsyetopz/go-mamusiabtw/internal/store"
 )
 
@@ -29,8 +32,13 @@ type Options struct {
 	PluginDir   string
 	Permissions permissions.Permissions
 
-	Store store.PluginKVStore
-	I18n  *i18n.Registry
+	Store  store.PluginKVStore
+	I18n   *i18n.Registry
+	Kawaii Kawaii
+}
+
+type Kawaii interface {
+	FetchGIF(ctx context.Context, endpoint kawaii.Endpoint) (string, error)
 }
 
 type Payload struct {
@@ -50,6 +58,7 @@ type VM struct {
 	perms  permissions.Permissions
 	store  store.PluginKVStore
 	i18n   *i18n.Registry
+	kawaii Kawaii
 
 	L *lua.LState
 
@@ -58,6 +67,7 @@ type VM struct {
 
 	execCtx context.Context
 	locale  string
+	userID  uint64
 }
 
 func NewFromFile(fileName string, opts Options) (*VM, error) {
@@ -91,6 +101,7 @@ func NewFromFile(fileName string, opts Options) (*VM, error) {
 		perms:       opts.Permissions,
 		store:       opts.Store,
 		i18n:        opts.I18n,
+		kawaii:      opts.Kawaii,
 		L:           l,
 		moduleCache: map[string]lua.LValue{},
 	}
@@ -174,9 +185,11 @@ func (v *VM) CallHandle(ctx context.Context, funcName string, cmd string, payloa
 
 	v.execCtx = timeoutCtx
 	v.locale = strings.TrimSpace(payload.Locale)
+	v.userID = parseSnowflakeString(payload.UserID)
 	defer func() {
 		v.execCtx = nil
 		v.locale = ""
+		v.userID = 0
 	}()
 
 	payloadTable, err := v.payloadToLua(payload)
@@ -254,6 +267,8 @@ func (v *VM) registerHostAPI() {
 	optionTable := v.L.NewTable()
 	uiTable := v.L.NewTable()
 	effectsTable := v.L.NewTable()
+	randomTable := v.L.NewTable()
+	kawaiiTable := v.L.NewTable()
 
 	logTable.RawSetString("info", v.L.NewFunction(v.luaLog))
 
@@ -285,12 +300,19 @@ func (v *VM) registerHostAPI() {
 	effectsTable.RawSetString("send_channel", v.L.NewFunction(v.luaEffectSendChannel))
 	effectsTable.RawSetString("send_dm", v.L.NewFunction(v.luaEffectSendDM))
 
+	randomTable.RawSetString("int", v.L.NewFunction(v.luaRandomInt))
+	randomTable.RawSetString("choice", v.L.NewFunction(v.luaRandomChoice))
+
+	kawaiiTable.RawSetString("gif", v.L.NewFunction(v.luaKawaiiGIF))
+
 	bot.RawSetString("log", logTable)
 	bot.RawSetString("i18n", i18nTable)
 	bot.RawSetString("store", storeTable)
 	bot.RawSetString("option", optionTable)
 	bot.RawSetString("ui", uiTable)
 	bot.RawSetString("effects", effectsTable)
+	bot.RawSetString("random", randomTable)
+	bot.RawSetString("kawaii", kawaiiTable)
 	bot.RawSetString("plugin", v.L.NewFunction(v.luaPlugin))
 	bot.RawSetString("command", v.L.NewFunction(v.luaCommand))
 	bot.RawSetString("job", v.L.NewFunction(v.luaJob))
@@ -437,6 +459,18 @@ func (v *VM) luaT(l *lua.LState) int {
 	if v.i18n == nil {
 		l.Push(lua.LString(id))
 		return 1
+	}
+
+	if v.userID != 0 {
+		if data == nil {
+			data = map[string]any{}
+		}
+		if _, ok := data["Pet"]; !ok {
+			data["Pet"] = persona.PetName(discord.Locale(v.locale), v.userID, id)
+		}
+		if _, ok := data["Mommy"]; !ok {
+			data["Mommy"] = persona.Mommy(discord.Locale(v.locale))
+		}
 	}
 
 	s := v.i18n.MustLocalize(i18n.Config{

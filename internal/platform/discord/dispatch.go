@@ -162,17 +162,13 @@ func (b *Bot) handlePluginSlash(
 	data discord.SlashCommandInteractionData,
 ) {
 	// Plugin commands.
-	pluginManager := b.pluginHost
-	if pluginManager == nil {
-		_ = e.CreateMessage(interactions.NoticeMessage(present.KindError, "", t.S("err.generic", nil), true))
-		return
-	}
-	if _, ok := pluginManager.Commands()[cmdName]; !ok {
+	route, ok := b.pluginCommands[cmdName]
+	if !ok {
 		_ = e.CreateMessage(interactions.NoticeMessage(present.KindError, "", t.S("err.generic", nil), true))
 		return
 	}
 
-	res, defaultEphemeral, pluginID, err := pluginManager.HandleSlash(ctx, cmdName, pluginhost.Payload{
+	res, defaultEphemeral, pluginID, err := route.host.HandleSlash(ctx, cmdName, pluginhost.Payload{
 		GuildID:   snowflakePtrToString(e.GuildID()),
 		ChannelID: e.Channel().ID().String(),
 		UserID:    e.User().ID.String(),
@@ -277,6 +273,10 @@ func (b *Bot) handleUnwarnComponent(
 	if !strings.HasPrefix(customID, "mamusiabtw:unwarn:") {
 		return false
 	}
+	if !b.moduleEnabled("moderation") {
+		_ = e.Acknowledge()
+		return true
+	}
 
 	data := e.StringSelectMenuInteractionData()
 	action, err := cmdmoderation.HandleUnwarnSelection(ctx, e, t, b.services(locale), customID, data.Values)
@@ -314,6 +314,10 @@ func (b *Bot) handleRemindDeleteComponent(
 ) bool {
 	if !strings.HasPrefix(customID, "mamusiabtw:reminddel:") {
 		return false
+	}
+	if !b.moduleEnabled("wellness") {
+		_ = e.Acknowledge()
+		return true
 	}
 
 	if b.store == nil {
@@ -356,19 +360,22 @@ func (b *Bot) handlePluginComponent(
 	locale discord.Locale,
 	customID string,
 ) {
-	pluginManager := b.pluginHost
-	if pluginManager == nil {
-		_ = e.Acknowledge()
-		return
-	}
-
 	pluginID, localID, ok := pluginhost.ParseCustomID(customID)
 	if !ok {
 		_ = e.Acknowledge()
 		return
 	}
+	if !b.moduleEnabled(pluginID) {
+		_ = e.Acknowledge()
+		return
+	}
+	route, ok := b.pluginRoutes[pluginID]
+	if !ok {
+		_ = e.Acknowledge()
+		return
+	}
 
-	res, hasValue, err := pluginManager.HandleComponent(ctx, pluginID, localID, pluginhost.Payload{
+	res, hasValue, err := route.host.HandleComponent(ctx, pluginID, localID, pluginhost.Payload{
 		GuildID:   snowflakePtrToString(e.GuildID()),
 		ChannelID: e.Channel().ID().String(),
 		UserID:    e.User().ID.String(),
@@ -442,18 +449,22 @@ func (b *Bot) onModal(e *events.ModalSubmitInteractionCreate) {
 		}
 	}
 
-	if b.pluginHost == nil {
-		_ = e.Acknowledge()
-		return
-	}
-
 	pluginID, localID, ok := pluginhost.ParseCustomID(customID)
 	if !ok {
 		_ = e.Acknowledge()
 		return
 	}
+	if !b.moduleEnabled(pluginID) {
+		_ = e.Acknowledge()
+		return
+	}
+	route, ok := b.pluginRoutes[pluginID]
+	if !ok {
+		_ = e.Acknowledge()
+		return
+	}
 
-	res, hasValue, err := b.pluginHost.HandleModal(ctx, pluginID, localID, pluginhost.Payload{
+	res, hasValue, err := route.host.HandleModal(ctx, pluginID, localID, pluginhost.Payload{
 		GuildID:   snowflakePtrToString(e.GuildID()),
 		ChannelID: e.Channel().ID().String(),
 		UserID:    e.User().ID.String(),

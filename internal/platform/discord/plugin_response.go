@@ -313,6 +313,15 @@ func parseEmbed(raw any) (discord.Embed, error) {
 		}
 		e.Fields = fields
 	}
+	if s, ok := asString(m, "image_url"); ok {
+		if !isHTTPSURL(s) {
+			return discord.Embed{}, errors.New("embed.image_url must be https")
+		}
+		e.Image = &discord.EmbedResource{URL: s}
+	}
+	if s, ok := asString(m, "footer"); ok {
+		e.Footer = &discord.EmbedFooter{Text: s}
+	}
 	return e, nil
 }
 

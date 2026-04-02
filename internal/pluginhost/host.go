@@ -16,8 +16,8 @@ import (
 	"github.com/disgoorg/disgo/discord"
 
 	"github.com/xsyetopz/go-mamusiabtw/internal/i18n"
-	"github.com/xsyetopz/go-mamusiabtw/internal/pluginhost/lua"
 	"github.com/xsyetopz/go-mamusiabtw/internal/permissions"
+	"github.com/xsyetopz/go-mamusiabtw/internal/pluginhost/lua"
 	"github.com/xsyetopz/go-mamusiabtw/internal/store"
 )
 
@@ -34,6 +34,7 @@ type Host struct {
 
 	store  Store
 	policy permissions.Policy
+	kawaii luaplugin.Kawaii
 	i18n   *i18n.Registry
 
 	plugins  map[string]*Plugin
@@ -55,6 +56,7 @@ type Options struct {
 	TrustedKeysFile     string
 	PermissionsFile     string
 	Store               Store
+	Kawaii              luaplugin.Kawaii
 	Logger              *slog.Logger
 	I18n                *i18n.Registry
 }
@@ -114,6 +116,7 @@ func NewHost(opts Options) (*Host, error) {
 		permissionsFile:      opts.PermissionsFile,
 		store:                opts.Store,
 		policy:               policy,
+		kawaii:               opts.Kawaii,
 		i18n:                 opts.I18n,
 		plugins:              map[string]*Plugin{},
 		commands:             map[string]PluginCommand{},
@@ -459,6 +462,14 @@ func (m *Host) CommandCreatesWithLocalizations(
 	locales []string,
 	localize CommandLocalizer,
 ) []discord.ApplicationCommandCreate {
+	return m.CommandCreatesFiltered(nil, locales, localize)
+}
+
+func (m *Host) CommandCreatesFiltered(
+	allowedPluginIDs map[string]struct{},
+	locales []string,
+	localize CommandLocalizer,
+) []discord.ApplicationCommandCreate {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -475,6 +486,11 @@ func (m *Host) CommandCreatesWithLocalizations(
 	out := make([]discord.ApplicationCommandCreate, 0, len(names))
 	for _, name := range names {
 		cmd := m.commands[name]
+		if len(allowedPluginIDs) != 0 {
+			if _, ok := allowedPluginIDs[cmd.PluginID]; !ok {
+				continue
+			}
+		}
 		out = append(out, commandToCreate(name, cmd.PluginID, cmd.Command, locales, localize))
 	}
 	return out
@@ -736,6 +752,7 @@ func (m *Host) loadOne(
 		PluginDir:   pluginDir,
 		Permissions: effective,
 		I18n:        m.i18n,
+		Kawaii:      m.kawaii,
 		Store: func() store.PluginKVStore {
 			if m.store == nil {
 				return nil

@@ -31,7 +31,8 @@ func TestEffective(t *testing.T) {
 	}
 
 	req = permissions.Permissions{
-		Discord: permissions.DiscordPermissions{SendChannel: true, SendDM: true},
+		Discord:      permissions.DiscordPermissions{SendChannel: true, SendDM: true},
+		Integrations: permissions.IntegrationsPermissions{Kawaii: true},
 		Automation: permissions.AutomationPermissions{
 			Jobs: true,
 			Events: permissions.AutomationEventPermissions{
@@ -41,7 +42,8 @@ func TestEffective(t *testing.T) {
 		},
 	}
 	grant = permissions.Permissions{
-		Discord: permissions.DiscordPermissions{SendChannel: true, SendDM: false},
+		Discord:      permissions.DiscordPermissions{SendChannel: true, SendDM: false},
+		Integrations: permissions.IntegrationsPermissions{Kawaii: false},
 		Automation: permissions.AutomationPermissions{
 			Jobs: false,
 			Events: permissions.AutomationEventPermissions{
@@ -56,6 +58,9 @@ func TestEffective(t *testing.T) {
 	}
 	if eff.Discord.SendDM {
 		t.Fatalf("expected send_dm denied")
+	}
+	if eff.Integrations.Kawaii {
+		t.Fatalf("expected kawaii denied")
 	}
 	if eff.Automation.Jobs {
 		t.Fatalf("expected jobs denied")
@@ -77,7 +82,7 @@ func TestPolicyGranted(t *testing.T) {
 	if err := os.WriteFile(p, []byte(`{
   "defaults": { "storage": { "kv": false }, "discord": { "send_channel": false } },
   "plugins": {
-    "a": { "storage": { "kv": true }, "discord": { "send_channel": true } }
+    "a": { "storage": { "kv": true }, "discord": { "send_channel": true }, "integrations": { "kawaii": true } }
   }
 }`), 0o600); err != nil {
 		t.Fatalf("write file: %v", err)
@@ -96,5 +101,8 @@ func TestPolicyGranted(t *testing.T) {
 	}
 	if !pol.Granted("a").Discord.SendChannel {
 		t.Fatalf("expected plugin override send_channel allowed")
+	}
+	if !pol.Granted("a").Integrations.Kawaii {
+		t.Fatalf("expected plugin override kawaii allowed")
 	}
 }

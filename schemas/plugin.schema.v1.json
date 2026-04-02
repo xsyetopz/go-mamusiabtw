@@ -80,6 +80,15 @@
             }
           }
         },
+        "integrations": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kawaii": {
+              "type": "boolean"
+            }
+          }
+        },
         "automation": {
           "type": "object",
           "additionalProperties": false,

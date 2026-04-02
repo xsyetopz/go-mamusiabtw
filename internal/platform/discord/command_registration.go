@@ -25,7 +25,7 @@ func (b *Bot) commandCreates(locales []string) []discord.ApplicationCommandCreat
 	if b.pluginHost != nil {
 		creates = append(
 			creates,
-			b.pluginHost.CommandCreatesWithLocalizations(locales, func(pluginID, locale, messageID string) (string, bool) {
+			b.pluginHost.CommandCreatesFiltered(b.enabledPluginIDsForHost(b.pluginHost), locales, func(pluginID, locale, messageID string) (string, bool) {
 				return b.i18n.TryLocalize(i18n.Config{
 					Locale:    locale,
 					PluginID:  pluginID,

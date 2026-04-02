@@ -48,6 +48,10 @@ func (s *Store) PluginKV() store.PluginKVStore {
 	return pluginKVStore{db: s.db, now: s.now}
 }
 
+func (s *Store) ModuleStates() store.ModuleStateStore {
+	return moduleStateStore{db: s.db, now: s.now}
+}
+
 func (s *Store) Users() store.UserStore {
 	return userStore{db: s.db, now: s.now}
 }

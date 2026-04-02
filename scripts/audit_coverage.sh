@@ -16,7 +16,7 @@ Pattern is a ripgrep regex (same semantics as `rg -L`).
 
 Default suite:
   1. JSON files under config/ and plugins/ missing "$schema"
-     (excluding plugin locale message files)
+     (excluding locale message files in runtime, official, and example plugins)
   2. JSON schema files under schemas/ missing "$id"
 EOF
 }
@@ -84,12 +84,12 @@ done
 if [[ $default_suite -eq 1 || $# -eq 0 ]]; then
   if [[ ${#exclude_dirs[@]} -gt 0 ]]; then
     run_audit "json" '"\$schema"' 'JSON files missing "$schema"' "$search_dir" \
-      "schemas" "locales" "plugins/*/locales" "${exclude_dirs[@]}"
+      "schemas" "locales" "plugins/*/locales" "examples/plugins/*/locales" "${exclude_dirs[@]}"
     run_audit "json" '"\$id"' 'Schema files missing "$id"' "$search_dir/schemas" \
       "${exclude_dirs[@]}"
   else
     run_audit "json" '"\$schema"' 'JSON files missing "$schema"' "$search_dir" \
-      "schemas" "locales" "plugins/*/locales"
+      "schemas" "locales" "plugins/*/locales" "examples/plugins/*/locales"
     run_audit "json" '"\$id"' 'Schema files missing "$id"' "$search_dir/schemas"
   fi
   exit 0

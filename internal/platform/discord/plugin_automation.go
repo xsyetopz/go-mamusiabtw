@@ -63,14 +63,14 @@ func (p *pluginAutomation) Start(ctx context.Context) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	if p.bot == nil || p.bot.pluginHost == nil || p.bot.client == nil {
+	if p.bot == nil || p.bot.client == nil {
 		return
 	}
 	if p.cron != nil {
 		return
 	}
 
-	jobEntries := p.bot.pluginHost.Jobs()
+	jobEntries := p.bot.enabledPluginJobs()
 	if len(jobEntries) == 0 {
 		return
 	}
@@ -139,37 +139,37 @@ func (p *pluginAutomation) FireEvent(eventName string, payload pluginhost.Payloa
 		return
 	}
 
-	if p == nil || p.bot == nil || p.bot.pluginHost == nil {
+	if p == nil || p.bot == nil {
 		return
 	}
 
-	pluginIDs := p.bot.pluginHost.EventSubscribers(eventName)
-	if len(pluginIDs) == 0 {
+	targets := p.bot.enabledPluginEventSubscribers(eventName)
+	if len(targets) == 0 {
 		return
 	}
 
-	go p.fireEvent(context.Background(), pluginIDs, eventName, payload)
+	go p.fireEvent(context.Background(), targets, eventName, payload)
 }
 
 func (p *pluginAutomation) fireEvent(
 	ctx context.Context,
-	pluginIDs []string,
+	targets []pluginCommandRoute,
 	eventName string,
 	payload pluginhost.Payload,
 ) {
-	for _, pluginID := range pluginIDs {
-		if strings.TrimSpace(pluginID) == "" {
+	for _, target := range targets {
+		if strings.TrimSpace(target.pluginID) == "" {
 			continue
 		}
-		p.runEventOne(ctx, pluginID, eventName, payload)
+		p.runEventOne(ctx, target, eventName, payload)
 	}
 }
 
-func (p *pluginAutomation) runEventOne(ctx context.Context, pluginID, eventName string, payload pluginhost.Payload) {
+func (p *pluginAutomation) runEventOne(ctx context.Context, target pluginCommandRoute, eventName string, payload pluginhost.Payload) {
 	callCtx, cancel := context.WithTimeout(ctx, defaultPluginAutomationTimeout)
 	defer cancel()
 
-	perms, ok := p.bot.pluginHost.EffectivePermissions(pluginID)
+	perms, ok := target.host.EffectivePermissions(target.pluginID)
 	if !ok {
 		return
 	}
@@ -178,18 +178,18 @@ func (p *pluginAutomation) runEventOne(ctx context.Context, pluginID, eventName 
 		p.logger.WarnContext(
 			callCtx,
 			"plugin event denied by permissions",
-			slog.String("plugin", pluginID),
+			slog.String("plugin", target.pluginID),
 			slog.String("event", eventName),
 		)
 		return
 	}
 
-	res, hasValue, err := p.bot.pluginHost.HandleEvent(callCtx, pluginID, eventName, payload)
+	res, hasValue, err := target.host.HandleEvent(callCtx, target.pluginID, eventName, payload)
 	if err != nil {
 		p.logger.WarnContext(
 			callCtx,
 			"plugin event failed",
-			slog.String("plugin", pluginID),
+			slog.String("plugin", target.pluginID),
 			slog.String("event", eventName),
 			slog.String("err", err.Error()),
 		)
@@ -204,21 +204,26 @@ func (p *pluginAutomation) runEventOne(ctx context.Context, pluginID, eventName 
 		p.logger.WarnContext(
 			callCtx,
 			"plugin event response invalid",
-			slog.String("plugin", pluginID),
+			slog.String("plugin", target.pluginID),
 			slog.String("event", eventName),
 			slog.String("err", parseErr.Error()),
 		)
 		return
 	}
-	p.executeAutomationActions(callCtx, pluginID, perms, payload, actions)
+	p.executeAutomationActions(callCtx, target.pluginID, perms, payload, actions)
 }
 
 func (p *pluginAutomation) runJob(ctx context.Context, job pluginhost.PluginJob) {
-	if p == nil || p.bot == nil || p.bot.pluginHost == nil || p.bot.client == nil {
+	if p == nil || p.bot == nil || p.bot.client == nil {
 		return
 	}
 
-	perms, ok := p.bot.pluginHost.EffectivePermissions(job.PluginID)
+	route, ok := p.bot.pluginRoutes[job.PluginID]
+	if !ok || !p.bot.moduleEnabled(job.PluginID) {
+		return
+	}
+
+	perms, ok := route.host.EffectivePermissions(job.PluginID)
 	if !ok || !perms.Automation.Jobs {
 		return
 	}
@@ -235,7 +240,7 @@ func (p *pluginAutomation) runJob(ctx context.Context, job pluginhost.PluginJob)
 		}
 
 		callCtx, cancel := context.WithTimeout(ctx, defaultPluginAutomationTimeout)
-		res, hasValue, err := p.bot.pluginHost.HandleJob(callCtx, job.PluginID, job.JobID, pluginhost.Payload{
+		res, hasValue, err := route.host.HandleJob(callCtx, job.PluginID, job.JobID, pluginhost.Payload{
 			GuildID:   snowflake.ID(guildID).String(),
 			ChannelID: "",
 			UserID:    "",

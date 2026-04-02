@@ -23,6 +23,7 @@ func Commands() []commandapi.SlashCommand {
 	return []commandapi.SlashCommand{
 		block(),
 		unblock(),
+		modules(),
 		plugins(),
 	}
 }
@@ -348,6 +349,203 @@ func plugins() commandapi.SlashCommand {
 		CreateCommand: pluginsCreateCommand,
 		Handle:        pluginsHandle,
 	}
+}
+
+func modules() commandapi.SlashCommand {
+	return commandapi.SlashCommand{
+		Name: "modules",
+		CreateCommand: func(_ []string, _ commandapi.Translator) discord.ApplicationCommandCreate {
+			return discord.SlashCommandCreate{
+				Name:        "modules",
+				Description: "Inspect and manage modules",
+				Options: []discord.ApplicationCommandOption{
+					discord.ApplicationCommandOptionSubCommand{
+						Name:        "list",
+						Description: "List built-ins and plugins",
+					},
+					discord.ApplicationCommandOptionSubCommand{
+						Name:        "info",
+						Description: "Show one module",
+						Options: []discord.ApplicationCommandOption{
+							discord.ApplicationCommandOptionString{
+								Name:        "module",
+								Description: "Module ID",
+								Required:    true,
+							},
+						},
+					},
+					discord.ApplicationCommandOptionSubCommand{
+						Name:        "enable",
+						Description: "Enable one module",
+						Options: []discord.ApplicationCommandOption{
+							discord.ApplicationCommandOptionString{
+								Name:        "module",
+								Description: "Module ID",
+								Required:    true,
+							},
+						},
+					},
+					discord.ApplicationCommandOptionSubCommand{
+						Name:        "disable",
+						Description: "Disable one module",
+						Options: []discord.ApplicationCommandOption{
+							discord.ApplicationCommandOptionString{
+								Name:        "module",
+								Description: "Module ID",
+								Required:    true,
+							},
+						},
+					},
+					discord.ApplicationCommandOptionSubCommand{
+						Name:        "reset",
+						Description: "Reset one module to its default",
+						Options: []discord.ApplicationCommandOption{
+							discord.ApplicationCommandOptionString{
+								Name:        "module",
+								Description: "Module ID",
+								Required:    true,
+							},
+						},
+					},
+					discord.ApplicationCommandOptionSubCommand{
+						Name:        "reload",
+						Description: "Reload official and user plugins",
+					},
+				},
+			}
+		},
+		Handle: modulesHandle,
+	}
+}
+
+func modulesHandle(
+	ctx context.Context,
+	e *events.ApplicationCommandInteractionCreate,
+	_ commandapi.Translator,
+	s commandapi.Services,
+) (interactions.SlashAction, error) {
+	actorID := uint64(e.User().ID)
+	if s.IsOwner == nil || !s.IsOwner(actorID) {
+		return interactions.SlashMessage{
+			Create: discord.NewMessageCreate().WithEphemeral(true).WithContent("Only bot owners can manage modules."),
+		}, nil
+	}
+	if s.Modules == nil || !s.Modules.Configured() {
+		return interactions.SlashMessage{
+			Create: discord.NewMessageCreate().WithEphemeral(true).WithContent("Modules are not configured."),
+		}, nil
+	}
+
+	data := e.SlashCommandInteractionData()
+	sub := data.SubCommandName
+	if sub == nil {
+		return interactions.SlashMessage{
+			Create: discord.NewMessageCreate().WithEphemeral(true).WithContent("Missing subcommand."),
+		}, nil
+	}
+
+	switch *sub {
+	case "list":
+		return interactions.SlashMessage{
+			Create: discord.NewMessageCreate().WithEphemeral(true).WithContent(formatModuleList(s.Modules.Infos())),
+		}, nil
+	case "info":
+		moduleID := strings.TrimSpace(data.String("module"))
+		for _, info := range s.Modules.Infos() {
+			if info.ID != moduleID {
+				continue
+			}
+			return interactions.SlashMessage{
+				Create: discord.NewMessageCreate().WithEphemeral(true).WithContent(formatModuleDetails(info)),
+			}, nil
+		}
+		return interactions.SlashMessage{
+			Create: discord.NewMessageCreate().WithEphemeral(true).WithContent("Unknown module: " + moduleID),
+		}, nil
+	case "enable":
+		moduleID := strings.TrimSpace(data.String("module"))
+		if err := s.Modules.SetEnabled(ctx, moduleID, true, actorID); err != nil {
+			return interactions.SlashMessage{
+				Create: discord.NewMessageCreate().WithEphemeral(true).WithContent("Enable failed: " + err.Error()),
+			}, nil
+		}
+		return interactions.SlashMessage{
+			Create: discord.NewMessageCreate().WithEphemeral(true).WithContent("Enabled module: " + moduleID),
+		}, nil
+	case "disable":
+		moduleID := strings.TrimSpace(data.String("module"))
+		if err := s.Modules.SetEnabled(ctx, moduleID, false, actorID); err != nil {
+			return interactions.SlashMessage{
+				Create: discord.NewMessageCreate().WithEphemeral(true).WithContent("Disable failed: " + err.Error()),
+			}, nil
+		}
+		return interactions.SlashMessage{
+			Create: discord.NewMessageCreate().WithEphemeral(true).WithContent("Disabled module: " + moduleID),
+		}, nil
+	case "reset":
+		moduleID := strings.TrimSpace(data.String("module"))
+		if err := s.Modules.Reset(ctx, moduleID); err != nil {
+			return interactions.SlashMessage{
+				Create: discord.NewMessageCreate().WithEphemeral(true).WithContent("Reset failed: " + err.Error()),
+			}, nil
+		}
+		return interactions.SlashMessage{
+			Create: discord.NewMessageCreate().WithEphemeral(true).WithContent("Reset module to default: " + moduleID),
+		}, nil
+	case "reload":
+		if err := s.Modules.Reload(ctx); err != nil {
+			return interactions.SlashMessage{
+				Create: discord.NewMessageCreate().WithEphemeral(true).WithContent("Reload failed: " + err.Error()),
+			}, nil
+		}
+		return interactions.SlashMessage{
+			Create: discord.NewMessageCreate().WithEphemeral(true).WithContent("Reloaded modules."),
+		}, nil
+	default:
+		return interactions.SlashMessage{
+			Create: discord.NewMessageCreate().WithEphemeral(true).WithContent("Unknown subcommand."),
+		}, nil
+	}
+}
+
+func formatModuleList(infos []commandapi.ModuleInfo) string {
+	if len(infos) == 0 {
+		return "No modules are loaded."
+	}
+
+	lines := make([]string, 0, len(infos)+1)
+	lines = append(lines, "Loaded modules:")
+	for _, info := range infos {
+		state := "disabled"
+		if info.Enabled {
+			state = "enabled"
+		}
+		toggle := "fixed"
+		if info.Toggleable {
+			toggle = "toggleable"
+		}
+		lines = append(lines, "- "+info.ID+" ["+string(info.Kind)+", "+string(info.Runtime)+", "+state+", "+toggle+"]")
+	}
+	return strings.Join(lines, "\n")
+}
+
+func formatModuleDetails(info commandapi.ModuleInfo) string {
+	commands := "none"
+	if len(info.Commands) != 0 {
+		commands = strings.Join(info.Commands, ", ")
+	}
+	return strings.Join([]string{
+		"Module: " + info.ID,
+		"Name: " + info.Name,
+		"Kind: " + string(info.Kind),
+		"Runtime: " + string(info.Runtime),
+		"Enabled: " + strconv.FormatBool(info.Enabled),
+		"Default enabled: " + strconv.FormatBool(info.DefaultEnabled),
+		"Toggleable: " + strconv.FormatBool(info.Toggleable),
+		"Signed: " + strconv.FormatBool(info.Signed),
+		"Source: " + info.Source,
+		"Commands: " + commands,
+	}, "\n")
 }
 
 func pluginsCreateCommand(locales []string, t commandapi.Translator) discord.ApplicationCommandCreate {

@@ -18,6 +18,7 @@ type Config struct {
 	LocalesDir      string
 	PluginsDir      string
 	PermissionsFile string
+	ModulesFile     string
 	LogLevel        string
 	ProdMode        bool
 	OwnerUserID     []uint64
@@ -44,6 +45,7 @@ const (
 	defaultLocalesDir        = "./locales"
 	defaultPluginsDir        = "./plugins"
 	defaultPermissionsFile   = "./config/permissions.json"
+	defaultModulesFile       = "./config/modules.json"
 	defaultTrustedKeysFile   = "./config/trusted_keys.json"
 	defaultLogLevel          = "info"
 	defaultCommandRegMode    = "global"
@@ -64,6 +66,7 @@ func LoadFromEnv() (Config, error) {
 	localesDir := envDefault("LOCALES_DIR", defaultLocalesDir)
 	pluginsDir := envDefault("PLUGINS_DIR", defaultPluginsDir)
 	permissionsFile := envDefault("MAMUSIABTW_PERMISSIONS_FILE", defaultPermissionsFile)
+	modulesFile := envDefault("MAMUSIABTW_MODULES_FILE", defaultModulesFile)
 	logLevel := envDefault("LOG_LEVEL", defaultLogLevel)
 
 	prodMode := envBool1("MAMUSIABTW_PROD_MODE")
@@ -113,7 +116,7 @@ func LoadFromEnv() (Config, error) {
 	}
 	slashBypass := parseCSV(os.Getenv("MAMUSIABTW_SLASH_COOLDOWN_BYPASS"))
 	if len(slashBypass) == 0 {
-		slashBypass = []string{"ping", "help", "plugins", "block", "unblock"}
+		slashBypass = []string{"ping", "help", "plugins", "modules", "block", "unblock"}
 	}
 	slashOverrides, err := parseCooldownOverridesMS(os.Getenv("MAMUSIABTW_SLASH_COOLDOWN_OVERRIDES_MS"))
 	if err != nil {
@@ -128,6 +131,7 @@ func LoadFromEnv() (Config, error) {
 		LocalesDir:      localesDir,
 		PluginsDir:      pluginsDir,
 		PermissionsFile: permissionsFile,
+		ModulesFile:     modulesFile,
 		LogLevel:        logLevel,
 		ProdMode:        prodMode,
 		OwnerUserID:     owners,

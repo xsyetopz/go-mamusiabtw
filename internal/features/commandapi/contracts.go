@@ -23,6 +23,7 @@ type Store interface {
 	Audit() store.AuditStore
 	TrustedSigners() store.TrustedSignerStore
 	PluginKV() store.PluginKVStore
+	ModuleStates() store.ModuleStateStore
 	Users() store.UserStore
 	Guilds() store.GuildStore
 	GuildMembers() store.GuildMemberStore
@@ -113,6 +114,42 @@ type PluginAdmin interface {
 	Reload(ctx context.Context) error
 }
 
+type ModuleKind string
+
+const (
+	ModuleKindCoreBuiltin   ModuleKind = "core_builtin"
+	ModuleKindOfficialPlugin ModuleKind = "official_plugin"
+	ModuleKindUserPlugin    ModuleKind = "user_plugin"
+)
+
+type ModuleRuntime string
+
+const (
+	ModuleRuntimeGo  ModuleRuntime = "go"
+	ModuleRuntimeLua ModuleRuntime = "lua"
+)
+
+type ModuleInfo struct {
+	ID             string
+	Name           string
+	Kind           ModuleKind
+	Runtime        ModuleRuntime
+	Enabled        bool
+	DefaultEnabled bool
+	Toggleable     bool
+	Signed         bool
+	Source         string
+	Commands       []string
+}
+
+type ModuleAdmin interface {
+	Configured() bool
+	Infos() []ModuleInfo
+	Reload(ctx context.Context) error
+	SetEnabled(ctx context.Context, moduleID string, enabled bool, actorID uint64) error
+	Reset(ctx context.Context, moduleID string) error
+}
+
 type Services struct {
 	Logger   *slog.Logger
 	Store    Store
@@ -123,6 +160,7 @@ type Services struct {
 	Kawaii Kawaii
 
 	Plugins PluginAdmin
+	Modules ModuleAdmin
 
 	// HelpNames returns the localized slash command names for help output.
 	HelpNames func(locale discord.Locale) []string

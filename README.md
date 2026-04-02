@@ -19,6 +19,8 @@ mamusiabtw creates or opens the SQLite database at `SQLITE_PATH` and applies mig
 
 The direct-binary flow and the Docker flow use the same env vars and the same `config/`, `plugins/`, `locales/`, and `migrations/` folders.
 
+The bot also supports runtime module toggles from `config/modules.json`, with official first-party plugins and user plugins sharing the same `plugins/` root.
+
 ## Docker
 
 1. Copy `.env.example` to `.env` and fill in at least `DISCORD_TOKEN`.
@@ -35,8 +37,20 @@ The direct-binary flow and the Docker flow use the same env vars and the same `c
 - `/warn` and `/unwarn` (interactive select-menu)
 - `/block` and `/unblock` (owner-only; owner IDs via `OWNER_USER_IDS`)
 - Wellness: `/timezone`, `/checkin`, `/remind`
-- Fun: `/flip`, `/roll`, `/8ball`, `/hug`, `/pat`, `/poke`, `/shrug`
 - Manager: `/slowmode`, `/nick`, `/purge`, `/roles`, `/emojis`, `/stickers`
+
+Optional first-party plugins now live in `plugins/` too. The shipped `fun` plugin provides `/flip`, `/roll`, `/8ball`, `/hug`, `/pat`, `/poke`, and `/shrug` once enabled.
+
+## Modules
+
+mamusiabtw now treats built-ins and plugins as modules:
+
+- required core built-ins stay available even if optional modules are disabled
+- official first-party plugins live in `plugins/` beside user-made plugins
+- official vs user plugin classification is host-owned, not self-declared by a manifest field
+- owner-only `/modules` lets you list, inspect, enable, disable, reset, and reload modules
+
+Default module seeds live in `config/modules.json`, and runtime overrides are stored in SQLite.
 
 ## Lua Plugins
 
@@ -52,6 +66,8 @@ Plugins are sandboxed: no filesystem or network access. Any plugin capability mu
 1) requested in `plugin.json`, and
 2) granted by the host in `config/permissions.json` (default `MAMUSIABTW_PERMISSIONS_FILE`).
 
+The Lua host currently exposes `bot.random.*` and `bot.kawaii.gif(...)` for first-party fun commands, with Kawaii access gated by the permissions policy.
+
 The host injects a namespaced global `bot` into plugin scripts (see `sdk/lua/bot_api.lua:1` for the editor stub). A flat `mamusiabtw` alias remains for older plugins, but new plugins should use `bot`.
 
 The repo ships a minimal example plugin in `examples/plugins/example` which exposes `/example`.
@@ -62,6 +78,7 @@ For editor validation/autocomplete, these JSON files support a `$schema` URL (Ra
 
 - `plugins/<plugin>/plugin.json` → `schemas/plugin.schema.v1.json`
 - `config/permissions.json` → `schemas/permissions.schema.v1.json`
+- `config/modules.json` → `schemas/modules.schema.v1.json`
 - `config/trusted_keys.json` → `schemas/trusted_keys.schema.v1.json`
 - `plugins/<plugin>/signature.json` → `schemas/signature.schema.v1.json`
 
@@ -137,6 +154,8 @@ Plugin responses are validated against Discord limits (content lengths, embed li
 ### Hot Reload
 
 Use `/plugins reload` (owner-only) to reload plugins from disk and re-register commands.
+
+Use `/modules reload` to rebuild the full module catalog and command registration, including built-ins plus every plugin found in `plugins/`.
 
 ### Signing (prod)
 

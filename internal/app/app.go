@@ -6,9 +6,9 @@ import (
 	"log/slog"
 
 	"github.com/xsyetopz/go-mamusiabtw/internal/config"
-	discordplatform "github.com/xsyetopz/go-mamusiabtw/internal/platform/discord"
 	"github.com/xsyetopz/go-mamusiabtw/internal/i18n"
 	"github.com/xsyetopz/go-mamusiabtw/internal/migrate"
+	discordplatform "github.com/xsyetopz/go-mamusiabtw/internal/platform/discord"
 	"github.com/xsyetopz/go-mamusiabtw/internal/sqlite"
 	"github.com/xsyetopz/go-mamusiabtw/internal/store/sqlitestore"
 )
@@ -129,6 +129,7 @@ func (a *App) initDiscordBot() error {
 		CommandRegisterAllGuilds: a.cfg.CommandRegisterAllGuilds,
 		PluginsDir:               a.cfg.PluginsDir,
 		PermissionsFile:          a.cfg.PermissionsFile,
+		ModulesFile:              a.cfg.ModulesFile,
 		AllowUnsignedPlugins:     a.cfg.AllowUnsignedPlugins,
 		ProdMode:                 a.cfg.ProdMode,
 		TrustedKeysFile:          a.cfg.TrustedKeysFile,

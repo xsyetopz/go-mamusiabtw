@@ -1,0 +1,11 @@
+{
+  "$schema": "https://raw.githubusercontent.com/xsyetopz/go-mamusiabtw/refs/heads/main/schemas/plugin.schema.v1.json",
+  "id": "fun",
+  "name": "Fun",
+  "version": "0.1.0",
+  "permissions": {
+    "integrations": {
+      "kawaii": true
+    }
+  }
+}

@@ -41,6 +41,9 @@ func TestLoadFromEnv_Defaults(t *testing.T) {
 	if cfg.PermissionsFile != "./config/permissions.json" {
 		t.Fatalf("unexpected permissions file: %q", cfg.PermissionsFile)
 	}
+	if cfg.ModulesFile != "./config/modules.json" {
+		t.Fatalf("unexpected modules file: %q", cfg.ModulesFile)
+	}
 	if cfg.TrustedKeysFile != "./config/trusted_keys.json" {
 		t.Fatalf("unexpected trusted keys file: %q", cfg.TrustedKeysFile)
 	}
@@ -57,7 +60,7 @@ func TestLoadFromEnv_Defaults(t *testing.T) {
 		t.Fatalf("unexpected modal cooldown: %s", cfg.ModalCooldown)
 	}
 
-	wantBypass := []string{"ping", "help", "plugins", "block", "unblock"}
+	wantBypass := []string{"ping", "help", "plugins", "modules", "block", "unblock"}
 	if !reflect.DeepEqual(cfg.SlashCooldownBypass, wantBypass) {
 		t.Fatalf("unexpected bypass list: %#v", cfg.SlashCooldownBypass)
 	}
@@ -175,8 +178,11 @@ func TestShippedSchemaURLs(t *testing.T) {
 		want string
 	}{
 		{path: "config/permissions.json", key: "$schema", want: schemaBaseURL + "permissions.schema.v1.json"},
+		{path: "config/modules.json", key: "$schema", want: schemaBaseURL + "modules.schema.v1.json"},
 		{path: "examples/plugins/example/plugin.json", key: "$schema", want: schemaBaseURL + "plugin.schema.v1.json"},
+		{path: "plugins/fun/plugin.json", key: "$schema", want: schemaBaseURL + "plugin.schema.v1.json"},
 		{path: "schemas/messages.schema.v1.json", key: "$id", want: schemaBaseURL + "messages.schema.v1.json"},
+		{path: "schemas/modules.schema.v1.json", key: "$id", want: schemaBaseURL + "modules.schema.v1.json"},
 		{path: "schemas/permissions.schema.v1.json", key: "$id", want: schemaBaseURL + "permissions.schema.v1.json"},
 		{path: "schemas/plugin.schema.v1.json", key: "$id", want: schemaBaseURL + "plugin.schema.v1.json"},
 		{path: "schemas/signature.schema.v1.json", key: "$id", want: schemaBaseURL + "signature.schema.v1.json"},
@@ -256,6 +262,10 @@ func TestAuthoringAssetsLayout(t *testing.T) {
 		"examples/plugins/example/lib/counter.lua",
 		"examples/plugins/example/locales/en-US/messages.json",
 		"examples/plugins/example/locales/en-GB/messages.json",
+		"plugins/fun/plugin.json",
+		"plugins/fun/plugin.lua",
+		"plugins/fun/locales/en-US/messages.json",
+		"plugins/fun/locales/en-GB/messages.json",
 	} {
 		fullPath := filepath.Join(repoRoot, relPath)
 		if _, err := os.Stat(fullPath); err != nil {
@@ -275,6 +285,7 @@ func resetConfigEnv(t *testing.T) {
 		"LOCALES_DIR",
 		"PLUGINS_DIR",
 		"MAMUSIABTW_PERMISSIONS_FILE",
+		"MAMUSIABTW_MODULES_FILE",
 		"LOG_LEVEL",
 		"MAMUSIABTW_PROD_MODE",
 		"MAMUSIABTW_ALLOW_UNSIGNED_PLUGINS",

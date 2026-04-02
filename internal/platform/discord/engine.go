@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"sort"
 	"strings"
 	"time"
 
@@ -15,10 +16,10 @@ import (
 	"github.com/disgoorg/snowflake/v2"
 
 	"github.com/xsyetopz/go-mamusiabtw/internal/buildinfo"
-	"github.com/xsyetopz/go-mamusiabtw/internal/features"
+	"github.com/xsyetopz/go-mamusiabtw/internal/config"
 	"github.com/xsyetopz/go-mamusiabtw/internal/features/commandapi"
-	"github.com/xsyetopz/go-mamusiabtw/internal/platform/discord/interactions"
 	"github.com/xsyetopz/go-mamusiabtw/internal/i18n"
+	"github.com/xsyetopz/go-mamusiabtw/internal/platform/discord/interactions"
 	"github.com/xsyetopz/go-mamusiabtw/internal/pluginhost"
 	"github.com/xsyetopz/go-mamusiabtw/internal/present"
 	"github.com/xsyetopz/go-mamusiabtw/internal/store"
@@ -36,6 +37,7 @@ type Dependencies struct {
 	CommandRegisterAllGuilds bool
 	PluginsDir               string
 	PermissionsFile          string
+	ModulesFile              string
 
 	ProdMode             bool
 	AllowUnsignedPlugins bool
@@ -78,9 +80,22 @@ type Bot struct {
 	commands map[string]commandapi.SlashCommand
 	order    []commandapi.SlashCommand
 
-	pluginHost *pluginhost.Host
+	moduleSeed config.ModulesFile
+	modules    map[string]commandapi.ModuleInfo
 
-	pluginAuto *pluginAutomation
+	pluginHost     *pluginhost.Host
+	pluginCommands map[string]pluginCommandRoute
+	pluginRoutes   map[string]pluginRoute
+	pluginAuto     *pluginAutomation
+}
+
+type pluginRoute struct {
+	host *pluginhost.Host
+}
+
+type pluginCommandRoute struct {
+	host     *pluginhost.Host
+	pluginID string
 }
 
 func New(deps Dependencies) (*Bot, error) {
@@ -98,6 +113,11 @@ func New(deps Dependencies) (*Bot, error) {
 		return nil, err
 	}
 
+	moduleSeed, err := config.LoadModulesFile(deps.ModulesFile)
+	if err != nil {
+		return nil, err
+	}
+
 	b := &Bot{
 		logger:     deps.Logger.With(slog.String("component", "discord")),
 		i18n:       deps.I18n,
@@ -111,16 +131,23 @@ func New(deps Dependencies) (*Bot, error) {
 		commandRegistrationMode:  commandRegistrationMode,
 		commandGuildIDs:          append([]uint64(nil), deps.CommandGuildIDs...),
 		commandRegisterAllGuilds: deps.CommandRegisterAllGuilds,
+		moduleSeed:               moduleSeed,
+		modules:                  map[string]commandapi.ModuleInfo{},
+		pluginCommands:           map[string]pluginCommandRoute{},
+		pluginRoutes:             map[string]pluginRoute{},
 	}
 	b.slashCooldown = deps.SlashCooldown
 	b.componentCooldownDur = deps.ComponentCooldown
 	b.modalCooldownDur = deps.ModalCooldown
 	b.slashBypass = buildSlashBypass(deps.SlashCooldownBypass)
 	b.slashCooldownOverrides = cloneCooldownOverrides(deps.SlashCooldownOverrides)
-	b.order, b.commands = buildCommands()
 
 	if initErr := b.initPlugins(deps); initErr != nil {
 		return nil, initErr
+	}
+
+	if refreshErr := b.refreshRuntimeCatalog(context.Background()); refreshErr != nil {
+		return nil, refreshErr
 	}
 
 	client, err := b.newClient(deps.Token)
@@ -188,38 +215,28 @@ func cloneCooldownOverrides(in map[string]time.Duration) map[string]time.Duratio
 	return out
 }
 
-func buildCommands() ([]commandapi.SlashCommand, map[string]commandapi.SlashCommand) {
-	order := features.All()
-	m := map[string]commandapi.SlashCommand{}
-	for _, c := range order {
-		if strings.TrimSpace(c.Name) == "" {
-			continue
-		}
-		m[c.Name] = c
-	}
-	return order, m
-}
-
 func (b *Bot) initPlugins(deps Dependencies) error {
-	if strings.TrimSpace(deps.PluginsDir) == "" {
-		return nil
+	if strings.TrimSpace(deps.PluginsDir) != "" {
+		host, err := pluginhost.NewHost(pluginhost.Options{
+			Dir:                 deps.PluginsDir,
+			ProdMode:            deps.ProdMode,
+			AllowUnsignedPlugin: deps.AllowUnsignedPlugins,
+			TrustedKeysFile:     deps.TrustedKeysFile,
+			PermissionsFile:     deps.PermissionsFile,
+			Store:               deps.Store,
+			Kawaii:              b.kawaii,
+			Logger:              b.logger,
+			I18n:                &b.i18n,
+		})
+		if err != nil {
+			return err
+		}
+		b.pluginHost = host
 	}
 
-	pm, err := pluginhost.NewHost(pluginhost.Options{
-		Dir:                 deps.PluginsDir,
-		ProdMode:            deps.ProdMode,
-		AllowUnsignedPlugin: deps.AllowUnsignedPlugins,
-		TrustedKeysFile:     deps.TrustedKeysFile,
-		PermissionsFile:     deps.PermissionsFile,
-		Store:               deps.Store,
-		Logger:              b.logger,
-		I18n:                &b.i18n,
-	})
-	if err != nil {
-		return err
+	if b.pluginHost != nil {
+		b.pluginAuto = newPluginAutomation(b)
 	}
-	b.pluginHost = pm
-	b.pluginAuto = newPluginAutomation(b)
 	return nil
 }
 
@@ -260,13 +277,7 @@ const (
 )
 
 func (b *Bot) Start(ctx context.Context) error {
-	if b.pluginHost != nil {
-		if err := b.pluginHost.LoadAll(ctx); err != nil {
-			return err
-		}
-	}
-
-	if err := b.registerCommands(ctx); err != nil {
+	if err := b.reloadModules(ctx); err != nil {
 		return err
 	}
 
@@ -300,13 +311,20 @@ func (b *Bot) services(_ discord.Locale) commandapi.Services {
 		Kawaii:   b.kawaii,
 		HelpNames: func(locale discord.Locale) []string {
 			t := commandapi.Translator{Registry: b.i18n, Locale: locale}
-			out := make([]string, 0, len(b.order))
+			out := make([]string, 0, len(b.order)+len(b.pluginCommands))
 			for _, c := range b.order {
-				if strings.TrimSpace(c.NameID) == "" {
-					continue
+				name := strings.TrimSpace(c.Name)
+				if strings.TrimSpace(c.NameID) != "" {
+					name = t.S(c.NameID, nil)
 				}
-				out = append(out, t.S(c.NameID, nil))
+				if name != "" {
+					out = append(out, name)
+				}
 			}
+			for name := range b.pluginCommands {
+				out = append(out, name)
+			}
+			sort.Strings(out)
 			return out
 		},
 	}
@@ -314,6 +332,7 @@ func (b *Bot) services(_ discord.Locale) commandapi.Services {
 	if b.pluginHost != nil {
 		s.Plugins = pluginAdmin{b: b}
 	}
+	s.Modules = moduleAdmin{b: b}
 	return s
 }
 
@@ -388,31 +407,55 @@ type pluginAdmin struct{ b *Bot }
 func (p pluginAdmin) Configured() bool { return p.b != nil && p.b.pluginHost != nil }
 
 func (p pluginAdmin) Infos() []pluginhost.PluginInfo {
-	if p.b == nil || p.b.pluginHost == nil {
+	if p.b == nil {
 		return nil
 	}
-	return p.b.pluginHost.Infos()
+	out := []pluginhost.PluginInfo{}
+	if p.b.pluginHost != nil {
+		out = append(out, p.b.pluginHost.Infos()...)
+	}
+	return out
 }
 
 func (p pluginAdmin) Reload(ctx context.Context) error {
 	if p.b == nil || p.b.pluginHost == nil {
 		return errors.New("plugins not configured")
 	}
-	if err := p.b.pluginHost.LoadAll(ctx); err != nil {
-		return err
-	}
-	if err := p.b.registerCommands(ctx); err != nil {
-		return err
-	}
-	if p.b.commandRegisterAllGuilds && p.b.devGuildID == nil {
-		if err := p.b.registerCommandsInCachedGuilds(ctx); err != nil {
-			return err
-		}
-	}
-	if p.b.pluginAuto != nil {
-		p.b.pluginAuto.Restart(ctx)
-	}
-	return nil
+	return p.b.reloadModules(ctx)
 }
 
 var _ commandapi.PluginAdmin = pluginAdmin{}
+
+type moduleAdmin struct{ b *Bot }
+
+func (m moduleAdmin) Configured() bool { return m.b != nil }
+
+func (m moduleAdmin) Infos() []commandapi.ModuleInfo {
+	if m.b == nil {
+		return nil
+	}
+	return m.b.moduleInfos()
+}
+
+func (m moduleAdmin) Reload(ctx context.Context) error {
+	if m.b == nil {
+		return errors.New("modules not configured")
+	}
+	return m.b.reloadModules(ctx)
+}
+
+func (m moduleAdmin) SetEnabled(ctx context.Context, moduleID string, enabled bool, actorID uint64) error {
+	if m.b == nil {
+		return errors.New("modules not configured")
+	}
+	return m.b.setModuleEnabled(ctx, moduleID, enabled, actorID)
+}
+
+func (m moduleAdmin) Reset(ctx context.Context, moduleID string) error {
+	if m.b == nil {
+		return errors.New("modules not configured")
+	}
+	return m.b.resetModule(ctx, moduleID)
+}
+
+var _ commandapi.ModuleAdmin = moduleAdmin{}

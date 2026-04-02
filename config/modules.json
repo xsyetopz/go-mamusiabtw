@@ -1,0 +1,22 @@
+{
+  "$schema": "https://raw.githubusercontent.com/xsyetopz/go-mamusiabtw/refs/heads/main/schemas/modules.schema.v1.json",
+  "version": "1",
+  "defaults": {
+    "official_enabled": false,
+    "user_enabled": true
+  },
+  "modules": {
+    "fun": {
+      "enabled": false
+    },
+    "wellness": {
+      "enabled": false
+    },
+    "moderation": {
+      "enabled": false
+    },
+    "manager": {
+      "enabled": false
+    }
+  }
+}

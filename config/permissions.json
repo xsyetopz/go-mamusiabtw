@@ -9,6 +9,9 @@
       "send_channel": false,
       "send_dm": false
     },
+    "integrations": {
+      "kawaii": false
+    },
     "automation": {
       "jobs": false,
       "events": {
@@ -21,6 +24,11 @@
     "example": {
       "storage": {
         "kv": true
+      }
+    },
+    "fun": {
+      "integrations": {
+        "kawaii": true
       }
     }
   }

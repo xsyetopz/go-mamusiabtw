@@ -1,12 +1,16 @@
 package luaplugin
 
 import (
+	"crypto/rand"
 	"fmt"
+	"math/big"
 	"os"
 	"path/filepath"
 	"strings"
 
 	lua "github.com/yuin/gopher-lua"
+
+	"github.com/xsyetopz/go-mamusiabtw/internal/integrations/kawaii"
 )
 
 func (v *VM) luaPlugin(l *lua.LState) int {
@@ -136,6 +140,75 @@ func (v *VM) luaTextInput(l *lua.LState) int {
 	return 1
 }
 
+func (v *VM) luaRandomInt(l *lua.LState) int {
+	min := l.CheckInt(1)
+	max := l.CheckInt(2)
+	if max < min {
+		l.RaiseError("max must be >= min")
+		return 0
+	}
+
+	n, err := cryptoRandIntInclusive(min, max)
+	if err != nil {
+		l.RaiseError("random failed")
+		return 0
+	}
+	l.Push(lua.LNumber(n))
+	return 1
+}
+
+func (v *VM) luaRandomChoice(l *lua.LState) int {
+	list := l.CheckTable(1)
+	length := list.Len()
+	if length == 0 {
+		l.RaiseError("choice requires a non-empty list")
+		return 0
+	}
+
+	index, err := cryptoRandIntInclusive(1, length)
+	if err != nil {
+		l.RaiseError("random failed")
+		return 0
+	}
+	l.Push(list.RawGetInt(index))
+	return 1
+}
+
+func (v *VM) luaKawaiiGIF(l *lua.LState) int {
+	if !v.perms.Integrations.Kawaii {
+		l.RaiseError("permission denied: integrations.kawaii")
+		return 0
+	}
+	if v.kawaii == nil {
+		l.RaiseError("kawaii unavailable")
+		return 0
+	}
+
+	rawEndpoint := strings.ToLower(strings.TrimSpace(l.CheckString(1)))
+	var endpoint kawaii.Endpoint
+	switch rawEndpoint {
+	case string(kawaii.EndpointHug):
+		endpoint = kawaii.EndpointHug
+	case string(kawaii.EndpointPat):
+		endpoint = kawaii.EndpointPat
+	case string(kawaii.EndpointPoke):
+		endpoint = kawaii.EndpointPoke
+	case string(kawaii.EndpointShrug):
+		endpoint = kawaii.EndpointShrug
+	default:
+		l.RaiseError("unsupported kawaii endpoint")
+		return 0
+	}
+
+	gifURL, err := v.kawaii.FetchGIF(v.ctx(), endpoint)
+	if err != nil {
+		l.RaiseError("kawaii fetch failed")
+		return 0
+	}
+	l.Push(lua.LString(gifURL))
+	return 1
+}
+
 func (v *VM) luaEffectSendChannel(l *lua.LState) int {
 	spec := copyLuaTable(l, l.CheckTable(1))
 	action := l.NewTable()
@@ -262,4 +335,19 @@ func copyLuaTable(l *lua.LState, source *lua.LTable) *lua.LTable {
 		clone.RawSet(key, value)
 	})
 	return clone
+}
+
+func cryptoRandIntInclusive(min, max int) (int, error) {
+	if max < min {
+		return 0, fmt.Errorf("invalid range")
+	}
+	width := max - min + 1
+	if width <= 0 {
+		return 0, fmt.Errorf("invalid range")
+	}
+	n, err := rand.Int(rand.Reader, big.NewInt(int64(width)))
+	if err != nil {
+		return 0, err
+	}
+	return min + int(n.Int64()), nil
 }

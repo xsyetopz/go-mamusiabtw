@@ -132,6 +132,8 @@
 ---@field description? string
 ---@field url? string
 ---@field color? integer
+---@field image_url? string
+---@field footer? string
 ---@field fields? MamusiaBtwEmbedField[]
 
 ---@class MamusiaBtwModalField
@@ -251,6 +253,13 @@
 ---@field send_channel fun(spec: { channel_id?: string, message: MamusiaBtwResponse|string }): table
 ---@field send_dm fun(spec: { user_id?: string, message: MamusiaBtwResponse|string }): table
 
+---@class MamusiaBtwRandomAPI
+---@field int fun(min: integer, max: integer): integer
+---@field choice fun(list: any[]): any
+
+---@class MamusiaBtwKawaiiAPI
+---@field gif fun(endpoint: 'hug'|'pat'|'poke'|'shrug'): string
+
 ---@class MamusiaBtwAPI
 ---@field log MamusiaBtwLogAPI
 ---@field i18n MamusiaBtwI18nAPI
@@ -258,6 +267,8 @@
 ---@field option MamusiaBtwOptionAPI
 ---@field ui MamusiaBtwUIAPI
 ---@field effects MamusiaBtwEffectsAPI
+---@field random MamusiaBtwRandomAPI
+---@field kawaii MamusiaBtwKawaiiAPI
 ---@field plugin fun(spec: MamusiaBtwPluginDefinition): MamusiaBtwPluginDefinition
 ---@field command fun(name: string, spec: table): MamusiaBtwCommandRoute
 ---@field job fun(id: string, spec: table): MamusiaBtwJobRoute

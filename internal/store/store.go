@@ -74,6 +74,20 @@ type PluginKVStore interface {
 	DeletePluginKV(ctx context.Context, guildID uint64, pluginID, key string) error
 }
 
+type ModuleState struct {
+	ModuleID  string
+	Enabled   bool
+	UpdatedAt time.Time
+	UpdatedBy *uint64
+}
+
+type ModuleStateStore interface {
+	GetModuleState(ctx context.Context, moduleID string) (ModuleState, bool, error)
+	ListModuleStates(ctx context.Context) ([]ModuleState, error)
+	PutModuleState(ctx context.Context, state ModuleState) error
+	DeleteModuleState(ctx context.Context, moduleID string) error
+}
+
 type UserSeen struct {
 	UserID      uint64
 	CreatedAt   time.Time
