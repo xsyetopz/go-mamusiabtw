@@ -22,6 +22,9 @@ func Mommy(locale discord.Locale) string {
 		mommyFinn   = "äiti"
 		mommyViet   = "mẹ"
 		mommyLith   = "mamytė"
+		mommyCro    = "mama"
+		mommyHindi  = "मम्मी"
+		mommyHung   = "anya"
 
 		mommySpanishES = "mamá"
 		mommyCyrillic  = "мама"
@@ -49,12 +52,18 @@ func Mommy(locale discord.Locale) string {
 		return mommyCzech
 	case "pl", "nl", "id":
 		return mommyMama
+	case "hr":
+		return mommyCro
 	case "it", "sv-se", "no":
 		return mommyMamma
 	case "fi":
 		return mommyFinn
 	case "lt":
 		return mommyLith
+	case "hi":
+		return mommyHindi
+	case "hu":
+		return mommyHung
 	case "bg", "ru", "uk":
 		return mommyCyrillic
 	case "vi":
