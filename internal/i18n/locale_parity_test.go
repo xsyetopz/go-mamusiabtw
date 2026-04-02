@@ -80,6 +80,12 @@ func mustLoadMessages(t *testing.T, path string) []localeMessage {
 		if msgs[i].Translation == "" {
 			t.Fatalf("empty translation for %q in %q", msgs[i].ID, path)
 		}
+		if strings.HasPrefix(msgs[i].ID, "cmd.") &&
+			(strings.HasSuffix(msgs[i].ID, ".name") || strings.HasSuffix(msgs[i].ID, ".desc")) {
+			if strings.Contains(msgs[i].Translation, "{{") {
+				t.Fatalf("command metadata must not be templated: %q in %q", msgs[i].ID, path)
+			}
+		}
 	}
 	return msgs
 }
@@ -155,6 +161,7 @@ func assertTemplateFieldsMatch(
 		"Mommy": {},
 		"Pet":   {},
 	}
+	allowedMissing := allowedExtra
 
 	for id, baseText := range base {
 		gotText, ok := got[id]
@@ -171,6 +178,17 @@ func assertTemplateFieldsMatch(
 			t.Fatalf("parse %s/%s: %v", locale, id, err)
 		}
 
+		if missing := missingFields(baseFields, gotFields, allowedMissing); len(missing) > 0 {
+			t.Fatalf(
+				"missing template placeholders for %s (base=%s locale=%s): missing=%v base=%v got=%v",
+				id,
+				baseLocale,
+				locale,
+				missing,
+				setToSortedSlice(baseFields),
+				setToSortedSlice(gotFields),
+			)
+		}
 		if extra := extraFields(gotFields, baseFields, allowedExtra); len(extra) > 0 {
 			t.Fatalf(
 				"unexpected template placeholders for %s (base=%s locale=%s): extra=%v base=%v got=%v",
@@ -183,6 +201,21 @@ func assertTemplateFieldsMatch(
 			)
 		}
 	}
+}
+
+func missingFields(base, got, allowedMissing map[string]struct{}) []string {
+	var missing []string
+	for k := range base {
+		if _, ok := got[k]; ok {
+			continue
+		}
+		if _, ok := allowedMissing[k]; ok {
+			continue
+		}
+		missing = append(missing, k)
+	}
+	sort.Strings(missing)
+	return missing
 }
 
 func templateFields(s string) (map[string]struct{}, error) {
