@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/xsyetopz/go-mamusiabtw/main/schemas/permissions.schema.v1.json",
+  "title": "mamusiabtw permissions policy",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "format": "uri"
+    },
+    "version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "defaults": {
+      "$ref": "#/$defs/permissions"
+    },
+    "plugins": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/permissions"
+      }
+    }
+  },
+  "required": [
+    "defaults"
+  ],
+  "$defs": {
+    "permissions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "storage": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kv": {
+              "type": "boolean"
+            }
+          }
+        },
+        "discord": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "send_channel": {
+              "type": "boolean"
+            },
+            "send_dm": {
+              "type": "boolean"
+            }
+          }
+        },
+        "automation": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "jobs": {
+              "type": "boolean"
+            },
+            "events": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "member_join_leave": {
+                  "type": "boolean"
+                },
+                "moderation": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

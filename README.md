@@ -50,6 +50,17 @@ The host injects a global `mamusiabtw` table into plugin scripts (see `plugins/m
 
 The repo ships a minimal example plugin in `plugins/example` which exposes `/example`.
 
+### JSON Schemas
+
+For editor validation/autocomplete, these JSON files support a `$schema` URL (Raw GitHub):
+
+- `plugins/<plugin>/plugin.json` → `schemas/plugin.schema.v1.json`
+- `config/permissions.json` → `schemas/permissions.schema.v1.json`
+- `config/trusted_keys.json` → `schemas/trusted_keys.schema.v1.json`
+- `plugins/<plugin>/signature.json` → `schemas/signature.schema.v1.json`
+
+`locales/<locale>/messages.json` is a JSON array, so it can’t embed `$schema`, but the repo ships `schemas/messages.schema.v1.json`.
+
 ### Plugin Localization
 
 If a plugin has `plugins/<id>/locales/<locale>/messages.json`, the host loads it and exposes:

@@ -215,6 +215,32 @@ func (m *Manager) loadPluginLocales(ctx context.Context, pluginID string, plugin
 	if statErr != nil || !fi.IsDir() {
 		return
 	}
+
+	if entries, err := os.ReadDir(localesDir); err == nil {
+		for _, entry := range entries {
+			if !entry.IsDir() {
+				continue
+			}
+			locale := strings.TrimSpace(entry.Name())
+			if locale == "" || i18n.IsSupportedDiscordLocale(locale) {
+				continue
+			}
+
+			path := filepath.Join(localesDir, locale, "messages.json")
+			if _, msgFileErr := os.Stat(path); msgFileErr != nil {
+				continue
+			}
+
+			m.logger.WarnContext(
+				ctx,
+				"unknown plugin locale, ignoring",
+				slog.String("plugin", pluginID),
+				slog.String("locale", locale),
+				slog.String("path", path),
+			)
+		}
+	}
+
 	if err := m.i18n.LoadPluginLocales(pluginID, localesDir); err != nil {
 		m.logger.WarnContext(
 			ctx,

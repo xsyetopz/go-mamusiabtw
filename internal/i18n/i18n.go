@@ -26,13 +26,18 @@ type registryState struct {
 	locales []string
 }
 
+const (
+	localeEnUS = "en-US"
+	localeEnGB = "en-GB"
+)
+
 func LoadCore(localesDir string) (Registry, error) {
 	locales, err := listLocales(localesDir)
 	if err != nil {
 		return Registry{}, err
 	}
 
-	bundle := i18n.NewBundle(language.MustParse("en-US"))
+	bundle := i18n.NewBundle(language.MustParse(localeEnUS))
 	bundle.RegisterUnmarshalFunc("json", json.Unmarshal)
 
 	for _, locale := range locales {
@@ -64,7 +69,7 @@ func (r *Registry) LoadPluginLocales(pluginID, pluginLocalesDir string) error {
 		return err
 	}
 
-	bundle := i18n.NewBundle(language.MustParse("en-US"))
+	bundle := i18n.NewBundle(language.MustParse(localeEnUS))
 	bundle.RegisterUnmarshalFunc("json", json.Unmarshal)
 
 	for _, locale := range locales {
@@ -107,7 +112,7 @@ func (r *Registry) ResetPluginLocales() {
 func normalizeLocale(locale string) string {
 	locale = strings.TrimSpace(locale)
 	if locale == "" {
-		return "en-US"
+		return localeEnUS
 	}
 	return locale
 }
@@ -131,8 +136,8 @@ func (r *Registry) Localize(cfg Config) (string, error) {
 	}
 
 	locale := normalizeLocale(cfg.Locale)
-	fallbackPrimary := "en-US"
-	fallbackSecondary := "en-GB"
+	fallbackPrimary := localeEnUS
+	fallbackSecondary := localeEnGB
 
 	if cfg.PluginID != "" {
 		r.state.mu.RLock()
@@ -198,6 +203,9 @@ func listLocales(localesDir string) ([]string, error) {
 		}
 
 		locale := entry.Name()
+		if !IsSupportedDiscordLocale(locale) {
+			continue
+		}
 		path := filepath.Join(localesDir, locale, "messages.json")
 		if _, statErr := os.Stat(path); statErr != nil {
 			continue
