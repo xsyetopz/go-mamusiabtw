@@ -9,11 +9,11 @@ import (
 	"github.com/disgoorg/omit"
 	"github.com/disgoorg/snowflake/v2"
 
-	"github.com/xsuetopz/go-mamusiabtw/internal/discordapp/commands/shared"
-	"github.com/xsuetopz/go-mamusiabtw/internal/discordapp/core"
-	"github.com/xsuetopz/go-mamusiabtw/internal/discordapp/discordutil"
-	"github.com/xsuetopz/go-mamusiabtw/internal/discordapp/interactions"
-	"github.com/xsuetopz/go-mamusiabtw/internal/i18n"
+	"github.com/xsyetopz/go-mamusiabtw/internal/discordapp/commands/shared"
+	"github.com/xsyetopz/go-mamusiabtw/internal/discordapp/core"
+	"github.com/xsyetopz/go-mamusiabtw/internal/discordapp/discordutil"
+	"github.com/xsyetopz/go-mamusiabtw/internal/discordapp/interactions"
+	"github.com/xsyetopz/go-mamusiabtw/internal/i18n"
 )
 
 func Commands() []core.SlashCommand {

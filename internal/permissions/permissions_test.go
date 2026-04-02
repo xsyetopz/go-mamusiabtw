@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/xsuetopz/go-mamusiabtw/internal/permissions"
+	"github.com/xsyetopz/go-mamusiabtw/internal/permissions"
 )
 
 func TestEffective(t *testing.T) {

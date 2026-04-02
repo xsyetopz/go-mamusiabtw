@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/xsuetopz/go-mamusiabtw/internal/integrations/kawaii"
+	"github.com/xsyetopz/go-mamusiabtw/internal/integrations/kawaii"
 )
 
 func TestFetchGIF(t *testing.T) {

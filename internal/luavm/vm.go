@@ -15,9 +15,9 @@ import (
 
 	lua "github.com/yuin/gopher-lua"
 
-	"github.com/xsuetopz/go-mamusiabtw/internal/i18n"
-	"github.com/xsuetopz/go-mamusiabtw/internal/permissions"
-	"github.com/xsuetopz/go-mamusiabtw/internal/store"
+	"github.com/xsyetopz/go-mamusiabtw/internal/i18n"
+	"github.com/xsyetopz/go-mamusiabtw/internal/permissions"
+	"github.com/xsyetopz/go-mamusiabtw/internal/store"
 )
 
 const defaultCallTimeout = 2 * time.Second

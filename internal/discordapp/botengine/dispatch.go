@@ -9,12 +9,12 @@ import (
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 
-	cmdmoderation "github.com/xsuetopz/go-mamusiabtw/internal/discordapp/commands/moderation"
-	cmdwellness "github.com/xsuetopz/go-mamusiabtw/internal/discordapp/commands/wellness"
-	"github.com/xsuetopz/go-mamusiabtw/internal/discordapp/core"
-	"github.com/xsuetopz/go-mamusiabtw/internal/discordapp/interactions"
-	"github.com/xsuetopz/go-mamusiabtw/internal/plugins"
-	"github.com/xsuetopz/go-mamusiabtw/internal/present"
+	cmdmoderation "github.com/xsyetopz/go-mamusiabtw/internal/discordapp/commands/moderation"
+	cmdwellness "github.com/xsyetopz/go-mamusiabtw/internal/discordapp/commands/wellness"
+	"github.com/xsyetopz/go-mamusiabtw/internal/discordapp/core"
+	"github.com/xsyetopz/go-mamusiabtw/internal/discordapp/interactions"
+	"github.com/xsyetopz/go-mamusiabtw/internal/plugins"
+	"github.com/xsyetopz/go-mamusiabtw/internal/present"
 )
 
 func (b *Bot) onCommand(e *events.ApplicationCommandInteractionCreate) {

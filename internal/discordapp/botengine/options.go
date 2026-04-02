@@ -7,7 +7,7 @@ import (
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/snowflake/v2"
 
-	"github.com/xsuetopz/go-mamusiabtw/internal/plugins"
+	"github.com/xsyetopz/go-mamusiabtw/internal/plugins"
 )
 
 func snowflakePtrToString(id *snowflake.ID) string {

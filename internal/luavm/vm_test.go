@@ -11,10 +11,10 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
-	"github.com/xsuetopz/go-mamusiabtw/internal/i18n"
-	"github.com/xsuetopz/go-mamusiabtw/internal/luavm"
-	"github.com/xsuetopz/go-mamusiabtw/internal/permissions"
-	"github.com/xsuetopz/go-mamusiabtw/internal/store/sqlitestore"
+	"github.com/xsyetopz/go-mamusiabtw/internal/i18n"
+	"github.com/xsyetopz/go-mamusiabtw/internal/luavm"
+	"github.com/xsyetopz/go-mamusiabtw/internal/permissions"
+	"github.com/xsyetopz/go-mamusiabtw/internal/store/sqlitestore"
 )
 
 func TestHandleAndKV(t *testing.T) {

@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/xsuetopz/go-mamusiabtw/internal/discordapp/discordutil"
+	"github.com/xsyetopz/go-mamusiabtw/internal/discordapp/discordutil"
 )
 
 func TestDiscordCDNFetcher_RejectsHost(t *testing.T) {

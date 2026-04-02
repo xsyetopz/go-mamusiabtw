@@ -5,9 +5,9 @@ import (
 
 	"github.com/disgoorg/disgo/discord"
 
-	"github.com/xsuetopz/go-mamusiabtw/internal/discordapp/core"
-	"github.com/xsuetopz/go-mamusiabtw/internal/discordapp/interactions"
-	"github.com/xsuetopz/go-mamusiabtw/internal/present"
+	"github.com/xsyetopz/go-mamusiabtw/internal/discordapp/core"
+	"github.com/xsyetopz/go-mamusiabtw/internal/discordapp/interactions"
+	"github.com/xsyetopz/go-mamusiabtw/internal/present"
 )
 
 func (b *Bot) pluginResponseErrorMessage(t core.Translator, err error) discord.MessageCreate {

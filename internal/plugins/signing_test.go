@@ -12,8 +12,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/xsuetopz/go-mamusiabtw/internal/plugins"
-	"github.com/xsuetopz/go-mamusiabtw/internal/store"
+	"github.com/xsyetopz/go-mamusiabtw/internal/plugins"
+	"github.com/xsyetopz/go-mamusiabtw/internal/store"
 )
 
 func TestReadTrustedKeysFileAndLoadTrustedKeys(t *testing.T) {

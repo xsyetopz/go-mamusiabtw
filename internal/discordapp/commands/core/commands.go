@@ -7,9 +7,9 @@ import (
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 
-	"github.com/xsuetopz/go-mamusiabtw/internal/discordapp/core"
-	"github.com/xsuetopz/go-mamusiabtw/internal/discordapp/interactions"
-	"github.com/xsuetopz/go-mamusiabtw/internal/i18n"
+	"github.com/xsyetopz/go-mamusiabtw/internal/discordapp/core"
+	"github.com/xsyetopz/go-mamusiabtw/internal/discordapp/interactions"
+	"github.com/xsyetopz/go-mamusiabtw/internal/i18n"
 )
 
 func Commands() []core.SlashCommand {

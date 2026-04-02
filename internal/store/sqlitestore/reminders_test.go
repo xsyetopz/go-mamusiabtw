@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/xsuetopz/go-mamusiabtw/internal/migrate"
-	"github.com/xsuetopz/go-mamusiabtw/internal/sqlite"
-	"github.com/xsuetopz/go-mamusiabtw/internal/store"
-	"github.com/xsuetopz/go-mamusiabtw/internal/store/sqlitestore"
+	"github.com/xsyetopz/go-mamusiabtw/internal/migrate"
+	"github.com/xsyetopz/go-mamusiabtw/internal/sqlite"
+	"github.com/xsyetopz/go-mamusiabtw/internal/store"
+	"github.com/xsyetopz/go-mamusiabtw/internal/store/sqlitestore"
 )
 
 func TestReminderLifecycleAndLeaseFlow(t *testing.T) {

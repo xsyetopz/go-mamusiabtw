@@ -1,4 +1,4 @@
-module github.com/xsuetopz/go-mamusiabtw
+module github.com/xsyetopz/go-mamusiabtw
 
 go 1.26.1
 

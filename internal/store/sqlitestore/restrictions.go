@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/xsuetopz/go-mamusiabtw/internal/store"
+	"github.com/xsyetopz/go-mamusiabtw/internal/store"
 )
 
 type restrictionStore struct {

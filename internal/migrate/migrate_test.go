@@ -9,7 +9,7 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
-	"github.com/xsuetopz/go-mamusiabtw/internal/migrate"
+	"github.com/xsyetopz/go-mamusiabtw/internal/migrate"
 )
 
 func TestRunnerIdempotent(t *testing.T) {

@@ -5,8 +5,8 @@ import (
 
 	"github.com/disgoorg/disgo/events"
 
-	"github.com/xsuetopz/go-mamusiabtw/internal/discordapp/interactions"
-	"github.com/xsuetopz/go-mamusiabtw/internal/present"
+	"github.com/xsyetopz/go-mamusiabtw/internal/discordapp/interactions"
+	"github.com/xsyetopz/go-mamusiabtw/internal/present"
 )
 
 func UpdateInteractionSuccess(e *events.ApplicationCommandInteractionCreate, desc string) error {

@@ -5,12 +5,12 @@ import (
 	"errors"
 	"log/slog"
 
-	"github.com/xsuetopz/go-mamusiabtw/internal/config"
-	"github.com/xsuetopz/go-mamusiabtw/internal/discordapp"
-	"github.com/xsuetopz/go-mamusiabtw/internal/i18n"
-	"github.com/xsuetopz/go-mamusiabtw/internal/migrate"
-	"github.com/xsuetopz/go-mamusiabtw/internal/sqlite"
-	"github.com/xsuetopz/go-mamusiabtw/internal/store/sqlitestore"
+	"github.com/xsyetopz/go-mamusiabtw/internal/config"
+	"github.com/xsyetopz/go-mamusiabtw/internal/discordapp"
+	"github.com/xsyetopz/go-mamusiabtw/internal/i18n"
+	"github.com/xsyetopz/go-mamusiabtw/internal/migrate"
+	"github.com/xsyetopz/go-mamusiabtw/internal/sqlite"
+	"github.com/xsyetopz/go-mamusiabtw/internal/store/sqlitestore"
 )
 
 type Dependencies struct {

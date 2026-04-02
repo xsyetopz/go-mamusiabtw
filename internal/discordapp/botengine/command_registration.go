@@ -9,8 +9,8 @@ import (
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/snowflake/v2"
 
-	"github.com/xsuetopz/go-mamusiabtw/internal/discordapp/core"
-	"github.com/xsuetopz/go-mamusiabtw/internal/i18n"
+	"github.com/xsyetopz/go-mamusiabtw/internal/discordapp/core"
+	"github.com/xsyetopz/go-mamusiabtw/internal/i18n"
 )
 
 func (b *Bot) commandCreates(locales []string) []discord.ApplicationCommandCreate {

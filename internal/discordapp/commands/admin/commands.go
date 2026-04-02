@@ -12,11 +12,11 @@ import (
 	"github.com/disgoorg/omit"
 	"github.com/disgoorg/snowflake/v2"
 
-	"github.com/xsuetopz/go-mamusiabtw/internal/discordapp/core"
-	"github.com/xsuetopz/go-mamusiabtw/internal/discordapp/interactions"
-	"github.com/xsuetopz/go-mamusiabtw/internal/i18n"
-	pluginpkg "github.com/xsuetopz/go-mamusiabtw/internal/plugins"
-	"github.com/xsuetopz/go-mamusiabtw/internal/store"
+	"github.com/xsyetopz/go-mamusiabtw/internal/discordapp/core"
+	"github.com/xsyetopz/go-mamusiabtw/internal/discordapp/interactions"
+	"github.com/xsyetopz/go-mamusiabtw/internal/i18n"
+	pluginpkg "github.com/xsyetopz/go-mamusiabtw/internal/plugins"
+	"github.com/xsyetopz/go-mamusiabtw/internal/store"
 )
 
 func Commands() []core.SlashCommand {

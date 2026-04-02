@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/xsuetopz/go-mamusiabtw/internal/plugins"
+	"github.com/xsyetopz/go-mamusiabtw/internal/plugins"
 )
 
 func (b *Bot) commandCooldown(cmdName string) time.Duration {

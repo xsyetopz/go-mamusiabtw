@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/xsuetopz/go-mamusiabtw/internal/config"
+	"github.com/xsyetopz/go-mamusiabtw/internal/config"
 )
 
 func TestLoadFromEnv_Defaults(t *testing.T) {

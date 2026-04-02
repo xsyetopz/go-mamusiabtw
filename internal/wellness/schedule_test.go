@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/xsuetopz/go-mamusiabtw/internal/wellness"
+	"github.com/xsyetopz/go-mamusiabtw/internal/wellness"
 )
 
 func TestParseScheduleAndNext(t *testing.T) {

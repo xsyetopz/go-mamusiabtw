@@ -13,8 +13,8 @@ import (
 	"github.com/disgoorg/snowflake/v2"
 	"github.com/robfig/cron/v3"
 
-	"github.com/xsuetopz/go-mamusiabtw/internal/permissions"
-	"github.com/xsuetopz/go-mamusiabtw/internal/plugins"
+	"github.com/xsyetopz/go-mamusiabtw/internal/permissions"
+	"github.com/xsyetopz/go-mamusiabtw/internal/plugins"
 )
 
 const (

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/xsuetopz/go-mamusiabtw/internal/permissions"
+	"github.com/xsyetopz/go-mamusiabtw/internal/permissions"
 )
 
 type Manifest struct {
