@@ -33,7 +33,7 @@
   },
   {
     "id": "cmd.warn.opt.user.desc",
-    "translation": "Who needs the warning?"
+    "translation": "Vem behöver varningen?"
   },
   {
     "id": "cmd.warn.opt.reason.name",
@@ -41,7 +41,7 @@
   },
   {
     "id": "cmd.warn.opt.reason.desc",
-    "translation": "What happened?"
+    "translation": "Vad hände?"
   },
   {
     "id": "cmd.unwarn.name",
@@ -57,7 +57,7 @@
   },
   {
     "id": "cmd.unwarn.opt.user.desc",
-    "translation": "Who should be unwarned?"
+    "translation": "Vem ska få varningen borttagen?"
   },
   {
     "id": "cmd.block.name",
@@ -73,7 +73,7 @@
   },
   {
     "id": "cmd.block.sub.user.desc",
-    "translation": "Time-out a user from using me."
+    "translation": "Time-outa en användare från att använda mig."
   },
   {
     "id": "cmd.block.sub.guild.name",
@@ -81,7 +81,7 @@
   },
   {
     "id": "cmd.block.sub.guild.desc",
-    "translation": "Time-out a server from using me."
+    "translation": "Time-outa en server från att använda mig."
   },
   {
     "id": "cmd.block.opt.user.name",
@@ -89,7 +89,7 @@
   },
   {
     "id": "cmd.block.opt.user.desc",
-    "translation": "Which user needs a time-out?"
+    "translation": "Vilken användare behöver time-out?"
   },
   {
     "id": "cmd.block.opt.reason.name",
@@ -97,7 +97,7 @@
   },
   {
     "id": "cmd.block.opt.reason.desc",
-    "translation": "Why are they getting a time-out?"
+    "translation": "Varför får de time-out?"
   },
   {
     "id": "cmd.block.opt.guild_id.name",
@@ -105,7 +105,7 @@
   },
   {
     "id": "cmd.block.opt.guild_id.desc",
-    "translation": "Which server (guild ID) needs a time-out?"
+    "translation": "Vilken server (guild-ID) behöver time-out?"
   },
   {
     "id": "cmd.unblock.name",
@@ -121,7 +121,7 @@
   },
   {
     "id": "cmd.unblock.sub.user.desc",
-    "translation": "Let a user use me again."
+    "translation": "Låt en användare använda mig igen."
   },
   {
     "id": "cmd.unblock.sub.guild.name",
@@ -129,7 +129,7 @@
   },
   {
     "id": "cmd.unblock.sub.guild.desc",
-    "translation": "Let a server use me again."
+    "translation": "Låt en server använda mig igen."
   },
   {
     "id": "cmd.unblock.opt.user.name",
@@ -137,7 +137,7 @@
   },
   {
     "id": "cmd.unblock.opt.user.desc",
-    "translation": "Which user should be unblocked?"
+    "translation": "Vilken användare ska avblockeras?"
   },
   {
     "id": "cmd.unblock.opt.guild_id.name",
@@ -145,7 +145,7 @@
   },
   {
     "id": "cmd.unblock.opt.guild_id.desc",
-    "translation": "Which server (guild ID) should be unblocked?"
+    "translation": "Vilken server (guild-ID) ska avblockeras?"
   },
   {
     "id": "cmd.plugins.name",
@@ -161,7 +161,7 @@
   },
   {
     "id": "cmd.plugins.sub.list.desc",
-    "translation": "Show which plugins are loaded."
+    "translation": "Visa vilka plugins som är laddade."
   },
   {
     "id": "cmd.plugins.sub.reload.name",
@@ -169,7 +169,7 @@
   },
   {
     "id": "cmd.plugins.sub.reload.desc",
-    "translation": "Reload plugins from disk."
+    "translation": "Ladda om plugins från disk."
   },
   {
     "id": "cmd.about.name",
@@ -193,7 +193,7 @@
   },
   {
     "id": "cmd.lookup.sub.user.desc",
-    "translation": "Look up a user."
+    "translation": "Slå upp en användare."
   },
   {
     "id": "cmd.lookup.sub.user.opt.user.name",
@@ -201,7 +201,7 @@
   },
   {
     "id": "cmd.lookup.sub.user.opt.user.desc",
-    "translation": "Which user? (Leave empty to look up yourself.)"
+    "translation": "Vilken användare? (Lämna tomt för att slå upp dig själv.)"
   },
   {
     "id": "cmd.lookup.sub.guild.name",
@@ -209,7 +209,7 @@
   },
   {
     "id": "cmd.lookup.sub.guild.desc",
-    "translation": "Look up this server."
+    "translation": "Slå upp den här servern."
   },
   {
     "id": "cmd.lookup.sub.role.name",
@@ -217,7 +217,7 @@
   },
   {
     "id": "cmd.lookup.sub.role.desc",
-    "translation": "Look up a role."
+    "translation": "Slå upp en roll."
   },
   {
     "id": "cmd.lookup.sub.role.opt.role.name",
@@ -225,7 +225,7 @@
   },
   {
     "id": "cmd.lookup.sub.role.opt.role.desc",
-    "translation": "Which role should Mommy look at?"
+    "translation": "Vilken roll ska mamma titta på?"
   },
   {
     "id": "cmd.lookup.sub.channel.name",
@@ -233,7 +233,7 @@
   },
   {
     "id": "cmd.lookup.sub.channel.desc",
-    "translation": "Look up a channel."
+    "translation": "Slå upp en kanal."
   },
   {
     "id": "cmd.lookup.sub.channel.opt.channel.name",
@@ -241,7 +241,7 @@
   },
   {
     "id": "cmd.lookup.sub.channel.opt.channel.desc",
-    "translation": "Which channel should Mommy look at?"
+    "translation": "Vilken kanal ska mamma titta på?"
   },
   {
     "id": "info.lookup.user.field.bot",
@@ -361,7 +361,7 @@
   },
   {
     "id": "cmd.roll.opt.number.desc",
-    "translation": "How many dice?"
+    "translation": "Hur många tärningar?"
   },
   {
     "id": "cmd.roll.opt.sides.name",
@@ -369,7 +369,7 @@
   },
   {
     "id": "cmd.roll.opt.sides.desc",
-    "translation": "How many sides per die?"
+    "translation": "Hur många sidor per tärning?"
   },
   {
     "id": "cmd.roll.opt.modifier.name",
@@ -377,7 +377,7 @@
   },
   {
     "id": "cmd.roll.opt.modifier.desc",
-    "translation": "Any modifier to add?"
+    "translation": "Någon modifier att lägga till?"
   },
   {
     "id": "cmd.8ball.name",
@@ -393,7 +393,7 @@
   },
   {
     "id": "cmd.8ball.opt.question.desc",
-    "translation": "What do you want to ask?"
+    "translation": "Vad vill du fråga?"
   },
   {
     "id": "cmd.hug.name",
@@ -409,7 +409,7 @@
   },
   {
     "id": "cmd.hug.opt.user.desc",
-    "translation": "Who needs a hug?"
+    "translation": "Vem behöver en kram?"
   },
   {
     "id": "cmd.pat.name",
@@ -425,7 +425,7 @@
   },
   {
     "id": "cmd.pat.opt.user.desc",
-    "translation": "Who's getting the pats?"
+    "translation": "Vem ska få klappar?"
   },
   {
     "id": "cmd.poke.name",
@@ -441,7 +441,7 @@
   },
   {
     "id": "cmd.poke.opt.user.desc",
-    "translation": "Who are we poking?"
+    "translation": "Vem petar vi på?"
   },
   {
     "id": "cmd.shrug.name",
@@ -457,7 +457,7 @@
   },
   {
     "id": "cmd.shrug.opt.message.desc",
-    "translation": "Anything to add?"
+    "translation": "Något att lägga till?"
   },
   {
     "id": "cmd.slowmode.name",
@@ -473,7 +473,7 @@
   },
   {
     "id": "cmd.slowmode.opt.channel.desc",
-    "translation": "Which channel needs calming down?"
+    "translation": "Vilken kanal behöver lugna ner sig?"
   },
   {
     "id": "cmd.slowmode.opt.seconds.name",
@@ -481,7 +481,7 @@
   },
   {
     "id": "cmd.slowmode.opt.seconds.desc",
-    "translation": "Seconds between messages (0 to remove)."
+    "translation": "Sekunder mellan meddelanden (0 för att ta bort)."
   },
   {
     "id": "cmd.nick.name",
@@ -497,7 +497,7 @@
   },
   {
     "id": "cmd.nick.opt.user.desc",
-    "translation": "Whose nickname are we changing?"
+    "translation": "Vems smeknamn ändrar vi?"
   },
   {
     "id": "cmd.nick.opt.nickname.name",
@@ -505,7 +505,7 @@
   },
   {
     "id": "cmd.nick.opt.nickname.desc",
-    "translation": "What should Mommy set it to? (Leave empty to reset.)"
+    "translation": "Vad ska mamma sätta det till? (Lämna tomt för att återställa.)"
   },
   {
     "id": "cmd.purge.name",
@@ -521,7 +521,7 @@
   },
   {
     "id": "cmd.purge.sub.all.desc",
-    "translation": "Delete recent messages."
+    "translation": "Radera senaste meddelanden."
   },
   {
     "id": "cmd.purge.sub.before.name",
@@ -529,7 +529,7 @@
   },
   {
     "id": "cmd.purge.sub.before.desc",
-    "translation": "Delete messages before a message."
+    "translation": "Radera meddelanden före ett meddelande."
   },
   {
     "id": "cmd.purge.sub.after.name",
@@ -537,7 +537,7 @@
   },
   {
     "id": "cmd.purge.sub.after.desc",
-    "translation": "Delete messages after a message."
+    "translation": "Radera meddelanden efter ett meddelande."
   },
   {
     "id": "cmd.purge.sub.around.name",
@@ -545,7 +545,7 @@
   },
   {
     "id": "cmd.purge.sub.around.desc",
-    "translation": "Delete messages around a message."
+    "translation": "Radera meddelanden runt ett meddelande."
   },
   {
     "id": "cmd.purge.opt.count.name",
@@ -553,7 +553,7 @@
   },
   {
     "id": "cmd.purge.opt.count.desc",
-    "translation": "How many messages? (Be gentle.)"
+    "translation": "Hur många meddelanden? (Var försiktig.)"
   },
   {
     "id": "cmd.purge.opt.message.name",
@@ -561,7 +561,7 @@
   },
   {
     "id": "cmd.purge.opt.message.desc",
-    "translation": "Message ID or message link."
+    "translation": "Meddelande-ID eller meddelandelänk."
   },
   {
     "id": "cmd.roles.name",
@@ -577,7 +577,7 @@
   },
   {
     "id": "cmd.roles.sub.create.desc",
-    "translation": "Create a new role."
+    "translation": "Skapa en ny roll."
   },
   {
     "id": "cmd.roles.sub.edit.name",
@@ -585,7 +585,7 @@
   },
   {
     "id": "cmd.roles.sub.edit.desc",
-    "translation": "Edit a role."
+    "translation": "Redigera en roll."
   },
   {
     "id": "cmd.roles.sub.delete.name",
@@ -593,7 +593,7 @@
   },
   {
     "id": "cmd.roles.sub.delete.desc",
-    "translation": "Delete a role."
+    "translation": "Radera en roll."
   },
   {
     "id": "cmd.roles.sub.add.name",
@@ -601,7 +601,7 @@
   },
   {
     "id": "cmd.roles.sub.add.desc",
-    "translation": "Add a role to a member."
+    "translation": "Lägg till en roll till en medlem."
   },
   {
     "id": "cmd.roles.sub.remove.name",
@@ -609,7 +609,7 @@
   },
   {
     "id": "cmd.roles.sub.remove.desc",
-    "translation": "Remove a role from a member."
+    "translation": "Ta bort en roll från en medlem."
   },
   {
     "id": "cmd.roles.opt.role.name",
@@ -617,7 +617,7 @@
   },
   {
     "id": "cmd.roles.opt.role.desc",
-    "translation": "Which role?"
+    "translation": "Vilken roll?"
   },
   {
     "id": "cmd.roles.opt.member.name",
@@ -625,7 +625,7 @@
   },
   {
     "id": "cmd.roles.opt.member.desc",
-    "translation": "Which member?"
+    "translation": "Vilken medlem?"
   },
   {
     "id": "cmd.roles.opt.name.name",
@@ -633,7 +633,7 @@
   },
   {
     "id": "cmd.roles.opt.name.desc",
-    "translation": "Role name."
+    "translation": "Rollnamn."
   },
   {
     "id": "cmd.roles.opt.colour.name",
@@ -641,7 +641,7 @@
   },
   {
     "id": "cmd.roles.opt.colour.desc",
-    "translation": "Role color (RRGGBB)."
+    "translation": "Rollfärg (RRGGBB)."
   },
   {
     "id": "cmd.roles.opt.hoist.name",
@@ -649,7 +649,7 @@
   },
   {
     "id": "cmd.roles.opt.hoist.desc",
-    "translation": "Show separately in the member list?"
+    "translation": "Visa separat i medlemslistan?"
   },
   {
     "id": "cmd.roles.opt.mentionable.name",
@@ -657,7 +657,7 @@
   },
   {
     "id": "cmd.roles.opt.mentionable.desc",
-    "translation": "Allow @mentions?"
+    "translation": "Tillåt @mentions?"
   },
   {
     "id": "cmd.emojis.name",
@@ -673,7 +673,7 @@
   },
   {
     "id": "cmd.emojis.sub.create.desc",
-    "translation": "Create an emoji."
+    "translation": "Skapa en emoji."
   },
   {
     "id": "cmd.emojis.sub.edit.name",
@@ -681,7 +681,7 @@
   },
   {
     "id": "cmd.emojis.sub.edit.desc",
-    "translation": "Rename an emoji."
+    "translation": "Byt namn på en emoji."
   },
   {
     "id": "cmd.emojis.sub.delete.name",
@@ -689,7 +689,7 @@
   },
   {
     "id": "cmd.emojis.sub.delete.desc",
-    "translation": "Delete an emoji."
+    "translation": "Radera en emoji."
   },
   {
     "id": "cmd.emojis.opt.name.name",
@@ -697,7 +697,7 @@
   },
   {
     "id": "cmd.emojis.opt.name.desc",
-    "translation": "Emoji name."
+    "translation": "Emojinamn."
   },
   {
     "id": "cmd.emojis.opt.file.name",
@@ -705,7 +705,7 @@
   },
   {
     "id": "cmd.emojis.opt.file.desc",
-    "translation": "Emoji image."
+    "translation": "Emojibild."
   },
   {
     "id": "cmd.emojis.opt.emoji.name",
@@ -713,7 +713,7 @@
   },
   {
     "id": "cmd.emojis.opt.emoji.desc",
-    "translation": "Emoji mention (<:name:id>) or ID."
+    "translation": "Emoji-mention (<:name:id>) eller ID."
   },
   {
     "id": "cmd.stickers.name",
@@ -729,7 +729,7 @@
   },
   {
     "id": "cmd.stickers.sub.create.desc",
-    "translation": "Create a sticker."
+    "translation": "Skapa ett klistermärke."
   },
   {
     "id": "cmd.stickers.sub.edit.name",
@@ -737,7 +737,7 @@
   },
   {
     "id": "cmd.stickers.sub.edit.desc",
-    "translation": "Edit a sticker."
+    "translation": "Redigera ett klistermärke."
   },
   {
     "id": "cmd.stickers.sub.delete.name",
@@ -745,7 +745,7 @@
   },
   {
     "id": "cmd.stickers.sub.delete.desc",
-    "translation": "Delete a sticker."
+    "translation": "Radera ett klistermärke."
   },
   {
     "id": "cmd.stickers.opt.id.name",
@@ -753,7 +753,7 @@
   },
   {
     "id": "cmd.stickers.opt.id.desc",
-    "translation": "Sticker ID or sticker link."
+    "translation": "Klistermärke-ID eller länk."
   },
   {
     "id": "cmd.stickers.opt.name.name",
@@ -761,7 +761,7 @@
   },
   {
     "id": "cmd.stickers.opt.name.desc",
-    "translation": "Sticker name."
+    "translation": "Klistermärkesnamn."
   },
   {
     "id": "cmd.stickers.opt.description.name",
@@ -769,7 +769,7 @@
   },
   {
     "id": "cmd.stickers.opt.description.desc",
-    "translation": "Sticker description (optional)."
+    "translation": "Klistermärkesbeskrivning (valfritt)."
   },
   {
     "id": "cmd.stickers.opt.emoji_tag.name",
@@ -777,7 +777,7 @@
   },
   {
     "id": "cmd.stickers.opt.emoji_tag.desc",
-    "translation": "Emoji tag (Discord requires this)."
+    "translation": "Emoji-tag (Discord kräver detta)."
   },
   {
     "id": "cmd.stickers.opt.file.name",
@@ -785,7 +785,7 @@
   },
   {
     "id": "cmd.stickers.opt.file.desc",
-    "translation": "Sticker image."
+    "translation": "Klistermärkesbild."
   },
   {
     "id": "admin.not_owner",
@@ -1173,7 +1173,7 @@
   },
   {
     "id": "cmd.timezone.sub.set.desc",
-    "translation": "Set your timezone (IANA, like Europe/Tallinn)."
+    "translation": "Ställ in din tidszon (IANA, t.ex. Europe/Tallinn)."
   },
   {
     "id": "cmd.timezone.sub.show.name",
@@ -1181,7 +1181,7 @@
   },
   {
     "id": "cmd.timezone.sub.show.desc",
-    "translation": "Show your current timezone."
+    "translation": "Visa din nuvarande tidszon."
   },
   {
     "id": "cmd.timezone.sub.clear.name",
@@ -1189,7 +1189,7 @@
   },
   {
     "id": "cmd.timezone.sub.clear.desc",
-    "translation": "Clear your saved timezone."
+    "translation": "Rensa din sparade tidszon."
   },
   {
     "id": "cmd.timezone.opt.iana.name",
@@ -1197,7 +1197,7 @@
   },
   {
     "id": "cmd.timezone.opt.iana.desc",
-    "translation": "Timezone name (e.g. Europe/Tallinn)."
+    "translation": "Tidszonsnamn (t.ex. Europe/Tallinn)."
   },
   {
     "id": "wellness.timezone.invalid",
@@ -1233,7 +1233,7 @@
   },
   {
     "id": "cmd.checkin.opt.mood.desc",
-    "translation": "Your mood: 1 (rough) to 5 (great)."
+    "translation": "Ditt humör: 1 (tufft) till 5 (toppen)."
   },
   {
     "id": "cmd.checkin.opt.history.name",
@@ -1241,7 +1241,7 @@
   },
   {
     "id": "cmd.checkin.opt.history.desc",
-    "translation": "Show your recent check-ins instead of logging a new one."
+    "translation": "Visa dina senaste check-ins istället för att logga en ny."
   },
   {
     "id": "wellness.checkin.prompt",
@@ -1277,7 +1277,7 @@
   },
   {
     "id": "cmd.remind.sub.create.desc",
-    "translation": "Create a new reminder."
+    "translation": "Skapa en ny påminnelse."
   },
   {
     "id": "cmd.remind.sub.list.name",
@@ -1285,7 +1285,7 @@
   },
   {
     "id": "cmd.remind.sub.list.desc",
-    "translation": "List your reminders."
+    "translation": "Lista dina påminnelser."
   },
   {
     "id": "cmd.remind.sub.delete.name",
@@ -1293,7 +1293,7 @@
   },
   {
     "id": "cmd.remind.sub.delete.desc",
-    "translation": "Delete a reminder."
+    "translation": "Radera en påminnelse."
   },
   {
     "id": "cmd.remind.opt.schedule.name",
@@ -1301,7 +1301,7 @@
   },
   {
     "id": "cmd.remind.opt.schedule.desc",
-    "translation": "Cron schedule (e.g. `0 9 * * *`) or `@hourly`."
+    "translation": "Cron-schema (t.ex. `0 9 * * *`) eller `@hourly`."
   },
   {
     "id": "cmd.remind.opt.kind.name",
@@ -1309,7 +1309,7 @@
   },
   {
     "id": "cmd.remind.opt.kind.desc",
-    "translation": "What kind of reminder is it?"
+    "translation": "Vilken typ av påminnelse är det?"
   },
   {
     "id": "cmd.remind.opt.note.name",
@@ -1317,7 +1317,7 @@
   },
   {
     "id": "cmd.remind.opt.note.desc",
-    "translation": "Short note (optional, max 120 chars)."
+    "translation": "Kort anteckning (valfritt, max 120 tecken)."
   },
   {
     "id": "cmd.remind.opt.delivery.name",
@@ -1325,7 +1325,7 @@
   },
   {
     "id": "cmd.remind.opt.delivery.desc",
-    "translation": "Where should Mommy send it? (dm or channel)"
+    "translation": "Var ska mamma skicka den? (dm eller channel)"
   },
   {
     "id": "cmd.remind.opt.channel.name",
@@ -1333,7 +1333,7 @@
   },
   {
     "id": "cmd.remind.opt.channel.desc",
-    "translation": "Which channel? (only if delivery=channel)"
+    "translation": "Vilken kanal? (endast om delivery=channel)"
   },
   {
     "id": "cmd.remind.opt.id.name",
@@ -1341,7 +1341,7 @@
   },
   {
     "id": "cmd.remind.opt.id.desc",
-    "translation": "Reminder ID."
+    "translation": "Påminnelse-ID."
   },
   {
     "id": "wellness.remind.bad_schedule",

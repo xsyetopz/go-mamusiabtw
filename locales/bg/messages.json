@@ -33,7 +33,7 @@
   },
   {
     "id": "cmd.warn.opt.user.desc",
-    "translation": "Who needs the warning?"
+    "translation": "Кой има нужда от предупреждение?"
   },
   {
     "id": "cmd.warn.opt.reason.name",
@@ -41,7 +41,7 @@
   },
   {
     "id": "cmd.warn.opt.reason.desc",
-    "translation": "What happened?"
+    "translation": "Какво се случи?"
   },
   {
     "id": "cmd.unwarn.name",
@@ -57,7 +57,7 @@
   },
   {
     "id": "cmd.unwarn.opt.user.desc",
-    "translation": "Who should be unwarned?"
+    "translation": "На кого да премахна предупреждението?"
   },
   {
     "id": "cmd.block.name",
@@ -73,7 +73,7 @@
   },
   {
     "id": "cmd.block.sub.user.desc",
-    "translation": "Time-out a user from using me."
+    "translation": "Сложи потребител на time-out да не може да ме ползва."
   },
   {
     "id": "cmd.block.sub.guild.name",
@@ -81,7 +81,7 @@
   },
   {
     "id": "cmd.block.sub.guild.desc",
-    "translation": "Time-out a server from using me."
+    "translation": "Сложи сървър на time-out да не може да ме ползва."
   },
   {
     "id": "cmd.block.opt.user.name",
@@ -89,7 +89,7 @@
   },
   {
     "id": "cmd.block.opt.user.desc",
-    "translation": "Which user needs a time-out?"
+    "translation": "Кой потребител има нужда от time-out?"
   },
   {
     "id": "cmd.block.opt.reason.name",
@@ -97,7 +97,7 @@
   },
   {
     "id": "cmd.block.opt.reason.desc",
-    "translation": "Why are they getting a time-out?"
+    "translation": "Защо получава time-out?"
   },
   {
     "id": "cmd.block.opt.guild_id.name",
@@ -105,7 +105,7 @@
   },
   {
     "id": "cmd.block.opt.guild_id.desc",
-    "translation": "Which server (guild ID) needs a time-out?"
+    "translation": "Кой сървър (ID на guild) има нужда от time-out?"
   },
   {
     "id": "cmd.unblock.name",
@@ -121,7 +121,7 @@
   },
   {
     "id": "cmd.unblock.sub.user.desc",
-    "translation": "Let a user use me again."
+    "translation": "Позволи на потребител отново да ме ползва."
   },
   {
     "id": "cmd.unblock.sub.guild.name",
@@ -129,7 +129,7 @@
   },
   {
     "id": "cmd.unblock.sub.guild.desc",
-    "translation": "Let a server use me again."
+    "translation": "Позволи на сървър отново да ме ползва."
   },
   {
     "id": "cmd.unblock.opt.user.name",
@@ -137,7 +137,7 @@
   },
   {
     "id": "cmd.unblock.opt.user.desc",
-    "translation": "Which user should be unblocked?"
+    "translation": "Кой потребител да бъде отблокиран?"
   },
   {
     "id": "cmd.unblock.opt.guild_id.name",
@@ -145,7 +145,7 @@
   },
   {
     "id": "cmd.unblock.opt.guild_id.desc",
-    "translation": "Which server (guild ID) should be unblocked?"
+    "translation": "Кой сървър (ID на guild) да бъде отблокиран?"
   },
   {
     "id": "cmd.plugins.name",
@@ -161,7 +161,7 @@
   },
   {
     "id": "cmd.plugins.sub.list.desc",
-    "translation": "Show which plugins are loaded."
+    "translation": "Покажи кои плъгини са заредени."
   },
   {
     "id": "cmd.plugins.sub.reload.name",
@@ -169,7 +169,7 @@
   },
   {
     "id": "cmd.plugins.sub.reload.desc",
-    "translation": "Reload plugins from disk."
+    "translation": "Презареди плъгините от диска."
   },
   {
     "id": "cmd.about.name",
@@ -193,7 +193,7 @@
   },
   {
     "id": "cmd.lookup.sub.user.desc",
-    "translation": "Look up a user."
+    "translation": "Провери потребител."
   },
   {
     "id": "cmd.lookup.sub.user.opt.user.name",
@@ -201,7 +201,7 @@
   },
   {
     "id": "cmd.lookup.sub.user.opt.user.desc",
-    "translation": "Which user? (Leave empty to look up yourself.)"
+    "translation": "Кой потребител? (Остави празно, за да провериш себе си.)"
   },
   {
     "id": "cmd.lookup.sub.guild.name",
@@ -209,7 +209,7 @@
   },
   {
     "id": "cmd.lookup.sub.guild.desc",
-    "translation": "Look up this server."
+    "translation": "Провери този сървър."
   },
   {
     "id": "cmd.lookup.sub.role.name",
@@ -217,7 +217,7 @@
   },
   {
     "id": "cmd.lookup.sub.role.desc",
-    "translation": "Look up a role."
+    "translation": "Провери роля."
   },
   {
     "id": "cmd.lookup.sub.role.opt.role.name",
@@ -225,7 +225,7 @@
   },
   {
     "id": "cmd.lookup.sub.role.opt.role.desc",
-    "translation": "Which role should Mommy look at?"
+    "translation": "Коя роля да погледне мама?"
   },
   {
     "id": "cmd.lookup.sub.channel.name",
@@ -233,7 +233,7 @@
   },
   {
     "id": "cmd.lookup.sub.channel.desc",
-    "translation": "Look up a channel."
+    "translation": "Провери канал."
   },
   {
     "id": "cmd.lookup.sub.channel.opt.channel.name",
@@ -241,7 +241,7 @@
   },
   {
     "id": "cmd.lookup.sub.channel.opt.channel.desc",
-    "translation": "Which channel should Mommy look at?"
+    "translation": "Кой канал да погледне мама?"
   },
   {
     "id": "info.lookup.user.field.bot",
@@ -361,7 +361,7 @@
   },
   {
     "id": "cmd.roll.opt.number.desc",
-    "translation": "How many dice?"
+    "translation": "Колко зарчета?"
   },
   {
     "id": "cmd.roll.opt.sides.name",
@@ -369,7 +369,7 @@
   },
   {
     "id": "cmd.roll.opt.sides.desc",
-    "translation": "How many sides per die?"
+    "translation": "Колко страни на зар?"
   },
   {
     "id": "cmd.roll.opt.modifier.name",
@@ -377,7 +377,7 @@
   },
   {
     "id": "cmd.roll.opt.modifier.desc",
-    "translation": "Any modifier to add?"
+    "translation": "Да добавя ли модификатор?"
   },
   {
     "id": "cmd.8ball.name",
@@ -393,7 +393,7 @@
   },
   {
     "id": "cmd.8ball.opt.question.desc",
-    "translation": "What do you want to ask?"
+    "translation": "Какво искаш да попиташ?"
   },
   {
     "id": "cmd.hug.name",
@@ -409,7 +409,7 @@
   },
   {
     "id": "cmd.hug.opt.user.desc",
-    "translation": "Who needs a hug?"
+    "translation": "Кой има нужда от прегръдка?"
   },
   {
     "id": "cmd.pat.name",
@@ -425,7 +425,7 @@
   },
   {
     "id": "cmd.pat.opt.user.desc",
-    "translation": "Who's getting the pats?"
+    "translation": "Кого да потупам?"
   },
   {
     "id": "cmd.poke.name",
@@ -441,7 +441,7 @@
   },
   {
     "id": "cmd.poke.opt.user.desc",
-    "translation": "Who are we poking?"
+    "translation": "Кого да побутнем?"
   },
   {
     "id": "cmd.shrug.name",
@@ -457,7 +457,7 @@
   },
   {
     "id": "cmd.shrug.opt.message.desc",
-    "translation": "Anything to add?"
+    "translation": "Искаш ли да добавиш нещо?"
   },
   {
     "id": "cmd.slowmode.name",
@@ -473,7 +473,7 @@
   },
   {
     "id": "cmd.slowmode.opt.channel.desc",
-    "translation": "Which channel needs calming down?"
+    "translation": "Кой канал има нужда да се успокои?"
   },
   {
     "id": "cmd.slowmode.opt.seconds.name",
@@ -481,7 +481,7 @@
   },
   {
     "id": "cmd.slowmode.opt.seconds.desc",
-    "translation": "Seconds between messages (0 to remove)."
+    "translation": "Секунди между съобщенията (0 за премахване)."
   },
   {
     "id": "cmd.nick.name",
@@ -497,7 +497,7 @@
   },
   {
     "id": "cmd.nick.opt.user.desc",
-    "translation": "Whose nickname are we changing?"
+    "translation": "На кого сменяме прякора?"
   },
   {
     "id": "cmd.nick.opt.nickname.name",
@@ -505,7 +505,7 @@
   },
   {
     "id": "cmd.nick.opt.nickname.desc",
-    "translation": "What should Mommy set it to? (Leave empty to reset.)"
+    "translation": "На какво да го сложи мама? (Остави празно за нулиране.)"
   },
   {
     "id": "cmd.purge.name",
@@ -521,7 +521,7 @@
   },
   {
     "id": "cmd.purge.sub.all.desc",
-    "translation": "Delete recent messages."
+    "translation": "Изтрий последните съобщения."
   },
   {
     "id": "cmd.purge.sub.before.name",
@@ -529,7 +529,7 @@
   },
   {
     "id": "cmd.purge.sub.before.desc",
-    "translation": "Delete messages before a message."
+    "translation": "Изтрий съобщенията преди дадено съобщение."
   },
   {
     "id": "cmd.purge.sub.after.name",
@@ -537,7 +537,7 @@
   },
   {
     "id": "cmd.purge.sub.after.desc",
-    "translation": "Delete messages after a message."
+    "translation": "Изтрий съобщенията след дадено съобщение."
   },
   {
     "id": "cmd.purge.sub.around.name",
@@ -545,7 +545,7 @@
   },
   {
     "id": "cmd.purge.sub.around.desc",
-    "translation": "Delete messages around a message."
+    "translation": "Изтрий съобщенията около дадено съобщение."
   },
   {
     "id": "cmd.purge.opt.count.name",
@@ -553,7 +553,7 @@
   },
   {
     "id": "cmd.purge.opt.count.desc",
-    "translation": "How many messages? (Be gentle.)"
+    "translation": "Колко съобщения? (Нежно.)"
   },
   {
     "id": "cmd.purge.opt.message.name",
@@ -561,7 +561,7 @@
   },
   {
     "id": "cmd.purge.opt.message.desc",
-    "translation": "Message ID or message link."
+    "translation": "ID на съобщение или линк към съобщение."
   },
   {
     "id": "cmd.roles.name",
@@ -577,7 +577,7 @@
   },
   {
     "id": "cmd.roles.sub.create.desc",
-    "translation": "Create a new role."
+    "translation": "Създай нова роля."
   },
   {
     "id": "cmd.roles.sub.edit.name",
@@ -585,7 +585,7 @@
   },
   {
     "id": "cmd.roles.sub.edit.desc",
-    "translation": "Edit a role."
+    "translation": "Редактирай роля."
   },
   {
     "id": "cmd.roles.sub.delete.name",
@@ -593,7 +593,7 @@
   },
   {
     "id": "cmd.roles.sub.delete.desc",
-    "translation": "Delete a role."
+    "translation": "Изтрий роля."
   },
   {
     "id": "cmd.roles.sub.add.name",
@@ -601,7 +601,7 @@
   },
   {
     "id": "cmd.roles.sub.add.desc",
-    "translation": "Add a role to a member."
+    "translation": "Добави роля на член."
   },
   {
     "id": "cmd.roles.sub.remove.name",
@@ -609,7 +609,7 @@
   },
   {
     "id": "cmd.roles.sub.remove.desc",
-    "translation": "Remove a role from a member."
+    "translation": "Премахни роля от член."
   },
   {
     "id": "cmd.roles.opt.role.name",
@@ -617,7 +617,7 @@
   },
   {
     "id": "cmd.roles.opt.role.desc",
-    "translation": "Which role?"
+    "translation": "Коя роля?"
   },
   {
     "id": "cmd.roles.opt.member.name",
@@ -625,7 +625,7 @@
   },
   {
     "id": "cmd.roles.opt.member.desc",
-    "translation": "Which member?"
+    "translation": "Кой член?"
   },
   {
     "id": "cmd.roles.opt.name.name",
@@ -633,7 +633,7 @@
   },
   {
     "id": "cmd.roles.opt.name.desc",
-    "translation": "Role name."
+    "translation": "Име на ролята."
   },
   {
     "id": "cmd.roles.opt.colour.name",
@@ -641,7 +641,7 @@
   },
   {
     "id": "cmd.roles.opt.colour.desc",
-    "translation": "Role color (RRGGBB)."
+    "translation": "Цвят на ролята (RRGGBB)."
   },
   {
     "id": "cmd.roles.opt.hoist.name",
@@ -649,7 +649,7 @@
   },
   {
     "id": "cmd.roles.opt.hoist.desc",
-    "translation": "Show separately in the member list?"
+    "translation": "Да се показва отделно в списъка с членове?"
   },
   {
     "id": "cmd.roles.opt.mentionable.name",
@@ -657,7 +657,7 @@
   },
   {
     "id": "cmd.roles.opt.mentionable.desc",
-    "translation": "Allow @mentions?"
+    "translation": "Да разреши @споменавания?"
   },
   {
     "id": "cmd.emojis.name",
@@ -673,7 +673,7 @@
   },
   {
     "id": "cmd.emojis.sub.create.desc",
-    "translation": "Create an emoji."
+    "translation": "Създай емоджи."
   },
   {
     "id": "cmd.emojis.sub.edit.name",
@@ -681,7 +681,7 @@
   },
   {
     "id": "cmd.emojis.sub.edit.desc",
-    "translation": "Rename an emoji."
+    "translation": "Преименувай емоджи."
   },
   {
     "id": "cmd.emojis.sub.delete.name",
@@ -689,7 +689,7 @@
   },
   {
     "id": "cmd.emojis.sub.delete.desc",
-    "translation": "Delete an emoji."
+    "translation": "Изтрий емоджи."
   },
   {
     "id": "cmd.emojis.opt.name.name",
@@ -697,7 +697,7 @@
   },
   {
     "id": "cmd.emojis.opt.name.desc",
-    "translation": "Emoji name."
+    "translation": "Име на емоджито."
   },
   {
     "id": "cmd.emojis.opt.file.name",
@@ -705,7 +705,7 @@
   },
   {
     "id": "cmd.emojis.opt.file.desc",
-    "translation": "Emoji image."
+    "translation": "Изображение за емоджито."
   },
   {
     "id": "cmd.emojis.opt.emoji.name",
@@ -713,7 +713,7 @@
   },
   {
     "id": "cmd.emojis.opt.emoji.desc",
-    "translation": "Emoji mention (<:name:id>) or ID."
+    "translation": "Споменаване на емоджи (<:name:id>) или ID."
   },
   {
     "id": "cmd.stickers.name",
@@ -729,7 +729,7 @@
   },
   {
     "id": "cmd.stickers.sub.create.desc",
-    "translation": "Create a sticker."
+    "translation": "Създай стикер."
   },
   {
     "id": "cmd.stickers.sub.edit.name",
@@ -737,7 +737,7 @@
   },
   {
     "id": "cmd.stickers.sub.edit.desc",
-    "translation": "Edit a sticker."
+    "translation": "Редактирай стикер."
   },
   {
     "id": "cmd.stickers.sub.delete.name",
@@ -745,7 +745,7 @@
   },
   {
     "id": "cmd.stickers.sub.delete.desc",
-    "translation": "Delete a sticker."
+    "translation": "Изтрий стикер."
   },
   {
     "id": "cmd.stickers.opt.id.name",
@@ -753,7 +753,7 @@
   },
   {
     "id": "cmd.stickers.opt.id.desc",
-    "translation": "Sticker ID or sticker link."
+    "translation": "ID на стикера или линк към стикер."
   },
   {
     "id": "cmd.stickers.opt.name.name",
@@ -761,7 +761,7 @@
   },
   {
     "id": "cmd.stickers.opt.name.desc",
-    "translation": "Sticker name."
+    "translation": "Име на стикера."
   },
   {
     "id": "cmd.stickers.opt.description.name",
@@ -769,7 +769,7 @@
   },
   {
     "id": "cmd.stickers.opt.description.desc",
-    "translation": "Sticker description (optional)."
+    "translation": "Описание на стикера (по избор)."
   },
   {
     "id": "cmd.stickers.opt.emoji_tag.name",
@@ -777,7 +777,7 @@
   },
   {
     "id": "cmd.stickers.opt.emoji_tag.desc",
-    "translation": "Emoji tag (Discord requires this)."
+    "translation": "Емоджи таг (Discord го изисква)."
   },
   {
     "id": "cmd.stickers.opt.file.name",
@@ -785,7 +785,7 @@
   },
   {
     "id": "cmd.stickers.opt.file.desc",
-    "translation": "Sticker image."
+    "translation": "Изображение за стикера."
   },
   {
     "id": "admin.not_owner",
@@ -1173,7 +1173,7 @@
   },
   {
     "id": "cmd.timezone.sub.set.desc",
-    "translation": "Set your timezone (IANA, like Europe/Tallinn)."
+    "translation": "Задай твоята часова зона (IANA, напр. Europe/Tallinn)."
   },
   {
     "id": "cmd.timezone.sub.show.name",
@@ -1181,7 +1181,7 @@
   },
   {
     "id": "cmd.timezone.sub.show.desc",
-    "translation": "Show your current timezone."
+    "translation": "Покажи текущата ти часова зона."
   },
   {
     "id": "cmd.timezone.sub.clear.name",
@@ -1189,7 +1189,7 @@
   },
   {
     "id": "cmd.timezone.sub.clear.desc",
-    "translation": "Clear your saved timezone."
+    "translation": "Изчисти запазената ти часова зона."
   },
   {
     "id": "cmd.timezone.opt.iana.name",
@@ -1197,7 +1197,7 @@
   },
   {
     "id": "cmd.timezone.opt.iana.desc",
-    "translation": "Timezone name (e.g. Europe/Tallinn)."
+    "translation": "Име на часова зона (напр. Europe/Tallinn)."
   },
   {
     "id": "wellness.timezone.invalid",
@@ -1233,7 +1233,7 @@
   },
   {
     "id": "cmd.checkin.opt.mood.desc",
-    "translation": "Your mood: 1 (rough) to 5 (great)."
+    "translation": "Настроението ти: 1 (трудно) до 5 (страхотно)."
   },
   {
     "id": "cmd.checkin.opt.history.name",
@@ -1241,7 +1241,7 @@
   },
   {
     "id": "cmd.checkin.opt.history.desc",
-    "translation": "Show your recent check-ins instead of logging a new one."
+    "translation": "Покажи последните ти check-in-и вместо да записваш нов."
   },
   {
     "id": "wellness.checkin.prompt",
@@ -1277,7 +1277,7 @@
   },
   {
     "id": "cmd.remind.sub.create.desc",
-    "translation": "Create a new reminder."
+    "translation": "Създай ново напомняне."
   },
   {
     "id": "cmd.remind.sub.list.name",
@@ -1285,7 +1285,7 @@
   },
   {
     "id": "cmd.remind.sub.list.desc",
-    "translation": "List your reminders."
+    "translation": "Покажи напомнянията ти."
   },
   {
     "id": "cmd.remind.sub.delete.name",
@@ -1293,7 +1293,7 @@
   },
   {
     "id": "cmd.remind.sub.delete.desc",
-    "translation": "Delete a reminder."
+    "translation": "Изтрий напомняне."
   },
   {
     "id": "cmd.remind.opt.schedule.name",
@@ -1301,7 +1301,7 @@
   },
   {
     "id": "cmd.remind.opt.schedule.desc",
-    "translation": "Cron schedule (e.g. `0 9 * * *`) or `@hourly`."
+    "translation": "Cron график (напр. `0 9 * * *`) или `@hourly`."
   },
   {
     "id": "cmd.remind.opt.kind.name",
@@ -1309,7 +1309,7 @@
   },
   {
     "id": "cmd.remind.opt.kind.desc",
-    "translation": "What kind of reminder is it?"
+    "translation": "Какъв тип напомняне е?"
   },
   {
     "id": "cmd.remind.opt.note.name",
@@ -1317,7 +1317,7 @@
   },
   {
     "id": "cmd.remind.opt.note.desc",
-    "translation": "Short note (optional, max 120 chars)."
+    "translation": "Кратка бележка (по избор, макс 120 знака)."
   },
   {
     "id": "cmd.remind.opt.delivery.name",
@@ -1325,7 +1325,7 @@
   },
   {
     "id": "cmd.remind.opt.delivery.desc",
-    "translation": "Where should Mommy send it? (dm or channel)"
+    "translation": "Къде да го изпрати мама? (dm или channel)"
   },
   {
     "id": "cmd.remind.opt.channel.name",
@@ -1333,7 +1333,7 @@
   },
   {
     "id": "cmd.remind.opt.channel.desc",
-    "translation": "Which channel? (only if delivery=channel)"
+    "translation": "Кой канал? (само ако delivery=channel)"
   },
   {
     "id": "cmd.remind.opt.id.name",
@@ -1341,7 +1341,7 @@
   },
   {
     "id": "cmd.remind.opt.id.desc",
-    "translation": "Reminder ID."
+    "translation": "ID на напомнянето."
   },
   {
     "id": "wellness.remind.bad_schedule",

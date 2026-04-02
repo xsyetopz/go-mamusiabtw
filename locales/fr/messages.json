@@ -213,7 +213,7 @@
   },
   {
     "id": "cmd.lookup.sub.role.name",
-    "translation": "rôle"
+    "translation": "role"
   },
   {
     "id": "cmd.lookup.sub.role.desc",
@@ -221,7 +221,7 @@
   },
   {
     "id": "cmd.lookup.sub.role.opt.role.name",
-    "translation": "rôle"
+    "translation": "role"
   },
   {
     "id": "cmd.lookup.sub.role.opt.role.desc",
@@ -565,7 +565,7 @@
   },
   {
     "id": "cmd.roles.name",
-    "translation": "rôles"
+    "translation": "roles"
   },
   {
     "id": "cmd.roles.desc",
@@ -613,7 +613,7 @@
   },
   {
     "id": "cmd.roles.opt.role.name",
-    "translation": "rôle"
+    "translation": "role"
   },
   {
     "id": "cmd.roles.opt.role.desc",
