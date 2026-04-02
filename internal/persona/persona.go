@@ -20,6 +20,12 @@ func Mommy(locale discord.Locale) string {
 	if code == "es-419" {
 		return "mami"
 	}
+	if code == "de" {
+		return "Mama"
+	}
+	if code == "fr" {
+		return "Maman"
+	}
 	if code == "ru" || code == "uk" {
 		return "мама"
 	}

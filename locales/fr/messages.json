@@ -1,1 +1,1418 @@
-[]
+[
+  {
+    "id": "cmd.ping.name",
+    "translation": "ping"
+  },
+  {
+    "id": "cmd.ping.desc",
+    "translation": "Petit check - vérifier que Maman est réveillée et qu'elle veille sur tout le monde."
+  },
+  {
+    "id": "cmd.help.name",
+    "translation": "help"
+  },
+  {
+    "id": "cmd.help.desc",
+    "translation": "Voir ce que Maman peut faire pour toi."
+  },
+  {
+    "id": "cmd.help.content",
+    "translation": "Tiens, {{.Pet}} - {{.Mommy}} peut t'aider avec: {{.Commands}}"
+  },
+  {
+    "id": "cmd.warn.name",
+    "translation": "warn"
+  },
+  {
+    "id": "cmd.warn.desc",
+    "translation": "Donner à quelqu'un un avertissement doux (et un court time-out si besoin)."
+  },
+  {
+    "id": "cmd.warn.opt.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.warn.opt.user.desc",
+    "translation": "Qui doit être averti ?"
+  },
+  {
+    "id": "cmd.warn.opt.reason.name",
+    "translation": "reason"
+  },
+  {
+    "id": "cmd.warn.opt.reason.desc",
+    "translation": "Qu'est-ce qui s'est passe ?"
+  },
+  {
+    "id": "cmd.unwarn.name",
+    "translation": "unwarn"
+  },
+  {
+    "id": "cmd.unwarn.desc",
+    "translation": "Retirer un avertissement et lui laisser une seconde chance."
+  },
+  {
+    "id": "cmd.unwarn.opt.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.unwarn.opt.user.desc",
+    "translation": "A qui retirer l'avertissement ?"
+  },
+  {
+    "id": "cmd.block.name",
+    "translation": "block"
+  },
+  {
+    "id": "cmd.block.desc",
+    "translation": "Mettre un utilisateur ou un serveur en time-out (ils ne pourront plus m'utiliser)."
+  },
+  {
+    "id": "cmd.block.sub.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.block.sub.user.desc",
+    "translation": "Mettre un utilisateur en time-out (il ne pourra plus m'utiliser)."
+  },
+  {
+    "id": "cmd.block.sub.guild.name",
+    "translation": "guild"
+  },
+  {
+    "id": "cmd.block.sub.guild.desc",
+    "translation": "Mettre un serveur en time-out (il ne pourra plus m'utiliser)."
+  },
+  {
+    "id": "cmd.block.opt.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.block.opt.user.desc",
+    "translation": "Quel utilisateur mettre en time-out ?"
+  },
+  {
+    "id": "cmd.block.opt.reason.name",
+    "translation": "reason"
+  },
+  {
+    "id": "cmd.block.opt.reason.desc",
+    "translation": "Pourquoi ce time-out ?"
+  },
+  {
+    "id": "cmd.block.opt.guild_id.name",
+    "translation": "guild_id"
+  },
+  {
+    "id": "cmd.block.opt.guild_id.desc",
+    "translation": "ID du serveur à mettre en time-out."
+  },
+  {
+    "id": "cmd.unblock.name",
+    "translation": "unblock"
+  },
+  {
+    "id": "cmd.unblock.desc",
+    "translation": "Lever un time-out."
+  },
+  {
+    "id": "cmd.unblock.sub.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.unblock.sub.user.desc",
+    "translation": "Laisser un utilisateur m'utiliser de nouveau."
+  },
+  {
+    "id": "cmd.unblock.sub.guild.name",
+    "translation": "guild"
+  },
+  {
+    "id": "cmd.unblock.sub.guild.desc",
+    "translation": "Laisser un serveur m'utiliser de nouveau."
+  },
+  {
+    "id": "cmd.unblock.opt.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.unblock.opt.user.desc",
+    "translation": "Quel utilisateur debloquer ?"
+  },
+  {
+    "id": "cmd.unblock.opt.guild_id.name",
+    "translation": "guild_id"
+  },
+  {
+    "id": "cmd.unblock.opt.guild_id.desc",
+    "translation": "ID du serveur à debloquer."
+  },
+  {
+    "id": "cmd.plugins.name",
+    "translation": "plugins"
+  },
+  {
+    "id": "cmd.plugins.desc",
+    "translation": "Gérer mes plugins."
+  },
+  {
+    "id": "cmd.plugins.sub.list.name",
+    "translation": "list"
+  },
+  {
+    "id": "cmd.plugins.sub.list.desc",
+    "translation": "Afficher les plugins charges."
+  },
+  {
+    "id": "cmd.plugins.sub.reload.name",
+    "translation": "reload"
+  },
+  {
+    "id": "cmd.plugins.sub.reload.desc",
+    "translation": "Recharger les plugins depuis le disque."
+  },
+  {
+    "id": "cmd.about.name",
+    "translation": "about"
+  },
+  {
+    "id": "cmd.about.desc",
+    "translation": "Voir qui je suis (et quelle version je tourne)."
+  },
+  {
+    "id": "cmd.lookup.name",
+    "translation": "lookup"
+  },
+  {
+    "id": "cmd.lookup.desc",
+    "translation": "Rechercher des infos sur des utilisateurs, serveurs, rôles et canaux."
+  },
+  {
+    "id": "cmd.lookup.sub.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.lookup.sub.user.desc",
+    "translation": "Rechercher un utilisateur."
+  },
+  {
+    "id": "cmd.lookup.sub.user.opt.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.lookup.sub.user.opt.user.desc",
+    "translation": "Quel utilisateur ? (Laisse vide pour toi.)"
+  },
+  {
+    "id": "cmd.lookup.sub.guild.name",
+    "translation": "guild"
+  },
+  {
+    "id": "cmd.lookup.sub.guild.desc",
+    "translation": "Rechercher ce serveur."
+  },
+  {
+    "id": "cmd.lookup.sub.role.name",
+    "translation": "rôle"
+  },
+  {
+    "id": "cmd.lookup.sub.role.desc",
+    "translation": "Rechercher un rôle."
+  },
+  {
+    "id": "cmd.lookup.sub.role.opt.role.name",
+    "translation": "rôle"
+  },
+  {
+    "id": "cmd.lookup.sub.role.opt.role.desc",
+    "translation": "Quel rôle regarder ?"
+  },
+  {
+    "id": "cmd.lookup.sub.channel.name",
+    "translation": "channel"
+  },
+  {
+    "id": "cmd.lookup.sub.channel.desc",
+    "translation": "Rechercher un canal."
+  },
+  {
+    "id": "cmd.lookup.sub.channel.opt.channel.name",
+    "translation": "channel"
+  },
+  {
+    "id": "cmd.lookup.sub.channel.opt.channel.desc",
+    "translation": "Quel canal regarder ?"
+  },
+  {
+    "id": "info.lookup.user.field.bot",
+    "translation": "🤖 Bot"
+  },
+  {
+    "id": "info.lookup.user.field.system",
+    "translation": "🖥️ Système"
+  },
+  {
+    "id": "info.lookup.user.field.locale",
+    "translation": "🌐 Langue"
+  },
+  {
+    "id": "info.lookup.user.field.created",
+    "translation": "📅 Créé"
+  },
+  {
+    "id": "info.lookup.user.field.joined",
+    "translation": "📥 A rejoint"
+  },
+  {
+    "id": "info.lookup.user.field.roles",
+    "translation": "🛡️ Rôles"
+  },
+  {
+    "id": "info.lookup.guild.field.roles",
+    "translation": "🛡️ Rôles"
+  },
+  {
+    "id": "info.lookup.guild.field.emojis",
+    "translation": "😃 Emojis"
+  },
+  {
+    "id": "info.lookup.guild.field.stickers",
+    "translation": "🖼️ Stickers"
+  },
+  {
+    "id": "info.lookup.guild.field.members",
+    "translation": "👥 Membres"
+  },
+  {
+    "id": "info.lookup.guild.field.channels",
+    "translation": "🌐 Canaux"
+  },
+  {
+    "id": "info.lookup.guild.field.created",
+    "translation": "📅 Créé"
+  },
+  {
+    "id": "info.lookup.role.field.mention",
+    "translation": "🏷️ Mention"
+  },
+  {
+    "id": "info.lookup.role.field.position",
+    "translation": "📌 Position"
+  },
+  {
+    "id": "info.lookup.role.field.hoist",
+    "translation": "📌 Séparer"
+  },
+  {
+    "id": "info.lookup.role.field.mentionable",
+    "translation": "🔔 Mentionnable"
+  },
+  {
+    "id": "info.lookup.role.field.managed",
+    "translation": "🤖 Géré"
+  },
+  {
+    "id": "info.lookup.role.field.permissions",
+    "translation": "🔐 Permissions"
+  },
+  {
+    "id": "info.lookup.role.field.created",
+    "translation": "📅 Créé"
+  },
+  {
+    "id": "info.lookup.channel.field.mention",
+    "translation": "🔗 Mention"
+  },
+  {
+    "id": "info.lookup.channel.field.type",
+    "translation": "📁 Type"
+  },
+  {
+    "id": "info.lookup.channel.field.parent",
+    "translation": "🗂️ Catégorie"
+  },
+  {
+    "id": "info.lookup.channel.field.permissions",
+    "translation": "🔐 Permissions"
+  },
+  {
+    "id": "info.lookup.channel.field.created",
+    "translation": "📅 Créé"
+  },
+  {
+    "id": "cmd.flip.name",
+    "translation": "flip"
+  },
+  {
+    "id": "cmd.flip.desc",
+    "translation": "Lancer une pièce."
+  },
+  {
+    "id": "cmd.roll.name",
+    "translation": "roll"
+  },
+  {
+    "id": "cmd.roll.desc",
+    "translation": "Lancer des dés."
+  },
+  {
+    "id": "cmd.roll.opt.number.name",
+    "translation": "number"
+  },
+  {
+    "id": "cmd.roll.opt.number.desc",
+    "translation": "Combien de des ?"
+  },
+  {
+    "id": "cmd.roll.opt.sides.name",
+    "translation": "sides"
+  },
+  {
+    "id": "cmd.roll.opt.sides.desc",
+    "translation": "Combien de faces par de ?"
+  },
+  {
+    "id": "cmd.roll.opt.modifier.name",
+    "translation": "modifier"
+  },
+  {
+    "id": "cmd.roll.opt.modifier.desc",
+    "translation": "Un modificateur à ajouter ?"
+  },
+  {
+    "id": "cmd.8ball.name",
+    "translation": "8ball"
+  },
+  {
+    "id": "cmd.8ball.desc",
+    "translation": "Demander à la boule magique 8."
+  },
+  {
+    "id": "cmd.8ball.opt.question.name",
+    "translation": "question"
+  },
+  {
+    "id": "cmd.8ball.opt.question.desc",
+    "translation": "Quelle question ?"
+  },
+  {
+    "id": "cmd.hug.name",
+    "translation": "hug"
+  },
+  {
+    "id": "cmd.hug.desc",
+    "translation": "Faire un calin."
+  },
+  {
+    "id": "cmd.hug.opt.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.hug.opt.user.desc",
+    "translation": "A qui faire un calin ?"
+  },
+  {
+    "id": "cmd.pat.name",
+    "translation": "pat"
+  },
+  {
+    "id": "cmd.pat.desc",
+    "translation": "Tapoter doucement."
+  },
+  {
+    "id": "cmd.pat.opt.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.pat.opt.user.desc",
+    "translation": "Qui tapoter ?"
+  },
+  {
+    "id": "cmd.poke.name",
+    "translation": "poke"
+  },
+  {
+    "id": "cmd.poke.desc",
+    "translation": "Pousser du doigt (doucement)."
+  },
+  {
+    "id": "cmd.poke.opt.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.poke.opt.user.desc",
+    "translation": "Qui pousser ?"
+  },
+  {
+    "id": "cmd.shrug.name",
+    "translation": "shrug"
+  },
+  {
+    "id": "cmd.shrug.desc",
+    "translation": "Hausser les épaules."
+  },
+  {
+    "id": "cmd.shrug.opt.message.name",
+    "translation": "message"
+  },
+  {
+    "id": "cmd.shrug.opt.message.desc",
+    "translation": "Quelque chose à ajouter ?"
+  },
+  {
+    "id": "cmd.slowmode.name",
+    "translation": "slowmode"
+  },
+  {
+    "id": "cmd.slowmode.desc",
+    "translation": "Activer ou modifier le slowmode d'un canal."
+  },
+  {
+    "id": "cmd.slowmode.opt.channel.name",
+    "translation": "channel"
+  },
+  {
+    "id": "cmd.slowmode.opt.channel.desc",
+    "translation": "Quel canal ?"
+  },
+  {
+    "id": "cmd.slowmode.opt.seconds.name",
+    "translation": "seconds"
+  },
+  {
+    "id": "cmd.slowmode.opt.seconds.desc",
+    "translation": "Secondes entre messages (0 pour retirer)."
+  },
+  {
+    "id": "cmd.nick.name",
+    "translation": "nick"
+  },
+  {
+    "id": "cmd.nick.desc",
+    "translation": "Changer le surnom d'un membre."
+  },
+  {
+    "id": "cmd.nick.opt.user.name",
+    "translation": "user"
+  },
+  {
+    "id": "cmd.nick.opt.user.desc",
+    "translation": "Quel membre ?"
+  },
+  {
+    "id": "cmd.nick.opt.nickname.name",
+    "translation": "nickname"
+  },
+  {
+    "id": "cmd.nick.opt.nickname.desc",
+    "translation": "Nouveau surnom (vide pour réinitialiser)."
+  },
+  {
+    "id": "cmd.purge.name",
+    "translation": "purge"
+  },
+  {
+    "id": "cmd.purge.desc",
+    "translation": "Nettoyer des messages dans un canal."
+  },
+  {
+    "id": "cmd.purge.sub.all.name",
+    "translation": "all"
+  },
+  {
+    "id": "cmd.purge.sub.all.desc",
+    "translation": "Supprimer les messages recents."
+  },
+  {
+    "id": "cmd.purge.sub.before.name",
+    "translation": "before"
+  },
+  {
+    "id": "cmd.purge.sub.before.desc",
+    "translation": "Supprimer les messages avant un message."
+  },
+  {
+    "id": "cmd.purge.sub.after.name",
+    "translation": "after"
+  },
+  {
+    "id": "cmd.purge.sub.after.desc",
+    "translation": "Supprimer les messages apres un message."
+  },
+  {
+    "id": "cmd.purge.sub.around.name",
+    "translation": "around"
+  },
+  {
+    "id": "cmd.purge.sub.around.desc",
+    "translation": "Supprimer les messages autour d'un message."
+  },
+  {
+    "id": "cmd.purge.opt.count.name",
+    "translation": "count"
+  },
+  {
+    "id": "cmd.purge.opt.count.desc",
+    "translation": "Combien de messages ? (Doucement.)"
+  },
+  {
+    "id": "cmd.purge.opt.message.name",
+    "translation": "message"
+  },
+  {
+    "id": "cmd.purge.opt.message.desc",
+    "translation": "ID du message ou lien du message."
+  },
+  {
+    "id": "cmd.roles.name",
+    "translation": "rôles"
+  },
+  {
+    "id": "cmd.roles.desc",
+    "translation": "Gérer les rôles."
+  },
+  {
+    "id": "cmd.roles.sub.create.name",
+    "translation": "create"
+  },
+  {
+    "id": "cmd.roles.sub.create.desc",
+    "translation": "Créér un rôle."
+  },
+  {
+    "id": "cmd.roles.sub.edit.name",
+    "translation": "edit"
+  },
+  {
+    "id": "cmd.roles.sub.edit.desc",
+    "translation": "Modifier un rôle."
+  },
+  {
+    "id": "cmd.roles.sub.delete.name",
+    "translation": "delete"
+  },
+  {
+    "id": "cmd.roles.sub.delete.desc",
+    "translation": "Supprimer un rôle."
+  },
+  {
+    "id": "cmd.roles.sub.add.name",
+    "translation": "add"
+  },
+  {
+    "id": "cmd.roles.sub.add.desc",
+    "translation": "Ajouter un rôle à un membre."
+  },
+  {
+    "id": "cmd.roles.sub.remove.name",
+    "translation": "remove"
+  },
+  {
+    "id": "cmd.roles.sub.remove.desc",
+    "translation": "Retirer un rôle à un membre."
+  },
+  {
+    "id": "cmd.roles.opt.role.name",
+    "translation": "rôle"
+  },
+  {
+    "id": "cmd.roles.opt.role.desc",
+    "translation": "Quel rôle ?"
+  },
+  {
+    "id": "cmd.roles.opt.member.name",
+    "translation": "member"
+  },
+  {
+    "id": "cmd.roles.opt.member.desc",
+    "translation": "Quel membre ?"
+  },
+  {
+    "id": "cmd.roles.opt.name.name",
+    "translation": "name"
+  },
+  {
+    "id": "cmd.roles.opt.name.desc",
+    "translation": "Nom du rôle."
+  },
+  {
+    "id": "cmd.roles.opt.colour.name",
+    "translation": "colour"
+  },
+  {
+    "id": "cmd.roles.opt.colour.desc",
+    "translation": "Couleur du rôle (RRGGBB)."
+  },
+  {
+    "id": "cmd.roles.opt.hoist.name",
+    "translation": "hoist"
+  },
+  {
+    "id": "cmd.roles.opt.hoist.desc",
+    "translation": "Afficher séparément dans la liste des membres ?"
+  },
+  {
+    "id": "cmd.roles.opt.mentionable.name",
+    "translation": "mentionable"
+  },
+  {
+    "id": "cmd.roles.opt.mentionable.desc",
+    "translation": "Autoriser les @mentions ?"
+  },
+  {
+    "id": "cmd.emojis.name",
+    "translation": "emojis"
+  },
+  {
+    "id": "cmd.emojis.desc",
+    "translation": "Gérer les emojis."
+  },
+  {
+    "id": "cmd.emojis.sub.create.name",
+    "translation": "create"
+  },
+  {
+    "id": "cmd.emojis.sub.create.desc",
+    "translation": "Créér un emoji."
+  },
+  {
+    "id": "cmd.emojis.sub.edit.name",
+    "translation": "edit"
+  },
+  {
+    "id": "cmd.emojis.sub.edit.desc",
+    "translation": "Renommer un emoji."
+  },
+  {
+    "id": "cmd.emojis.sub.delete.name",
+    "translation": "delete"
+  },
+  {
+    "id": "cmd.emojis.sub.delete.desc",
+    "translation": "Supprimer un emoji."
+  },
+  {
+    "id": "cmd.emojis.opt.name.name",
+    "translation": "name"
+  },
+  {
+    "id": "cmd.emojis.opt.name.desc",
+    "translation": "Nom de l'emoji."
+  },
+  {
+    "id": "cmd.emojis.opt.file.name",
+    "translation": "file"
+  },
+  {
+    "id": "cmd.emojis.opt.file.desc",
+    "translation": "Image de l'emoji."
+  },
+  {
+    "id": "cmd.emojis.opt.emoji.name",
+    "translation": "emoji"
+  },
+  {
+    "id": "cmd.emojis.opt.emoji.desc",
+    "translation": "Mention de l'emoji (<:name:id>) ou ID."
+  },
+  {
+    "id": "cmd.stickers.name",
+    "translation": "stickers"
+  },
+  {
+    "id": "cmd.stickers.desc",
+    "translation": "Gérer les stickers."
+  },
+  {
+    "id": "cmd.stickers.sub.create.name",
+    "translation": "create"
+  },
+  {
+    "id": "cmd.stickers.sub.create.desc",
+    "translation": "Créér un sticker."
+  },
+  {
+    "id": "cmd.stickers.sub.edit.name",
+    "translation": "edit"
+  },
+  {
+    "id": "cmd.stickers.sub.edit.desc",
+    "translation": "Modifier un sticker."
+  },
+  {
+    "id": "cmd.stickers.sub.delete.name",
+    "translation": "delete"
+  },
+  {
+    "id": "cmd.stickers.sub.delete.desc",
+    "translation": "Supprimer un sticker."
+  },
+  {
+    "id": "cmd.stickers.opt.id.name",
+    "translation": "id"
+  },
+  {
+    "id": "cmd.stickers.opt.id.desc",
+    "translation": "ID du sticker ou lien du sticker."
+  },
+  {
+    "id": "cmd.stickers.opt.name.name",
+    "translation": "name"
+  },
+  {
+    "id": "cmd.stickers.opt.name.desc",
+    "translation": "Nom du sticker."
+  },
+  {
+    "id": "cmd.stickers.opt.description.name",
+    "translation": "description"
+  },
+  {
+    "id": "cmd.stickers.opt.description.desc",
+    "translation": "Description du sticker (optionnel)."
+  },
+  {
+    "id": "cmd.stickers.opt.emoji_tag.name",
+    "translation": "emoji_tag"
+  },
+  {
+    "id": "cmd.stickers.opt.emoji_tag.desc",
+    "translation": "Tag emoji (Discord l'exige)."
+  },
+  {
+    "id": "cmd.stickers.opt.file.name",
+    "translation": "file"
+  },
+  {
+    "id": "cmd.stickers.opt.file.desc",
+    "translation": "Image du sticker."
+  },
+  {
+    "id": "admin.not_owner",
+    "translation": "Non. Seul le propriétaire de {{.Mommy}} peut utiliser ça."
+  },
+  {
+    "id": "admin.block.user.success",
+    "translation": "D'accord, {{.Pet}}. {{.User}} est en time-out et ne peut plus m'utiliser."
+  },
+  {
+    "id": "admin.block.guild.invalid",
+    "translation": "{{.Pet}}, cet ID de serveur à l'air incorrect: `{{.GuildID}}`."
+  },
+  {
+    "id": "admin.block.guild.success",
+    "translation": "D'accord, {{.Pet}}. Le serveur `{{.GuildID}}` est en time-out et ne peut plus m'utiliser."
+  },
+  {
+    "id": "admin.unblock.user.success",
+    "translation": "Voila, {{.Pet}}. {{.User}} peut m'utiliser à nouveau."
+  },
+  {
+    "id": "admin.unblock.guild.invalid",
+    "translation": "{{.Pet}}, cet ID de serveur à l'air incorrect: `{{.GuildID}}`."
+  },
+  {
+    "id": "admin.unblock.guild.success",
+    "translation": "D'accord, {{.Pet}}. Le serveur `{{.GuildID}}` peut m'utiliser à nouveau."
+  },
+  {
+    "id": "admin.plugins.not_configured",
+    "translation": "{{.Pet}}, les plugins ne sont pas correctement configures pour le moment."
+  },
+  {
+    "id": "admin.plugins.none",
+    "translation": "Aucun plugin charge, {{.Pet}}."
+  },
+  {
+    "id": "admin.plugins.list",
+    "translation": "Voici mes plugins charges, {{.Pet}} ({{.Count}}):\n{{.List}}"
+  },
+  {
+    "id": "admin.plugins.reloaded",
+    "translation": "Tout est rafraichi, {{.Pet}}."
+  },
+  {
+    "id": "mod.warn.self",
+    "translation": "Pas toi, {{.Pet}}. {{.Mommy}} veut aussi te proteger."
+  },
+  {
+    "id": "mod.warn.bot",
+    "translation": "{{.Mommy}} ne prévient pas les bots ni les comptes système, {{.Pet}}."
+  },
+  {
+    "id": "mod.warn.too_many",
+    "translation": "Ca suffit pour l'instant, {{.Pet}}. {{.User}} à deja atteint la limite d'avertissements."
+  },
+  {
+    "id": "mod.warn.success",
+    "translation": "D'accord, {{.Pet}}. J'ai note un avertissement pour {{.User}}: `{{.Reason}}`.{{if .TimeoutMinutes}} Je l'ai aussi mis en time-out pour {{.TimeoutMinutes}} minutes.{{end}}{{if .TimeoutFailed}} J'ai essaye de le mettre en time-out aussi, mais je n'ai pas pu.{{end}}"
+  },
+  {
+    "id": "mod.warn.dm",
+    "translation": "Coucou {{.Pet}}. {{.Mommy}} a besoin que tu ralentisses et que tu sois plus gentil. Raison: `{{.Reason}}`.{{if .TimeoutMinutes}} Time-out {{.TimeoutMinutes}} minutes pour te calmer.{{end}}"
+  },
+  {
+    "id": "mod.unwarn.self",
+    "translation": "Pas toi, {{.Pet}}."
+  },
+  {
+    "id": "mod.unwarn.none",
+    "translation": "Je n'ai trouve aucun avertissement pour {{.User}}, {{.Pet}}."
+  },
+  {
+    "id": "mod.unwarn.prompt",
+    "translation": "Quel avertissement {{.Mommy}} doit retirer, {{.Pet}} ?"
+  },
+  {
+    "id": "mod.unwarn.placeholder",
+    "translation": "Choisis-en un..."
+  },
+  {
+    "id": "mod.unwarn.expired",
+    "translation": "Cette selection à expire, {{.Pet}}. Relance `/unwarn`."
+  },
+  {
+    "id": "mod.unwarn.success",
+    "translation": "C'est bon, {{.Pet}}. {{.User}} repart à zero."
+  },
+  {
+    "id": "info.about.title",
+    "translation": "imotherbtw {{.Version}}"
+  },
+  {
+    "id": "info.lookup.user.error",
+    "translation": "{{.Pet}}, {{.Mommy}} n'a pas pu recuperer les infos de cet utilisateur."
+  },
+  {
+    "id": "info.lookup.guild.error",
+    "translation": "{{.Pet}}, {{.Mommy}} n'a pas pu recuperer les infos de ce serveur."
+  },
+  {
+    "id": "fun.flip.result",
+    "translation": ":coin: Pile ou face, {{.Pet}} ? {{.User}} a lancé et c'est tombé sur `{{.Result}}`."
+  },
+  {
+    "id": "fun.roll.invalid_sides",
+    "translation": "Ce de n'est pas pris en charge, {{.Pet}}: `{{.Sides}}`. Essaie 4, 6, 8, 10, 12 ou 20."
+  },
+  {
+    "id": "fun.roll.result",
+    "translation": ":game_die: {{.Pet}}, {{.User}} a lancé `{{.Notation}}` et à fait `{{.Total}}`."
+  },
+  {
+    "id": "fun.8ball.question_error",
+    "translation": "Ca ne ressemble pas à une question ouverte, {{.Pet}}: `{{.Question}}`"
+  },
+  {
+    "id": "fun.8ball.result",
+    "translation": ":8ball: {{.Answer}}, {{.Pet}}."
+  },
+  {
+    "id": "fun.kawaii.footer",
+    "translation": "Powered by Kawaii API"
+  },
+  {
+    "id": "fun.kawaii.error",
+    "translation": "{{.Mommy}} n'a pas pu recuperer un GIF, {{.Pet}}."
+  },
+  {
+    "id": "fun.kawaii.self_error",
+    "translation": "Pas toi-meme, {{.Pet}}."
+  },
+  {
+    "id": "fun.kawaii.user_mention_only",
+    "translation": "{{.Emoji}} {{.User}}"
+  },
+  {
+    "id": "mgr.slowmode.set",
+    "translation": "D'accord, {{.Pet}}. {{.Channel}} est en slowmode: `{{.Seconds}}s`."
+  },
+  {
+    "id": "mgr.slowmode.removed",
+    "translation": "Voila, {{.Pet}}. Le slowmode est desactive pour {{.Channel}}."
+  },
+  {
+    "id": "mgr.slowmode.error",
+    "translation": "{{.Mommy}} n'a pas pu modifier le slowmode, {{.Pet}}."
+  },
+  {
+    "id": "mgr.nick.self_error",
+    "translation": "Je ne peux pas changer ton propre surnom, {{.Pet}}."
+  },
+  {
+    "id": "mgr.nick.set",
+    "translation": "D'accord, {{.Pet}}. {{.User}} est maintenant `{{.Nickname}}`."
+  },
+  {
+    "id": "mgr.nick.reset",
+    "translation": "D'accord, {{.Pet}}. J'ai réinitialise le surnom de {{.User}}."
+  },
+  {
+    "id": "mgr.nick.error",
+    "translation": "{{.Mommy}} n'a pas pu modifier le surnom de {{.User}}, {{.Pet}}."
+  },
+  {
+    "id": "mgr.purge.invalid_message",
+    "translation": "Ca ne ressemble pas à un ID/lien de message valide, {{.Pet}}."
+  },
+  {
+    "id": "mgr.purge.success",
+    "translation": "C'est tout propre, {{.Pet}}. `{{.Count}}` message(s) supprime(s)."
+  },
+  {
+    "id": "mgr.purge.error",
+    "translation": "{{.Mommy}} n'a pas pu supprimer ces messages, {{.Pet}}."
+  },
+  {
+    "id": "mgr.roles.invalid_colour",
+    "translation": "Cette couleur n'est pas correcte, {{.Pet}}: `{{.Colour}}` (RRGGBB)."
+  },
+  {
+    "id": "mgr.roles.cannot_edit_everyone",
+    "translation": "Pas touche à `@everyone`, {{.Pet}}."
+  },
+  {
+    "id": "mgr.roles.cannot_delete_everyone",
+    "translation": "Pas touche à `@everyone`, {{.Pet}}."
+  },
+  {
+    "id": "mgr.roles.create_success",
+    "translation": "C'est bon, {{.Pet}}. {{.Role}} a été créé."
+  },
+  {
+    "id": "mgr.roles.create_error",
+    "translation": "{{.Mommy}} n'a pas pu creer `@{{.Name}}`, {{.Pet}}."
+  },
+  {
+    "id": "mgr.roles.edit_success",
+    "translation": "C'est bon, {{.Pet}}. {{.Role}} a été mis à jour."
+  },
+  {
+    "id": "mgr.roles.edit_error",
+    "translation": "{{.Mommy}} n'a pas pu modifier {{.Role}}, {{.Pet}}."
+  },
+  {
+    "id": "mgr.roles.delete_success",
+    "translation": "D'accord, {{.Pet}}. `@{{.Name}}` a été supprimé."
+  },
+  {
+    "id": "mgr.roles.delete_error",
+    "translation": "{{.Mommy}} n'a pas pu supprimer {{.Role}}, {{.Pet}}."
+  },
+  {
+    "id": "mgr.roles.add_success",
+    "translation": "C'est bon, {{.Pet}}. {{.User}} a maintenant {{.Role}}."
+  },
+  {
+    "id": "mgr.roles.add_error",
+    "translation": "{{.Mommy}} n'a pas pu ajouter {{.Role}} à {{.User}}, {{.Pet}}."
+  },
+  {
+    "id": "mgr.roles.remove_success",
+    "translation": "C'est bon, {{.Pet}}. {{.Role}} a été retiré de {{.User}}."
+  },
+  {
+    "id": "mgr.roles.remove_error",
+    "translation": "{{.Mommy}} n'a pas pu retirer {{.Role}} de {{.User}}, {{.Pet}}."
+  },
+  {
+    "id": "mgr.emojis.file_missing",
+    "translation": "J'ai besoin d'un fichier en pièce jointe, {{.Pet}}."
+  },
+  {
+    "id": "mgr.emojis.file_too_large",
+    "translation": "Ce fichier est trop gros, {{.Pet}} ({{.Size}} bytes; max {{.Max}})."
+  },
+  {
+    "id": "mgr.emojis.bad_extension",
+    "translation": "Cette extension ne marche pas pour un emoji, {{.Pet}}: `{{.Ext}}`."
+  },
+  {
+    "id": "mgr.emojis.too_many",
+    "translation": "Ce serveur est deja au maximum d'emojis, {{.Pet}} (max `{{.Max}}`)."
+  },
+  {
+    "id": "mgr.emojis.download_error",
+    "translation": "{{.Mommy}} ne peut telecharger que depuis le CDN de Discord, {{.Pet}}."
+  },
+  {
+    "id": "mgr.emojis.dimensions_error",
+    "translation": "Je n'ai pas pu lire la taille de l'image, {{.Pet}}."
+  },
+  {
+    "id": "mgr.emojis.too_large_dims",
+    "translation": "Cette image est trop grande pour un emoji, {{.Pet}}: `{{.Width}}x{{.Height}}`."
+  },
+  {
+    "id": "mgr.emojis.bad_image",
+    "translation": "Ce type d'image n'est pas pris en charge, {{.Pet}}."
+  },
+  {
+    "id": "mgr.emojis.invalid_emoji",
+    "translation": "Ca ne ressemble pas à un emoji valide, {{.Pet}}: `{{.Emoji}}`."
+  },
+  {
+    "id": "mgr.emojis.create_success",
+    "translation": "Mignon ! {{.Pet}}, `:{{.Name}}:` est cree."
+  },
+  {
+    "id": "mgr.emojis.create_error",
+    "translation": "{{.Mommy}} n'a pas pu creer `:{{.Name}}:`, {{.Pet}}."
+  },
+  {
+    "id": "mgr.emojis.edit_success",
+    "translation": "D'accord, {{.Pet}}. Renomme en `{{.Name}}`."
+  },
+  {
+    "id": "mgr.emojis.edit_error",
+    "translation": "{{.Mommy}} n'a pas pu renommer cet emoji, {{.Pet}}."
+  },
+  {
+    "id": "mgr.emojis.delete_success",
+    "translation": "D'accord, {{.Pet}}. Emoji supprime."
+  },
+  {
+    "id": "mgr.emojis.delete_error",
+    "translation": "{{.Mommy}} n'a pas pu supprimer cet emoji, {{.Pet}}."
+  },
+  {
+    "id": "mgr.stickers.file_missing",
+    "translation": "J'ai besoin d'un fichier en pièce jointe, {{.Pet}}."
+  },
+  {
+    "id": "mgr.stickers.tags_missing",
+    "translation": "Discord veut un tag emoji, {{.Pet}}."
+  },
+  {
+    "id": "mgr.stickers.file_too_large",
+    "translation": "Ce fichier est trop gros, {{.Pet}} ({{.Size}} bytes; max {{.Max}})."
+  },
+  {
+    "id": "mgr.stickers.bad_extension",
+    "translation": "Cette extension ne marche pas pour un sticker, {{.Pet}}: `{{.Ext}}`."
+  },
+  {
+    "id": "mgr.stickers.too_many",
+    "translation": "Ce serveur est deja au maximum de stickers, {{.Pet}} (max `{{.Max}}`)."
+  },
+  {
+    "id": "mgr.stickers.download_error",
+    "translation": "{{.Mommy}} ne peut telecharger que depuis le CDN de Discord, {{.Pet}}."
+  },
+  {
+    "id": "mgr.stickers.dimensions_error",
+    "translation": "Je n'ai pas pu lire la taille de l'image, {{.Pet}}."
+  },
+  {
+    "id": "mgr.stickers.too_large_dims",
+    "translation": "Cette image est trop grande pour un sticker, {{.Pet}}: `{{.Width}}x{{.Height}}`."
+  },
+  {
+    "id": "mgr.stickers.invalid_id",
+    "translation": "Cet ID/lien de sticker à l'air incorrect, {{.Pet}}: `{{.ID}}`."
+  },
+  {
+    "id": "mgr.stickers.create_success",
+    "translation": "C'est bon, {{.Pet}}. `{{.Name}}` a été créé."
+  },
+  {
+    "id": "mgr.stickers.create_error",
+    "translation": "{{.Mommy}} n'a pas pu creer `{{.Name}}`, {{.Pet}}."
+  },
+  {
+    "id": "mgr.stickers.edit_success",
+    "translation": "C'est bon, {{.Pet}}. `{{.Name}}` a été mis à jour."
+  },
+  {
+    "id": "mgr.stickers.edit_error",
+    "translation": "{{.Mommy}} n'a pas pu modifier ce sticker, {{.Pet}}."
+  },
+  {
+    "id": "mgr.stickers.delete_success",
+    "translation": "D'accord, {{.Pet}}. Sticker supprime."
+  },
+  {
+    "id": "mgr.stickers.delete_error",
+    "translation": "{{.Mommy}} n'a pas pu supprimer ce sticker, {{.Pet}}."
+  },
+  {
+    "id": "ok.pong",
+    "translation": "Pong, mon coeur. Je suis la."
+  },
+  {
+    "id": "err.generic",
+    "translation": "Oh non, {{.Pet}}... {{.Mommy}} à fait une betise. Réessaie dans un instant, d'accord ?"
+  },
+  {
+    "id": "err.cooldown",
+    "translation": "Doucement, {{.Pet}}. Respire. Réessaie dans {{.Seconds}}s."
+  },
+  {
+    "id": "err.not_in_guild",
+    "translation": "Ca ne marche que sur un serveur, {{.Pet}}."
+  },
+  {
+    "id": "err.restricted",
+    "translation": "Non, {{.Pet}}. Tu es en time-out et tu ne peux pas m'utiliser pour l'instant."
+  },
+  {
+    "id": "err.restricted_links",
+    "translation": "Non, {{.Pet}}. Tu es en time-out et tu ne peux pas m'utiliser pour l'instant.\nSi tu penses que c'est une erreur, contacte:\nDéveloppeur: {{.DeveloperURL}}\nSupport: {{.SupportServerURL}}"
+  },
+  {
+    "id": "cmd.timezone.name",
+    "translation": "timezone"
+  },
+  {
+    "id": "cmd.timezone.desc",
+    "translation": "Règle ton fuseau horaire pour que les rappels de Maman tombent au bon moment."
+  },
+  {
+    "id": "cmd.timezone.sub.set.name",
+    "translation": "set"
+  },
+  {
+    "id": "cmd.timezone.sub.set.desc",
+    "translation": "Définir ton fuseau horaire (IANA, ex: Europe/Tallinn)."
+  },
+  {
+    "id": "cmd.timezone.sub.show.name",
+    "translation": "show"
+  },
+  {
+    "id": "cmd.timezone.sub.show.desc",
+    "translation": "Afficher ton fuseau horaire actuel."
+  },
+  {
+    "id": "cmd.timezone.sub.clear.name",
+    "translation": "clear"
+  },
+  {
+    "id": "cmd.timezone.sub.clear.desc",
+    "translation": "Effacer ton fuseau horaire enregistre."
+  },
+  {
+    "id": "cmd.timezone.opt.iana.name",
+    "translation": "iana"
+  },
+  {
+    "id": "cmd.timezone.opt.iana.desc",
+    "translation": "Nom du fuseau horaire (ex: Europe/Tallinn)."
+  },
+  {
+    "id": "wellness.timezone.invalid",
+    "translation": "Hmm, {{.Pet}}... Je ne reconnais pas ce fuseau horaire: `{{.Timezone}}`."
+  },
+  {
+    "id": "wellness.timezone.set",
+    "translation": "D'accord, {{.Pet}}. J'utiliserai `{{.Timezone}}` pour tes rappels."
+  },
+  {
+    "id": "wellness.timezone.unset",
+    "translation": "Tu n'as pas encore defini de fuseau horaire, {{.Pet}}. Utilise `/timezone set`."
+  },
+  {
+    "id": "wellness.timezone.show",
+    "translation": "Pour l'instant tu es sur `{{.Timezone}}`, {{.Pet}}."
+  },
+  {
+    "id": "wellness.timezone.cleared",
+    "translation": "C'est efface, {{.Pet}}."
+  },
+  {
+    "id": "cmd.checkin.name",
+    "translation": "checkin"
+  },
+  {
+    "id": "cmd.checkin.desc",
+    "translation": "Dis à Maman comment tu vas aujourd'hui."
+  },
+  {
+    "id": "cmd.checkin.opt.mood.name",
+    "translation": "mood"
+  },
+  {
+    "id": "cmd.checkin.opt.mood.desc",
+    "translation": "Ton humeur: 1 (dur) à 5 (super)."
+  },
+  {
+    "id": "cmd.checkin.opt.history.name",
+    "translation": "history"
+  },
+  {
+    "id": "cmd.checkin.opt.history.desc",
+    "translation": "Afficher tes derniers check-ins au lieu d'en enregistrer un nouveau."
+  },
+  {
+    "id": "wellness.checkin.prompt",
+    "translation": "Donne à {{.Mommy}} un nombre de 1 à 5, {{.Pet}}... ou mets `history=true` pour voir tes derniers check-ins."
+  },
+  {
+    "id": "wellness.checkin.invalid_mood",
+    "translation": "Ca doit être 1..5, {{.Pet}}."
+  },
+  {
+    "id": "wellness.checkin.saved",
+    "translation": "Merci, {{.Pet}}. J'ai enregistre `{{.Mood}}/5`."
+  },
+  {
+    "id": "wellness.checkin.history.empty",
+    "translation": "Pas de check-ins pour l'instant, {{.Pet}}. Commencer petit, c'est courageux."
+  },
+  {
+    "id": "wellness.checkin.history",
+    "translation": "Voici tes derniers check-ins, {{.Pet}}:\n{{.Lines}}"
+  },
+  {
+    "id": "cmd.remind.name",
+    "translation": "remind"
+  },
+  {
+    "id": "cmd.remind.desc",
+    "translation": "Définir des rappels doux (Maman te fera un petit rappel)."
+  },
+  {
+    "id": "cmd.remind.sub.create.name",
+    "translation": "create"
+  },
+  {
+    "id": "cmd.remind.sub.create.desc",
+    "translation": "Créér un rappel."
+  },
+  {
+    "id": "cmd.remind.sub.list.name",
+    "translation": "list"
+  },
+  {
+    "id": "cmd.remind.sub.list.desc",
+    "translation": "Lister tes rappels."
+  },
+  {
+    "id": "cmd.remind.sub.delete.name",
+    "translation": "delete"
+  },
+  {
+    "id": "cmd.remind.sub.delete.desc",
+    "translation": "Supprimer un rappel."
+  },
+  {
+    "id": "cmd.remind.opt.schedule.name",
+    "translation": "schedule"
+  },
+  {
+    "id": "cmd.remind.opt.schedule.desc",
+    "translation": "Cron (ex: `0 9 * * *`) ou `@hourly`."
+  },
+  {
+    "id": "cmd.remind.opt.kind.name",
+    "translation": "kind"
+  },
+  {
+    "id": "cmd.remind.opt.kind.desc",
+    "translation": "Quel type de rappel ?"
+  },
+  {
+    "id": "cmd.remind.opt.note.name",
+    "translation": "note"
+  },
+  {
+    "id": "cmd.remind.opt.note.desc",
+    "translation": "Petite note (optionnel, max 120 caracteres)."
+  },
+  {
+    "id": "cmd.remind.opt.delivery.name",
+    "translation": "delivery"
+  },
+  {
+    "id": "cmd.remind.opt.delivery.desc",
+    "translation": "Ou l'envoyer ? (dm ou channel)"
+  },
+  {
+    "id": "cmd.remind.opt.channel.name",
+    "translation": "channel"
+  },
+  {
+    "id": "cmd.remind.opt.channel.desc",
+    "translation": "Quel canal ? (seulement si delivery=channel)"
+  },
+  {
+    "id": "cmd.remind.opt.id.name",
+    "translation": "id"
+  },
+  {
+    "id": "cmd.remind.opt.id.desc",
+    "translation": "ID du rappel."
+  },
+  {
+    "id": "wellness.remind.bad_schedule",
+    "translation": "Ce planning n'a pas l'air bon, {{.Pet}}: `{{.Schedule}}`."
+  },
+  {
+    "id": "wellness.remind.channel_required",
+    "translation": "Si tu choisis l'envoi en canal, choisis aussi un canal, {{.Pet}}."
+  },
+  {
+    "id": "wellness.remind.created",
+    "translation": "C'est bon, {{.Pet}}. Je te rappellerai à {{.NextRun}} - `{{.ID}}` ({{.Kind}}, {{.Delivery}})."
+  },
+  {
+    "id": "wellness.remind.list.empty",
+    "translation": "Pas de rappels pour l'instant, {{.Pet}}. Utilise `/remind create`."
+  },
+  {
+    "id": "wellness.remind.list",
+    "translation": "Voici tes rappels, {{.Pet}}:\n{{.Lines}}"
+  },
+  {
+    "id": "wellness.remind.delete.placeholder",
+    "translation": "Choisis un rappel..."
+  },
+  {
+    "id": "wellness.remind.delete.prompt",
+    "translation": "Quel rappel {{.Mommy}} doit supprimer, {{.Pet}} ?"
+  },
+  {
+    "id": "wellness.remind.delete.expired",
+    "translation": "Ce menu à expire, {{.Pet}}. Relance `/remind delete`."
+  },
+  {
+    "id": "wellness.remind.delete.not_owner",
+    "translation": "Pas touche, {{.Pet}}. Ce n'est pas à toi."
+  },
+  {
+    "id": "wellness.remind.delete.not_found",
+    "translation": "Je n'ai pas trouve ce rappel, {{.Pet}}."
+  },
+  {
+    "id": "wellness.remind.delete.success",
+    "translation": "Supprime. Bien joue, {{.Pet}}."
+  },
+  {
+    "id": "wellness.reminder.fire",
+    "translation": "Coucou {{.Pet}}. Rappel doux: {{.Kind}}.{{if .Note}} {{.Note}}{{end}}"
+  },
+  {
+    "id": "wellness.reminder.kind.hydrate",
+    "translation": "boire un peu d'eau"
+  },
+  {
+    "id": "wellness.reminder.kind.stretch",
+    "translation": "faire un petit étirement"
+  },
+  {
+    "id": "wellness.reminder.kind.breathe",
+    "translation": "respirer lentement"
+  },
+  {
+    "id": "wellness.reminder.kind.meds",
+    "translation": "prendre tes medicaments"
+  },
+  {
+    "id": "wellness.reminder.kind.sleep",
+    "translation": "te préparer à dormir"
+  },
+  {
+    "id": "wellness.reminder.kind.checkin",
+    "translation": "faire un petit check-in"
+  }
+]
