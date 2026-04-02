@@ -2,10 +2,11 @@
   "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
   "runtime.version": "Lua 5.1",
   "workspace.library": [
-    "./plugins/mamusiabtw_api.lua"
+    "./sdk/lua/bot_api.lua"
   ],
   "workspace.checkThirdParty": false,
   "diagnostics.globals": [
+    "bot",
     "mamusiabtw"
   ]
 }

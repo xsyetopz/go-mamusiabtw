@@ -175,7 +175,7 @@ func TestShippedSchemaURLs(t *testing.T) {
 		want string
 	}{
 		{path: "config/permissions.json", key: "$schema", want: schemaBaseURL + "permissions.schema.v1.json"},
-		{path: "plugins/example/plugin.json", key: "$schema", want: schemaBaseURL + "plugin.schema.v1.json"},
+		{path: "examples/plugins/example/plugin.json", key: "$schema", want: schemaBaseURL + "plugin.schema.v1.json"},
 		{path: "schemas/messages.schema.v1.json", key: "$id", want: schemaBaseURL + "messages.schema.v1.json"},
 		{path: "schemas/permissions.schema.v1.json", key: "$id", want: schemaBaseURL + "permissions.schema.v1.json"},
 		{path: "schemas/plugin.schema.v1.json", key: "$id", want: schemaBaseURL + "plugin.schema.v1.json"},
@@ -209,6 +209,58 @@ func TestShippedSchemaURLs(t *testing.T) {
 				t.Fatalf("unexpected %s in %s: got %q want %q", tc.key, tc.path, got, tc.want)
 			}
 		})
+	}
+}
+
+func TestAuthoringAssetsLayout(t *testing.T) {
+	t.Parallel()
+
+	repoRoot := filepath.Clean(filepath.Join("..", ".."))
+
+	luarcPath := filepath.Join(repoRoot, ".luarc.json")
+	luarcBytes, err := os.ReadFile(luarcPath)
+	if err != nil {
+		t.Fatalf("ReadFile(%q): %v", luarcPath, err)
+	}
+
+	var luarc map[string]any
+	if err := json.Unmarshal(luarcBytes, &luarc); err != nil {
+		t.Fatalf("json.Unmarshal(%q): %v", luarcPath, err)
+	}
+
+	libraryEntries, ok := luarc["workspace.library"].([]any)
+	if !ok {
+		t.Fatalf("workspace.library missing or invalid in %s", luarcPath)
+	}
+
+	var hasBotAPI bool
+	for _, entry := range libraryEntries {
+		pathValue, ok := entry.(string)
+		if !ok || pathValue != "./sdk/lua/bot_api.lua" {
+			continue
+		}
+		hasBotAPI = true
+
+		fullPath := filepath.Join(repoRoot, pathValue)
+		if _, err := os.Stat(fullPath); err != nil {
+			t.Fatalf("Stat(%q): %v", fullPath, err)
+		}
+	}
+	if !hasBotAPI {
+		t.Fatalf("workspace.library does not include ./sdk/lua/bot_api.lua")
+	}
+
+	for _, relPath := range []string{
+		"examples/plugins/example/plugin.json",
+		"examples/plugins/example/plugin.lua",
+		"examples/plugins/example/lib/counter.lua",
+		"examples/plugins/example/locales/en-US/messages.json",
+		"examples/plugins/example/locales/en-GB/messages.json",
+	} {
+		fullPath := filepath.Join(repoRoot, relPath)
+		if _, err := os.Stat(fullPath); err != nil {
+			t.Fatalf("Stat(%q): %v", fullPath, err)
+		}
 	}
 }
 

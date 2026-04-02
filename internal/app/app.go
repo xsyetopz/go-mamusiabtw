@@ -6,7 +6,7 @@ import (
 	"log/slog"
 
 	"github.com/xsyetopz/go-mamusiabtw/internal/config"
-	"github.com/xsyetopz/go-mamusiabtw/internal/discordapp"
+	discordplatform "github.com/xsyetopz/go-mamusiabtw/internal/platform/discord"
 	"github.com/xsyetopz/go-mamusiabtw/internal/i18n"
 	"github.com/xsyetopz/go-mamusiabtw/internal/migrate"
 	"github.com/xsyetopz/go-mamusiabtw/internal/sqlite"
@@ -24,7 +24,7 @@ type App struct {
 
 	store *sqlitestore.Store
 	i18n  i18n.Registry
-	bot   *discordapp.Bot
+	bot   *discordplatform.Bot
 }
 
 func New(deps Dependencies) (*App, error) {
@@ -117,10 +117,10 @@ func (a *App) initDiscordBot() error {
 		return errors.New("store must be initialized before discord bot")
 	}
 
-	bot, err := discordapp.New(discordapp.Dependencies{
+	bot, err := discordplatform.New(discordplatform.Dependencies{
 		Logger: a.logger,
 		Token:  a.cfg.DiscordToken,
-		Kawaii: discordapp.KawaiiConfig{Token: a.cfg.KawaiiToken},
+		Kawaii: discordplatform.KawaiiConfig{Token: a.cfg.KawaiiToken},
 
 		Owners:                   a.cfg.OwnerUserID,
 		DevGuildID:               a.cfg.DevGuildID,

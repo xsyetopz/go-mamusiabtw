@@ -43,7 +43,8 @@ The direct-binary flow and the Docker flow use the same env vars and the same `c
 Plugins live under `plugins/<plugin>/` with:
 
 - `plugin.json` (manifest)
-- `plugin.lua` (script)
+- `plugin.lua` (entrypoint; returns a plugin descriptor table)
+- `lib/*.lua` (optional local modules loaded via `bot.require("lib/foo.lua")`)
 - `locales/<locale>/messages.json` (optional plugin i18n)
 
 Plugins are sandboxed: no filesystem or network access. Any plugin capability must be both:
@@ -51,9 +52,9 @@ Plugins are sandboxed: no filesystem or network access. Any plugin capability mu
 1) requested in `plugin.json`, and
 2) granted by the host in `config/permissions.json` (default `MAMUSIABTW_PERMISSIONS_FILE`).
 
-The host injects a global `mamusiabtw` table into plugin scripts (see `plugins/mamusiabtw_api.lua:1` for the editor stub).
+The host injects a namespaced global `bot` into plugin scripts (see `sdk/lua/bot_api.lua:1` for the editor stub). A flat `mamusiabtw` alias remains for older plugins, but new plugins should use `bot`.
 
-The repo ships a minimal example plugin in `plugins/example` which exposes `/example`.
+The repo ships a minimal example plugin in `examples/plugins/example` which exposes `/example`.
 
 ### JSON Schemas
 
@@ -66,24 +67,48 @@ For editor validation/autocomplete, these JSON files support a `$schema` URL (Ra
 
 `locales/<locale>/messages.json` is a JSON array, so it can’t embed `$schema`, but the repo ships `schemas/messages.schema.v1.json`.
 
+### Plugin Authoring Model
+
+Plugins are authored as `route + context + effect`:
+
+- `plugin.lua` returns `bot.plugin({ ... })`
+- commands, components, modals, events, and jobs are declared in that descriptor
+- route handlers receive a typed `ctx` table instead of raw hidden keys
+- handlers return effects using `bot.ui.*` or `bot.effects.*`
+
+Minimal shape:
+
+```lua
+return bot.plugin({
+  commands = {
+    bot.command("hello", {
+      description = "Say hi",
+      run = function(ctx)
+        return bot.ui.reply({ content = "hi" })
+      end
+    })
+  }
+})
+```
+
 ### Plugin Localization
 
 If a plugin has `plugins/<id>/locales/<locale>/messages.json`, the host loads it and exposes:
 
-- `mamusiabtw.t(message_id, data?, plural_count?)` inside Lua handlers.
-- `commands[].description_id` in `plugin.json` to localize slash command descriptions.
+- `bot.i18n.t(message_id, data?, plural_count?)` inside Lua handlers.
+- `description_id` in descriptor-defined commands/options/subcommands/groups to localize slash command descriptions.
 
 Locale folders must use official Discord locale codes (the same ones shipped under `./locales/`, like `en-US`, `fr`, `ja`, `zh-CN`)... anything else is ignored.~
 
 ### Plugin Entry Points
 
-Plugins can implement:
+Plugins can declare route tables in the descriptor:
 
-- `Handle(cmd, ctx)` (required for slash commands)
-- `HandleComponent(id, ctx)` (optional; message components)
-- `HandleModal(id, ctx)` (optional; modal submits)
-- `HandleEvent(event_name, ctx)` (optional; gateway events)
-- `HandleJob(job_id, ctx)` (optional; scheduled triggers)
+- `commands = { bot.command(...), ... }`
+- `components = { ["local_id"] = function(ctx) ... end }`
+- `modals = { ["local_id"] = function(ctx) ... end }`
+- `events = { ["guild_member_join"] = function(ctx) ... end }`
+- `jobs = { bot.job(...), ... }`
 
 Supported event names:
 
@@ -105,7 +130,7 @@ Handlers may return either:
   - `{ type="modal", id=..., title=..., components={...text inputs...} }`
   - `{ present={ kind=..., title=..., body=..., fields=... }, ephemeral=true|false }`
 
-For a full schema reference, see the LuaLS type stubs in `plugins/mamusiabtw_api.lua:1`.
+For a full schema and SDK reference, see the LuaLS type stubs in `sdk/lua/bot_api.lua:1`.
 
 Plugin responses are validated against Discord limits (content lengths, embed limits, component limits). Invalid responses are rejected.
 
