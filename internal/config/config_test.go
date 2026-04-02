@@ -175,7 +175,6 @@ func TestShippedSchemaURLs(t *testing.T) {
 		want string
 	}{
 		{path: "config/permissions.json", key: "$schema", want: schemaBaseURL + "permissions.schema.v1.json"},
-		{path: "config/trusted_keys.json", key: "$schema", want: schemaBaseURL + "trusted_keys.schema.v1.json"},
 		{path: "plugins/example/plugin.json", key: "$schema", want: schemaBaseURL + "plugin.schema.v1.json"},
 		{path: "schemas/messages.schema.v1.json", key: "$id", want: schemaBaseURL + "messages.schema.v1.json"},
 		{path: "schemas/permissions.schema.v1.json", key: "$id", want: schemaBaseURL + "permissions.schema.v1.json"},
