@@ -25,6 +25,8 @@ func Mommy(locale discord.Locale) string {
 		mommyCro    = "mama"
 		mommyHindi  = "मम्मी"
 		mommyHung   = "anya"
+		mommyGreek  = "μανούλα"
+		mommyPTBR   = "mamãe"
 
 		mommySpanishES = "mamá"
 		mommyCyrillic  = "мама"
@@ -38,6 +40,8 @@ func Mommy(locale discord.Locale) string {
 	// Keep the persona fixed, but allow minor locale-adjacent wording.
 	code := strings.ToLower(strings.TrimSpace(locale.Code()))
 	switch code {
+	case "da":
+		return mommyMamma
 	case "en-gb":
 		return mommyMummy
 	case "es-es":
@@ -50,6 +54,8 @@ func Mommy(locale discord.Locale) string {
 		return mommyFrench
 	case "cs":
 		return mommyCzech
+	case "pt-br":
+		return mommyPTBR
 	case "pl", "nl", "id":
 		return mommyMama
 	case "hr":
@@ -64,6 +70,8 @@ func Mommy(locale discord.Locale) string {
 		return mommyHindi
 	case "hu":
 		return mommyHung
+	case "el":
+		return mommyGreek
 	case "bg", "ru", "uk":
 		return mommyCyrillic
 	case "vi":
