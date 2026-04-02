@@ -8,85 +8,76 @@ import (
 	"github.com/disgoorg/disgo/discord"
 )
 
+const (
+	mommyDefault = "mommy"
+
+	mommyMummy  = "mummy"
+	mommyMama   = "mama"
+	mommyMamma  = "mamma"
+	mommyMami   = "mami"
+	mommyGerman = "Mama"
+	mommyFrench = "Maman"
+	mommyCzech  = "máma"
+	mommyFinn   = "äiti"
+	mommyViet   = "mẹ"
+	mommyLith   = "mamytė"
+	mommyCro    = "mama"
+	mommyHindi  = "मम्मी"
+	mommyHung   = "anya"
+	mommyGreek  = "μανούλα"
+	mommyPTBR   = "mamãe"
+	mommyThai   = "มามี้"
+	mommyTurk   = "annecik"
+
+	mommySpanishES = "mamá"
+	mommyCyrillic  = "мама"
+
+	mommyJapanese = "ママ"
+	mommyKorean   = "엄마"
+	mommyZHCN     = "妈妈"
+	mommyZHTW     = "媽咪"
+)
+
 func Mommy(locale discord.Locale) string {
-	const (
-		mommyDefault = "mommy"
-
-		mommyMummy  = "mummy"
-		mommyMama   = "mama"
-		mommyMamma  = "mamma"
-		mommyMami   = "mami"
-		mommyGerman = "Mama"
-		mommyFrench = "Maman"
-		mommyCzech  = "máma"
-		mommyFinn   = "äiti"
-		mommyViet   = "mẹ"
-		mommyLith   = "mamytė"
-		mommyCro    = "mama"
-		mommyHindi  = "मम्मी"
-		mommyHung   = "anya"
-		mommyGreek  = "μανούλα"
-		mommyPTBR   = "mamãe"
-
-		mommySpanishES = "mamá"
-		mommyCyrillic  = "мама"
-
-		mommyJapanese = "ママ"
-		mommyKorean   = "엄마"
-		mommyZHCN     = "妈妈"
-		mommyZHTW     = "媽咪"
-	)
-
 	// Keep the persona fixed, but allow minor locale-adjacent wording.
 	code := strings.ToLower(strings.TrimSpace(locale.Code()))
-	switch code {
-	case "da":
-		return mommyMamma
-	case "en-gb":
-		return mommyMummy
-	case "es-es":
-		return mommySpanishES
-	case "es-419":
-		return mommyMami
-	case "de":
-		return mommyGerman
-	case "fr":
-		return mommyFrench
-	case "cs":
-		return mommyCzech
-	case "pt-br":
-		return mommyPTBR
-	case "pl", "nl", "id":
-		return mommyMama
-	case "hr":
-		return mommyCro
-	case "it", "sv-se", "no":
-		return mommyMamma
-	case "fi":
-		return mommyFinn
-	case "lt":
-		return mommyLith
-	case "hi":
-		return mommyHindi
-	case "hu":
-		return mommyHung
-	case "el":
-		return mommyGreek
-	case "bg", "ru", "uk":
-		return mommyCyrillic
-	case "vi":
-		return mommyViet
-	case "ja":
-		return mommyJapanese
-	case "ko":
-		return mommyKorean
-	case "zh-cn":
-		return mommyZHCN
-	case "zh-tw":
-		return mommyZHTW
-	default:
-		return mommyDefault
+	mommyByLocale := map[string]string{
+		"bg":     mommyCyrillic,
+		"cs":     mommyCzech,
+		"da":     mommyMamma,
+		"de":     mommyGerman,
+		"el":     mommyGreek,
+		"en-gb":  mommyMummy,
+		"es-419": mommyMami,
+		"es-es":  mommySpanishES,
+		"fi":     mommyFinn,
+		"fr":     mommyFrench,
+		"hi":     mommyHindi,
+		"hr":     mommyCro,
+		"hu":     mommyHung,
+		"id":     mommyMama,
+		"it":     mommyMamma,
+		"ja":     mommyJapanese,
+		"ko":     mommyKorean,
+		"lt":     mommyLith,
+		"nl":     mommyMama,
+		"no":     mommyMamma,
+		"pl":     mommyMama,
+		"pt-br":  mommyPTBR,
+		"ro":     mommyMama,
+		"ru":     mommyCyrillic,
+		"sv-se":  mommyMamma,
+		"th":     mommyThai,
+		"tr":     mommyTurk,
+		"uk":     mommyCyrillic,
+		"vi":     mommyViet,
+		"zh-cn":  mommyZHCN,
+		"zh-tw":  mommyZHTW,
 	}
+	if v, ok := mommyByLocale[code]; ok {
+		return v
+	}
+	return mommyDefault
 }
 
 func PetName(locale discord.Locale, userID uint64, messageID string) string {
