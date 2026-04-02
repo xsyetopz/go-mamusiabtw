@@ -257,8 +257,14 @@
 ---@field int fun(min: integer, max: integer): integer
 ---@field choice fun(list: any[]): any
 
----@class MamusiaBtwKawaiiAPI
----@field gif fun(endpoint: 'hug'|'pat'|'poke'|'shrug'): string
+---@class MamusiaBtwHTTPResponse
+---@field status integer
+---@field body string
+---@field headers table<string, string>
+
+---@class MamusiaBtwHTTPAPI
+---@field get fun(spec: { url: string, headers?: table<string, string>, max_bytes?: integer }): MamusiaBtwHTTPResponse
+---@field get_json fun(spec: { url: string, headers?: table<string, string>, max_bytes?: integer }): any
 
 ---@class MamusiaBtwAPI
 ---@field log MamusiaBtwLogAPI
@@ -268,7 +274,7 @@
 ---@field ui MamusiaBtwUIAPI
 ---@field effects MamusiaBtwEffectsAPI
 ---@field random MamusiaBtwRandomAPI
----@field kawaii MamusiaBtwKawaiiAPI
+---@field http MamusiaBtwHTTPAPI
 ---@field plugin fun(spec: MamusiaBtwPluginDefinition): MamusiaBtwPluginDefinition
 ---@field command fun(name: string, spec: table): MamusiaBtwCommandRoute
 ---@field job fun(id: string, spec: table): MamusiaBtwJobRoute

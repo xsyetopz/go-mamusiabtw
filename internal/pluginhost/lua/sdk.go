@@ -9,8 +9,6 @@ import (
 	"strings"
 
 	lua "github.com/yuin/gopher-lua"
-
-	"github.com/xsyetopz/go-mamusiabtw/internal/integrations/kawaii"
 )
 
 func (v *VM) luaPlugin(l *lua.LState) int {
@@ -171,41 +169,6 @@ func (v *VM) luaRandomChoice(l *lua.LState) int {
 		return 0
 	}
 	l.Push(list.RawGetInt(index))
-	return 1
-}
-
-func (v *VM) luaKawaiiGIF(l *lua.LState) int {
-	if !v.perms.Integrations.Kawaii {
-		l.RaiseError("permission denied: integrations.kawaii")
-		return 0
-	}
-	if v.kawaii == nil {
-		l.RaiseError("kawaii unavailable")
-		return 0
-	}
-
-	rawEndpoint := strings.ToLower(strings.TrimSpace(l.CheckString(1)))
-	var endpoint kawaii.Endpoint
-	switch rawEndpoint {
-	case string(kawaii.EndpointHug):
-		endpoint = kawaii.EndpointHug
-	case string(kawaii.EndpointPat):
-		endpoint = kawaii.EndpointPat
-	case string(kawaii.EndpointPoke):
-		endpoint = kawaii.EndpointPoke
-	case string(kawaii.EndpointShrug):
-		endpoint = kawaii.EndpointShrug
-	default:
-		l.RaiseError("unsupported kawaii endpoint")
-		return 0
-	}
-
-	gifURL, err := v.kawaii.FetchGIF(v.ctx(), endpoint)
-	if err != nil {
-		l.RaiseError("kawaii fetch failed")
-		return 0
-	}
-	l.Push(lua.LString(gifURL))
 	return 1
 }
 

@@ -9,8 +9,8 @@
       "send_channel": false,
       "send_dm": false
     },
-    "integrations": {
-      "kawaii": false
+    "network": {
+      "http": false
     },
     "automation": {
       "jobs": false,
@@ -27,8 +27,8 @@
       }
     },
     "fun": {
-      "integrations": {
-        "kawaii": true
+      "network": {
+        "http": true
       }
     }
   }

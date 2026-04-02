@@ -57,16 +57,16 @@ Default module seeds live in `config/modules.json`, and runtime overrides are st
 Plugins live under `plugins/<plugin>/` with:
 
 - `plugin.json` (manifest)
-- `plugin.lua` (entrypoint; returns a plugin descriptor table)
-- `lib/*.lua` (optional local modules loaded via `bot.require("lib/foo.lua")`)
+- `plugin.lua` (entrypoint; returns a plugin descriptor table and can assemble the rest of the plugin workspace)
+- `commands/*.lua`, `lib/*.lua`, or any other local layout you want, loaded via `bot.require("...")`
 - `locales/<locale>/messages.json` (optional plugin i18n)
 
-Plugins are sandboxed: no filesystem or network access. Any plugin capability must be both:
+Plugins are sandboxed: no filesystem access, and no network access except through explicitly granted host capabilities. Any plugin capability must be both:
 
 1) requested in `plugin.json`, and
 2) granted by the host in `config/permissions.json` (default `MAMUSIABTW_PERMISSIONS_FILE`).
 
-The Lua host currently exposes `bot.random.*` and `bot.kawaii.gif(...)` for first-party fun commands, with Kawaii access gated by the permissions policy.
+The Lua host currently exposes `bot.random.*` and a generic `bot.http.*` client for plugin-owned integrations, with HTTP access gated by the permissions policy.
 
 The host injects a namespaced global `bot` into plugin scripts (see `sdk/lua/bot_api.lua:1` for the editor stub). A flat `mamusiabtw` alias remains for older plugins, but new plugins should use `bot`.
 
@@ -89,6 +89,7 @@ For editor validation/autocomplete, these JSON files support a `$schema` URL (Ra
 Plugins are authored as `route + context + effect`:
 
 - `plugin.lua` returns `bot.plugin({ ... })`
+- `plugin.lua` is just the entrypoint; split commands, subcommands, views, and helpers into as many local Lua files as you want
 - commands, components, modals, events, and jobs are declared in that descriptor
 - route handlers receive a typed `ctx` table instead of raw hidden keys
 - handlers return effects using `bot.ui.*` or `bot.effects.*`

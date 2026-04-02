@@ -4,8 +4,8 @@
   "name": "Fun",
   "version": "0.1.0",
   "permissions": {
-    "integrations": {
-      "kawaii": true
+    "network": {
+      "http": true
     }
   }
 }

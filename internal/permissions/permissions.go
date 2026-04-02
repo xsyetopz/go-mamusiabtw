@@ -13,9 +13,9 @@ import (
 // and (2) is granted in the host permissions policy. Everything is denied by
 // default.
 type Permissions struct {
-	Storage      StoragePermissions      `json:"storage"`
-	Discord      DiscordPermissions      `json:"discord"`
-	Integrations IntegrationsPermissions `json:"integrations"`
+	Storage StoragePermissions `json:"storage"`
+	Discord DiscordPermissions `json:"discord"`
+	Network NetworkPermissions `json:"network"`
 
 	// Automation covers non-interaction triggers: scheduled jobs and gateway events.
 	Automation AutomationPermissions `json:"automation"`
@@ -30,8 +30,8 @@ type DiscordPermissions struct {
 	SendDM      bool `json:"send_dm"`
 }
 
-type IntegrationsPermissions struct {
-	Kawaii bool `json:"kawaii"`
+type NetworkPermissions struct {
+	HTTP bool `json:"http"`
 }
 
 type AutomationPermissions struct {
@@ -101,8 +101,8 @@ func Effective(requested, granted Permissions) Permissions {
 			SendChannel: requested.Discord.SendChannel && granted.Discord.SendChannel,
 			SendDM:      requested.Discord.SendDM && granted.Discord.SendDM,
 		},
-		Integrations: IntegrationsPermissions{
-			Kawaii: requested.Integrations.Kawaii && granted.Integrations.Kawaii,
+		Network: NetworkPermissions{
+			HTTP: requested.Network.HTTP && granted.Network.HTTP,
 		},
 		Automation: AutomationPermissions{
 			Jobs: requested.Automation.Jobs && granted.Automation.Jobs,
@@ -121,7 +121,7 @@ func merge(base, override Permissions) Permissions {
 	out.Storage.KV = out.Storage.KV || override.Storage.KV
 	out.Discord.SendChannel = out.Discord.SendChannel || override.Discord.SendChannel
 	out.Discord.SendDM = out.Discord.SendDM || override.Discord.SendDM
-	out.Integrations.Kawaii = out.Integrations.Kawaii || override.Integrations.Kawaii
+	out.Network.HTTP = out.Network.HTTP || override.Network.HTTP
 	out.Automation.Jobs = out.Automation.Jobs || override.Automation.Jobs
 	out.Automation.Events.MemberJoinLeave = out.Automation.Events.MemberJoinLeave ||
 		override.Automation.Events.MemberJoinLeave

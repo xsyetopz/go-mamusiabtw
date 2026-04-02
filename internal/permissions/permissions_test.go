@@ -31,8 +31,8 @@ func TestEffective(t *testing.T) {
 	}
 
 	req = permissions.Permissions{
-		Discord:      permissions.DiscordPermissions{SendChannel: true, SendDM: true},
-		Integrations: permissions.IntegrationsPermissions{Kawaii: true},
+		Discord: permissions.DiscordPermissions{SendChannel: true, SendDM: true},
+		Network: permissions.NetworkPermissions{HTTP: true},
 		Automation: permissions.AutomationPermissions{
 			Jobs: true,
 			Events: permissions.AutomationEventPermissions{
@@ -42,8 +42,8 @@ func TestEffective(t *testing.T) {
 		},
 	}
 	grant = permissions.Permissions{
-		Discord:      permissions.DiscordPermissions{SendChannel: true, SendDM: false},
-		Integrations: permissions.IntegrationsPermissions{Kawaii: false},
+		Discord: permissions.DiscordPermissions{SendChannel: true, SendDM: false},
+		Network: permissions.NetworkPermissions{HTTP: false},
 		Automation: permissions.AutomationPermissions{
 			Jobs: false,
 			Events: permissions.AutomationEventPermissions{
@@ -59,8 +59,8 @@ func TestEffective(t *testing.T) {
 	if eff.Discord.SendDM {
 		t.Fatalf("expected send_dm denied")
 	}
-	if eff.Integrations.Kawaii {
-		t.Fatalf("expected kawaii denied")
+	if eff.Network.HTTP {
+		t.Fatalf("expected http denied")
 	}
 	if eff.Automation.Jobs {
 		t.Fatalf("expected jobs denied")
@@ -82,7 +82,7 @@ func TestPolicyGranted(t *testing.T) {
 	if err := os.WriteFile(p, []byte(`{
   "defaults": { "storage": { "kv": false }, "discord": { "send_channel": false } },
   "plugins": {
-    "a": { "storage": { "kv": true }, "discord": { "send_channel": true }, "integrations": { "kawaii": true } }
+    "a": { "storage": { "kv": true }, "discord": { "send_channel": true }, "network": { "http": true } }
   }
 }`), 0o600); err != nil {
 		t.Fatalf("write file: %v", err)
@@ -102,7 +102,7 @@ func TestPolicyGranted(t *testing.T) {
 	if !pol.Granted("a").Discord.SendChannel {
 		t.Fatalf("expected plugin override send_channel allowed")
 	}
-	if !pol.Granted("a").Integrations.Kawaii {
-		t.Fatalf("expected plugin override kawaii allowed")
+	if !pol.Granted("a").Network.HTTP {
+		t.Fatalf("expected plugin override http allowed")
 	}
 }

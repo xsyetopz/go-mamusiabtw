@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -17,7 +18,6 @@ import (
 	lua "github.com/yuin/gopher-lua"
 
 	"github.com/xsyetopz/go-mamusiabtw/internal/i18n"
-	"github.com/xsyetopz/go-mamusiabtw/internal/integrations/kawaii"
 	"github.com/xsyetopz/go-mamusiabtw/internal/permissions"
 	"github.com/xsyetopz/go-mamusiabtw/internal/persona"
 	"github.com/xsyetopz/go-mamusiabtw/internal/store"
@@ -32,13 +32,9 @@ type Options struct {
 	PluginDir   string
 	Permissions permissions.Permissions
 
-	Store  store.PluginKVStore
-	I18n   *i18n.Registry
-	Kawaii Kawaii
-}
-
-type Kawaii interface {
-	FetchGIF(ctx context.Context, endpoint kawaii.Endpoint) (string, error)
+	Store      store.PluginKVStore
+	I18n       *i18n.Registry
+	HTTPClient *http.Client
 }
 
 type Payload struct {
@@ -58,7 +54,7 @@ type VM struct {
 	perms  permissions.Permissions
 	store  store.PluginKVStore
 	i18n   *i18n.Registry
-	kawaii Kawaii
+	http   *http.Client
 
 	L *lua.LState
 
@@ -101,7 +97,7 @@ func NewFromFile(fileName string, opts Options) (*VM, error) {
 		perms:       opts.Permissions,
 		store:       opts.Store,
 		i18n:        opts.I18n,
-		kawaii:      opts.Kawaii,
+		http:        pluginHTTPClient(opts.HTTPClient),
 		L:           l,
 		moduleCache: map[string]lua.LValue{},
 	}
@@ -268,7 +264,7 @@ func (v *VM) registerHostAPI() {
 	uiTable := v.L.NewTable()
 	effectsTable := v.L.NewTable()
 	randomTable := v.L.NewTable()
-	kawaiiTable := v.L.NewTable()
+	httpTable := v.L.NewTable()
 
 	logTable.RawSetString("info", v.L.NewFunction(v.luaLog))
 
@@ -303,7 +299,8 @@ func (v *VM) registerHostAPI() {
 	randomTable.RawSetString("int", v.L.NewFunction(v.luaRandomInt))
 	randomTable.RawSetString("choice", v.L.NewFunction(v.luaRandomChoice))
 
-	kawaiiTable.RawSetString("gif", v.L.NewFunction(v.luaKawaiiGIF))
+	httpTable.RawSetString("get", v.L.NewFunction(v.luaHTTPGet))
+	httpTable.RawSetString("get_json", v.L.NewFunction(v.luaHTTPGetJSON))
 
 	bot.RawSetString("log", logTable)
 	bot.RawSetString("i18n", i18nTable)
@@ -312,7 +309,7 @@ func (v *VM) registerHostAPI() {
 	bot.RawSetString("ui", uiTable)
 	bot.RawSetString("effects", effectsTable)
 	bot.RawSetString("random", randomTable)
-	bot.RawSetString("kawaii", kawaiiTable)
+	bot.RawSetString("http", httpTable)
 	bot.RawSetString("plugin", v.L.NewFunction(v.luaPlugin))
 	bot.RawSetString("command", v.L.NewFunction(v.luaCommand))
 	bot.RawSetString("job", v.L.NewFunction(v.luaJob))

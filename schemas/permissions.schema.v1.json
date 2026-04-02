@@ -52,11 +52,11 @@
             }
           }
         },
-        "integrations": {
+        "network": {
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "kawaii": {
+            "http": {
               "type": "boolean"
             }
           }

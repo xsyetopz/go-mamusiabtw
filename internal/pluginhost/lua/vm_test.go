@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
+	"io"
 	"log/slog"
+	"net/http"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -12,21 +14,15 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/xsyetopz/go-mamusiabtw/internal/i18n"
-	"github.com/xsyetopz/go-mamusiabtw/internal/integrations/kawaii"
 	"github.com/xsyetopz/go-mamusiabtw/internal/permissions"
 	"github.com/xsyetopz/go-mamusiabtw/internal/pluginhost/lua"
 	"github.com/xsyetopz/go-mamusiabtw/internal/store/sqlitestore"
 )
 
-type fakeKawaii struct {
-	url string
-}
+type roundTripperFunc func(*http.Request) (*http.Response, error)
 
-func (f fakeKawaii) FetchGIF(_ context.Context, endpoint kawaii.Endpoint) (string, error) {
-	if f.url == "" {
-		return "https://kawaii.red/" + string(endpoint) + ".gif", nil
-	}
-	return f.url, nil
+func (fn roundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+	return fn(req)
 }
 
 func TestDescriptorRoutesAndKV(t *testing.T) {
@@ -177,10 +173,25 @@ func TestFunPluginRoutes(t *testing.T) {
 		PluginID:  "fun",
 		PluginDir: filepath.Dir(script),
 		Permissions: permissions.Permissions{
-			Integrations: permissions.IntegrationsPermissions{Kawaii: true},
+			Network: permissions.NetworkPermissions{HTTP: true},
 		},
-		I18n:   &reg,
-		Kawaii: fakeKawaii{url: "https://kawaii.red/demo.gif"},
+		I18n: &reg,
+		HTTPClient: &http.Client{
+			Transport: roundTripperFunc(func(req *http.Request) (*http.Response, error) {
+				if req.URL.String() != "https://kawaii.red/api/gif/hug?token=anonymous" &&
+					req.URL.String() != "https://kawaii.red/api/gif/pat?token=anonymous" &&
+					req.URL.String() != "https://kawaii.red/api/gif/poke?token=anonymous" &&
+					req.URL.String() != "https://kawaii.red/api/gif/shrug?token=anonymous" {
+					t.Fatalf("unexpected http url: %s", req.URL.String())
+				}
+				return &http.Response{
+					StatusCode: http.StatusOK,
+					Header:     http.Header{"Content-Type": []string{"application/json"}},
+					Body:       io.NopCloser(strings.NewReader(`{"response":"https://kawaii.red/demo.gif"}`)),
+					Request:    req,
+				}, nil
+			}),
+		},
 	})
 	if err != nil {
 		t.Fatalf("NewFromFile(fun): %v", err)

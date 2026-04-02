@@ -34,7 +34,6 @@ type Host struct {
 
 	store  Store
 	policy permissions.Policy
-	kawaii luaplugin.Kawaii
 	i18n   *i18n.Registry
 
 	plugins  map[string]*Plugin
@@ -56,7 +55,6 @@ type Options struct {
 	TrustedKeysFile     string
 	PermissionsFile     string
 	Store               Store
-	Kawaii              luaplugin.Kawaii
 	Logger              *slog.Logger
 	I18n                *i18n.Registry
 }
@@ -116,7 +114,6 @@ func NewHost(opts Options) (*Host, error) {
 		permissionsFile:      opts.PermissionsFile,
 		store:                opts.Store,
 		policy:               policy,
-		kawaii:               opts.Kawaii,
 		i18n:                 opts.I18n,
 		plugins:              map[string]*Plugin{},
 		commands:             map[string]PluginCommand{},
@@ -752,7 +749,6 @@ func (m *Host) loadOne(
 		PluginDir:   pluginDir,
 		Permissions: effective,
 		I18n:        m.i18n,
-		Kawaii:      m.kawaii,
 		Store: func() store.PluginKVStore {
 			if m.store == nil {
 				return nil

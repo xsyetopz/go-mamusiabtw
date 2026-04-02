@@ -224,7 +224,6 @@ func (b *Bot) initPlugins(deps Dependencies) error {
 			TrustedKeysFile:     deps.TrustedKeysFile,
 			PermissionsFile:     deps.PermissionsFile,
 			Store:               deps.Store,
-			Kawaii:              b.kawaii,
 			Logger:              b.logger,
 			I18n:                &b.i18n,
 		})
