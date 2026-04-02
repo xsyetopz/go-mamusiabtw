@@ -5,7 +5,7 @@
   },
   {
     "id": "cmd.ping.desc",
-    "translation": "Quick check - make sure Mummy's awake and keeping an eye on things."
+    "translation": "Quick check - make sure Mommy's awake and keeping an eye on things."
   },
   {
     "id": "cmd.help.name",
@@ -13,7 +13,7 @@
   },
   {
     "id": "cmd.help.desc",
-    "translation": "See what Mummy can do for you."
+    "translation": "See what Mommy can do for you."
   },
   {
     "id": "cmd.help.content",
@@ -225,7 +225,7 @@
   },
   {
     "id": "cmd.lookup.sub.role.opt.role.desc",
-    "translation": "Which role should Mummy look at?"
+    "translation": "Which role should Mommy look at?"
   },
   {
     "id": "cmd.lookup.sub.channel.name",
@@ -241,7 +241,7 @@
   },
   {
     "id": "cmd.lookup.sub.channel.opt.channel.desc",
-    "translation": "Which channel should Mummy look at?"
+    "translation": "Which channel should Mommy look at?"
   },
   {
     "id": "info.lookup.user.field.bot",
@@ -345,7 +345,7 @@
   },
   {
     "id": "cmd.flip.desc",
-    "translation": "Flip a coin (Mummy won't judge)."
+    "translation": "Flip a coin (Mommy won't judge)."
   },
   {
     "id": "cmd.roll.name",
@@ -505,7 +505,7 @@
   },
   {
     "id": "cmd.nick.opt.nickname.desc",
-    "translation": "What should Mummy set it to? (Leave empty to reset.)"
+    "translation": "What should Mommy set it to? (Leave empty to reset.)"
   },
   {
     "id": "cmd.purge.name",
@@ -641,7 +641,7 @@
   },
   {
     "id": "cmd.roles.opt.colour.desc",
-    "translation": "Role colour (RRGGBB)."
+    "translation": "Role color (RRGGBB)."
   },
   {
     "id": "cmd.roles.opt.hoist.name",
@@ -1165,7 +1165,7 @@
   },
   {
     "id": "cmd.timezone.desc",
-    "translation": "Set your timezone so Mummy's reminders land at the right time."
+    "translation": "Set your timezone so Mommy's reminders land at the right time."
   },
   {
     "id": "cmd.timezone.sub.set.name",
@@ -1225,7 +1225,7 @@
   },
   {
     "id": "cmd.checkin.desc",
-    "translation": "Tell Mummy how you're doing today."
+    "translation": "Tell Mommy how you're doing today."
   },
   {
     "id": "cmd.checkin.opt.mood.name",
@@ -1269,7 +1269,7 @@
   },
   {
     "id": "cmd.remind.desc",
-    "translation": "Set gentle reminders (Mummy will nudge you softly)."
+    "translation": "Set gentle reminders (Mommy will nudge you softly)."
   },
   {
     "id": "cmd.remind.sub.create.name",
@@ -1325,7 +1325,7 @@
   },
   {
     "id": "cmd.remind.opt.delivery.desc",
-    "translation": "Where should Mummy send it? (dm or channel)"
+    "translation": "Where should Mommy send it? (dm or channel)"
   },
   {
     "id": "cmd.remind.opt.channel.name",
