@@ -865,7 +865,7 @@
   },
   {
     "id": "mod.unwarn.placeholder",
-    "translation": "Vyber jedno..."
+    "translation": "Vyber jedno, {{.Pet}}..."
   },
   {
     "id": "mod.unwarn.expired",

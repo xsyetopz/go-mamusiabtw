@@ -865,7 +865,7 @@
   },
   {
     "id": "mod.unwarn.placeholder",
-    "translation": "Обери, сонечко..."
+    "translation": "Обери, {{.Pet}}..."
   },
   {
     "id": "mod.unwarn.expired",

@@ -865,7 +865,7 @@
   },
   {
     "id": "mod.unwarn.placeholder",
-    "translation": "Such dir eine aus..."
+    "translation": "Such dir eine aus, {{.Pet}}..."
   },
   {
     "id": "mod.unwarn.expired",
