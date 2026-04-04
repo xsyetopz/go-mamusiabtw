@@ -16,8 +16,8 @@ import (
 	"github.com/xsyetopz/go-mamusiabtw/internal/buildinfo"
 	"github.com/xsyetopz/go-mamusiabtw/internal/config"
 	"github.com/xsyetopz/go-mamusiabtw/internal/logging"
-	"github.com/xsyetopz/go-mamusiabtw/internal/migrate"
-	"github.com/xsyetopz/go-mamusiabtw/internal/pluginhost"
+	migrate "github.com/xsyetopz/go-mamusiabtw/internal/migration"
+	pluginhost "github.com/xsyetopz/go-mamusiabtw/internal/runtime/plugins"
 )
 
 func main() {

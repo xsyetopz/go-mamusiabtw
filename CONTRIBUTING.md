@@ -26,10 +26,10 @@ The main code paths are:
 
 - `cmd/mamusiabtw/` for the process entrypoint.
 - `internal/app/` for application wiring.
-- `internal/platform/discord/` for Discord transport and runtime behavior.
-- `internal/features/` for built-in bot features and slash commands.
-- `internal/pluginhost/` for plugin discovery, policy, signing, and dispatch.
-- `internal/pluginhost/lua/` for the embedded Lua runtime and SDK bridge.
+- `internal/runtime/discord/` for Discord transport and runtime behavior.
+- `internal/commands/` for built-in kernel commands and shared command contracts.
+- `internal/runtime/plugins/` for plugin discovery, policy, signing, and dispatch.
+- `internal/runtime/plugins/lua/` for the embedded Lua runtime and SDK bridge.
 - `sdk/lua/` for Lua editor stubs.
 - `examples/plugins/` for shipped sample plugins.
 - `plugins/` for runtime-loaded plugins.
@@ -75,7 +75,7 @@ Run the narrowest useful test first, then the broader suite if your change cross
 go test ./...
 
 # Run a focused package test
-go test ./internal/pluginhost/...
+go test ./internal/runtime/plugins/...
 
 # Format edited Go files
 gofmt -w ./internal/...

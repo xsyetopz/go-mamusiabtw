@@ -10,12 +10,12 @@ import (
 
 	"github.com/xsyetopz/go-mamusiabtw/internal/config"
 	"github.com/xsyetopz/go-mamusiabtw/internal/i18n"
-	"github.com/xsyetopz/go-mamusiabtw/internal/migrate"
+	migrate "github.com/xsyetopz/go-mamusiabtw/internal/migration"
 	"github.com/xsyetopz/go-mamusiabtw/internal/ops"
-	discordplatform "github.com/xsyetopz/go-mamusiabtw/internal/platform/discord"
-	"github.com/xsyetopz/go-mamusiabtw/internal/pluginhost"
+	discordplatform "github.com/xsyetopz/go-mamusiabtw/internal/runtime/discord"
+	pluginhost "github.com/xsyetopz/go-mamusiabtw/internal/runtime/plugins"
 	"github.com/xsyetopz/go-mamusiabtw/internal/sqlite"
-	"github.com/xsyetopz/go-mamusiabtw/internal/store/sqlitestore"
+	sqlitestore "github.com/xsyetopz/go-mamusiabtw/internal/storage/sqlite"
 )
 
 type Dependencies struct {
