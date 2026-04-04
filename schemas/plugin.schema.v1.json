@@ -74,6 +74,12 @@
             },
             "reminders": {
               "type": "boolean"
+            },
+            "warnings": {
+              "type": "boolean"
+            },
+            "audit": {
+              "type": "boolean"
             }
           }
         },
@@ -85,6 +91,9 @@
               "type": "boolean"
             },
             "send_dm": {
+              "type": "boolean"
+            },
+            "timeout_member": {
               "type": "boolean"
             }
           }
@@ -139,6 +148,13 @@
         },
         "ephemeral": {
           "type": "boolean"
+        },
+        "default_member_permissions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         },
         "options": {
           "type": "array",

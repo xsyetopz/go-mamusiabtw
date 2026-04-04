@@ -26,11 +26,14 @@ type StoragePermissions struct {
 	UserSettings bool `json:"user_settings"`
 	CheckIns     bool `json:"checkins"`
 	Reminders    bool `json:"reminders"`
+	Warnings     bool `json:"warnings"`
+	Audit        bool `json:"audit"`
 }
 
 type DiscordPermissions struct {
-	SendChannel bool `json:"send_channel"`
-	SendDM      bool `json:"send_dm"`
+	SendChannel   bool `json:"send_channel"`
+	SendDM        bool `json:"send_dm"`
+	TimeoutMember bool `json:"timeout_member"`
 }
 
 type NetworkPermissions struct {
@@ -102,10 +105,13 @@ func Effective(requested, granted Permissions) Permissions {
 			UserSettings: requested.Storage.UserSettings && granted.Storage.UserSettings,
 			CheckIns:     requested.Storage.CheckIns && granted.Storage.CheckIns,
 			Reminders:    requested.Storage.Reminders && granted.Storage.Reminders,
+			Warnings:     requested.Storage.Warnings && granted.Storage.Warnings,
+			Audit:        requested.Storage.Audit && granted.Storage.Audit,
 		},
 		Discord: DiscordPermissions{
-			SendChannel: requested.Discord.SendChannel && granted.Discord.SendChannel,
-			SendDM:      requested.Discord.SendDM && granted.Discord.SendDM,
+			SendChannel:   requested.Discord.SendChannel && granted.Discord.SendChannel,
+			SendDM:        requested.Discord.SendDM && granted.Discord.SendDM,
+			TimeoutMember: requested.Discord.TimeoutMember && granted.Discord.TimeoutMember,
 		},
 		Network: NetworkPermissions{
 			HTTP: requested.Network.HTTP && granted.Network.HTTP,
@@ -128,8 +134,11 @@ func merge(base, override Permissions) Permissions {
 	out.Storage.UserSettings = out.Storage.UserSettings || override.Storage.UserSettings
 	out.Storage.CheckIns = out.Storage.CheckIns || override.Storage.CheckIns
 	out.Storage.Reminders = out.Storage.Reminders || override.Storage.Reminders
+	out.Storage.Warnings = out.Storage.Warnings || override.Storage.Warnings
+	out.Storage.Audit = out.Storage.Audit || override.Storage.Audit
 	out.Discord.SendChannel = out.Discord.SendChannel || override.Discord.SendChannel
 	out.Discord.SendDM = out.Discord.SendDM || override.Discord.SendDM
+	out.Discord.TimeoutMember = out.Discord.TimeoutMember || override.Discord.TimeoutMember
 	out.Network.HTTP = out.Network.HTTP || override.Network.HTTP
 	out.Automation.Jobs = out.Automation.Jobs || override.Automation.Jobs
 	out.Automation.Events.MemberJoinLeave = out.Automation.Events.MemberJoinLeave ||

@@ -131,3 +131,48 @@ func TestWellnessPluginLocales_OwnTheirMessages(t *testing.T) {
 		t.Fatalf("expected plugin lookup to fall back to core errors")
 	}
 }
+
+func TestModerationPluginLocales_OwnTheirMessages(t *testing.T) {
+	t.Parallel()
+
+	r, err := i18n.LoadCore(filepath.Join("..", "..", "locales"))
+	if err != nil {
+		t.Fatalf("LoadCore: %v", err)
+	}
+
+	if _, ok := r.TryLocalize(i18n.Config{Locale: "de", MessageID: "mod.warn.success"}); ok {
+		t.Fatalf("expected core locales to no longer expose mod.warn.success")
+	}
+
+	if loadErr := r.LoadPluginLocales("moderation", filepath.Join("..", "..", "plugins", "moderation", "locales")); loadErr != nil {
+		t.Fatalf("LoadPluginLocales(moderation): %v", loadErr)
+	}
+
+	got, ok := r.TryLocalize(i18n.Config{
+		PluginID:     "moderation",
+		Locale:       "de",
+		MessageID:    "mod.warn.success",
+		TemplateData: map[string]any{"User": "@user", "Reason": "reason", "TimeoutMinutes": 10, "TimeoutFailed": false},
+	})
+	if !ok || got == "" {
+		t.Fatalf("expected plugin locale to expose mod.warn.success")
+	}
+
+	desc, ok := r.TryLocalize(i18n.Config{
+		PluginID:  "moderation",
+		Locale:    "de",
+		MessageID: "cmd.warn.desc",
+	})
+	if !ok || desc == "" {
+		t.Fatalf("expected plugin locale to expose cmd.warn.desc")
+	}
+
+	coreFallback, ok := r.TryLocalize(i18n.Config{
+		PluginID:  "moderation",
+		Locale:    "de",
+		MessageID: "err.generic",
+	})
+	if !ok || coreFallback == "" {
+		t.Fatalf("expected plugin lookup to fall back to core errors")
+	}
+}

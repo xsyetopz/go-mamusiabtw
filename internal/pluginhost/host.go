@@ -12,8 +12,10 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/disgoorg/disgo/discord"
+	"github.com/disgoorg/omit"
 
 	"github.com/xsyetopz/go-mamusiabtw/internal/i18n"
 	"github.com/xsyetopz/go-mamusiabtw/internal/permissions"
@@ -32,9 +34,10 @@ type Host struct {
 	trustedKeysFile      string
 	permissionsFile      string
 
-	store  Store
-	policy permissions.Policy
-	i18n   *i18n.Registry
+	store   Store
+	discord Discord
+	policy  permissions.Policy
+	i18n    *i18n.Registry
 
 	plugins  map[string]*Plugin
 	commands map[string]PluginCommand
@@ -49,6 +52,14 @@ type Store interface {
 	UserSettings() store.UserSettingsStore
 	Reminders() store.ReminderStore
 	CheckIns() store.CheckInStore
+	Warnings() store.WarningStore
+	Audit() store.AuditStore
+}
+
+type Discord interface {
+	SendDM(ctx context.Context, pluginID string, userID uint64, message any) (luaplugin.MessageResult, error)
+	SendChannel(ctx context.Context, pluginID string, channelID uint64, message any) (luaplugin.MessageResult, error)
+	TimeoutMember(ctx context.Context, guildID, userID uint64, until time.Time) error
 }
 
 type Options struct {
@@ -58,6 +69,7 @@ type Options struct {
 	TrustedKeysFile     string
 	PermissionsFile     string
 	Store               Store
+	Discord             Discord
 	Logger              *slog.Logger
 	I18n                *i18n.Registry
 }
@@ -116,6 +128,7 @@ func NewHost(opts Options) (*Host, error) {
 		trustedKeysFile:      opts.TrustedKeysFile,
 		permissionsFile:      opts.PermissionsFile,
 		store:                opts.Store,
+		discord:              opts.Discord,
 		policy:               policy,
 		i18n:                 opts.I18n,
 		plugins:              map[string]*Plugin{},
@@ -751,6 +764,7 @@ func (m *Host) loadOne(
 		PluginID:    manifest.ID,
 		PluginDir:   pluginDir,
 		Permissions: effective,
+		Discord:     m.discord,
 		I18n:        m.i18n,
 		Store:       m.store,
 	})
@@ -816,11 +830,62 @@ func commandToCreate(
 		Options:     options,
 	}
 
+	if perms, ok := commandPermissions(cmd.DefaultMemberPermissions); ok {
+		create.DefaultMemberPermissions = omit.NewPtr(perms)
+	}
+
 	if locs := descriptionLocalizations(pluginID, cmd.DescriptionID, locales, localize); len(locs) != 0 {
 		create.DescriptionLocalizations = locs
 	}
 
 	return create
+}
+
+func commandPermissions(names []string) (discord.Permissions, bool) {
+	if len(names) == 0 {
+		return 0, false
+	}
+
+	var (
+		perms discord.Permissions
+		ok    bool
+	)
+	for _, name := range names {
+		perm, found := commandPermissionByName(name)
+		if !found {
+			continue
+		}
+		perms |= perm
+		ok = true
+	}
+	return perms, ok
+}
+
+func commandPermissionByName(name string) (discord.Permissions, bool) {
+	switch strings.ToLower(strings.TrimSpace(name)) {
+	case "administrator":
+		return discord.PermissionAdministrator, true
+	case "manage_guild":
+		return discord.PermissionManageGuild, true
+	case "manage_roles":
+		return discord.PermissionManageRoles, true
+	case "manage_emojis_and_stickers":
+		return discord.PermissionManageGuildExpressions, true
+	case "manage_messages":
+		return discord.PermissionManageMessages, true
+	case "manage_nicknames":
+		return discord.PermissionManageNicknames, true
+	case "manage_channels":
+		return discord.PermissionManageChannels, true
+	case "kick_members":
+		return discord.PermissionKickMembers, true
+	case "ban_members":
+		return discord.PermissionBanMembers, true
+	case "moderate_members":
+		return discord.PermissionModerateMembers, true
+	default:
+		return 0, false
+	}
 }
 
 func descriptionLocalizations(

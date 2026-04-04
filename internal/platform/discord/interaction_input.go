@@ -56,9 +56,21 @@ func pluginOptions(data discord.SlashCommandInteractionData) map[string]any {
 			continue
 		}
 		if opt.Type == discord.ApplicationCommandOptionTypeUser ||
-			opt.Type == discord.ApplicationCommandOptionTypeChannel ||
+			opt.Type == discord.ApplicationCommandOptionTypeMentionable {
+			opts[name] = opt.Snowflake().String()
+			if opt.Type == discord.ApplicationCommandOptionTypeUser {
+				user := data.User(name)
+				opts["__resolved:"+name] = map[string]any{
+					"id":      user.ID.String(),
+					"bot":     user.Bot,
+					"system":  user.System,
+					"mention": user.Mention(),
+				}
+			}
+			continue
+		}
+		if opt.Type == discord.ApplicationCommandOptionTypeChannel ||
 			opt.Type == discord.ApplicationCommandOptionTypeRole ||
-			opt.Type == discord.ApplicationCommandOptionTypeMentionable ||
 			opt.Type == discord.ApplicationCommandOptionTypeAttachment {
 			opts[name] = opt.Snowflake().String()
 			continue

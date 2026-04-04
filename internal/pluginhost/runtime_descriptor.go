@@ -6,13 +6,14 @@ func commandsFromDefinition(def luaplugin.Definition) []Command {
 	out := make([]Command, 0, len(def.Commands))
 	for _, command := range def.Commands {
 		out = append(out, Command{
-			Name:          command.Name,
-			Description:   command.Description,
-			DescriptionID: command.DescriptionID,
-			Ephemeral:     command.Ephemeral,
-			Options:       optionsFromDefinition(command.Options),
-			Subcommands:   subcommandsFromDefinition(command.Subcommands),
-			Groups:        groupsFromDefinition(command.Groups),
+			Name:                     command.Name,
+			Description:              command.Description,
+			DescriptionID:            command.DescriptionID,
+			Ephemeral:                command.Ephemeral,
+			DefaultMemberPermissions: append([]string(nil), command.DefaultMemberPermissions...),
+			Options:                  optionsFromDefinition(command.Options),
+			Subcommands:              subcommandsFromDefinition(command.Subcommands),
+			Groups:                   groupsFromDefinition(command.Groups),
 		})
 	}
 	return out

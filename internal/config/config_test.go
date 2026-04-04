@@ -179,6 +179,7 @@ func TestShippedSchemaURLs(t *testing.T) {
 		{path: "config/modules.json", key: "$schema", want: schemaBaseURL + "modules.schema.v1.json"},
 		{path: "examples/plugins/example/plugin.json", key: "$schema", want: schemaBaseURL + "plugin.schema.v1.json"},
 		{path: "plugins/fun/plugin.json", key: "$schema", want: schemaBaseURL + "plugin.schema.v1.json"},
+		{path: "plugins/moderation/plugin.json", key: "$schema", want: schemaBaseURL + "plugin.schema.v1.json"},
 		{path: "plugins/wellness/plugin.json", key: "$schema", want: schemaBaseURL + "plugin.schema.v1.json"},
 		{path: "schemas/messages.schema.v1.json", key: "$id", want: schemaBaseURL + "messages.schema.v1.json"},
 		{path: "schemas/modules.schema.v1.json", key: "$id", want: schemaBaseURL + "modules.schema.v1.json"},
@@ -263,6 +264,8 @@ func TestAuthoringAssetsLayout(t *testing.T) {
 		"examples/plugins/example/locales/en-GB/messages.json",
 		"plugins/fun/plugin.json",
 		"plugins/fun/plugin.lua",
+		"plugins/moderation/plugin.json",
+		"plugins/moderation/plugin.lua",
 		"plugins/wellness/plugin.json",
 		"plugins/wellness/plugin.lua",
 	} {
@@ -289,6 +292,11 @@ func TestAuthoringAssetsLayout(t *testing.T) {
 		wellnessLocalePath := filepath.Join(repoRoot, "plugins", "wellness", "locales", entry.Name(), "messages.json")
 		if _, err := os.Stat(wellnessLocalePath); err != nil {
 			t.Fatalf("Stat(%q): %v", wellnessLocalePath, err)
+		}
+
+		moderationLocalePath := filepath.Join(repoRoot, "plugins", "moderation", "locales", entry.Name(), "messages.json")
+		if _, err := os.Stat(moderationLocalePath); err != nil {
+			t.Fatalf("Stat(%q): %v", moderationLocalePath, err)
 		}
 
 		coreLocalePath := filepath.Join(repoRoot, "locales", entry.Name(), "messages.json")
@@ -318,6 +326,11 @@ func TestAuthoringAssetsLayout(t *testing.T) {
 				strings.HasPrefix(id, "cmd.remind") ||
 				strings.HasPrefix(id, "wellness.") {
 				t.Fatalf("core locale %q still contains migrated wellness id %q", coreLocalePath, id)
+			}
+			if strings.HasPrefix(id, "cmd.warn") ||
+				strings.HasPrefix(id, "cmd.unwarn") ||
+				strings.HasPrefix(id, "mod.") {
+				t.Fatalf("core locale %q still contains migrated moderation id %q", coreLocalePath, id)
 			}
 		}
 	}

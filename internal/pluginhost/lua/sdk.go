@@ -6,7 +6,9 @@ import (
 	"math/big"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"time"
 
 	lua "github.com/yuin/gopher-lua"
 )
@@ -205,6 +207,11 @@ func (v *VM) luaRandomChoice(l *lua.LState) int {
 	return 1
 }
 
+func (v *VM) luaTimeUnix(l *lua.LState) int {
+	l.Push(lua.LNumber(time.Now().UTC().Unix()))
+	return 1
+}
+
 func (v *VM) luaEffectSendChannel(l *lua.LState) int {
 	spec := copyLuaTable(l, l.CheckTable(1))
 	action := l.NewTable()
@@ -237,6 +244,140 @@ func (v *VM) luaEffectSendDM(l *lua.LState) int {
 	out.RawSetString("actions", actions)
 	l.Push(out)
 	return 1
+}
+
+func (v *VM) luaEffectTimeoutMember(l *lua.LState) int {
+	spec := copyLuaTable(l, l.CheckTable(1))
+	action := l.NewTable()
+	action.RawSetString("type", lua.LString("timeout_member"))
+	if guildID := spec.RawGetString("guild_id"); guildID != lua.LNil {
+		action.RawSetString("guild_id", guildID)
+	}
+	if userID := spec.RawGetString("user_id"); userID != lua.LNil {
+		action.RawSetString("user_id", userID)
+	}
+	if untilUnix := spec.RawGetString("until_unix"); untilUnix != lua.LNil {
+		action.RawSetString("until_unix", untilUnix)
+	}
+
+	actions := l.NewTable()
+	actions.RawSetInt(1, action)
+	out := l.NewTable()
+	out.RawSetString("actions", actions)
+	l.Push(out)
+	return 1
+}
+
+func (v *VM) luaDiscordSendDM(l *lua.LState) int {
+	if !v.perms.Discord.SendDM {
+		l.RaiseError("permission denied: discord.send_dm")
+		return 0
+	}
+	if v.discord == nil {
+		l.Push(lua.LNil)
+		l.Push(lua.LString("discord unavailable"))
+		return 2
+	}
+
+	spec := l.CheckTable(1)
+	userID := luaSnowflake(spec.RawGetString("user_id"), v.userID)
+	message, ok, err := luaToAny(spec.RawGetString("message"))
+	if err != nil {
+		l.RaiseError("invalid send_dm spec")
+		return 0
+	}
+	if !ok || userID == 0 {
+		l.RaiseError("invalid send_dm spec")
+		return 0
+	}
+
+	result, execErr := v.discord.SendDM(v.ctx(), v.plugin, userID, message)
+	if execErr != nil {
+		l.Push(lua.LNil)
+		l.Push(lua.LString(execErr.Error()))
+		return 2
+	}
+
+	l.Push(v.luaMessageResult(l, result))
+	l.Push(lua.LNil)
+	return 2
+}
+
+func (v *VM) luaDiscordSendChannel(l *lua.LState) int {
+	if !v.perms.Discord.SendChannel {
+		l.RaiseError("permission denied: discord.send_channel")
+		return 0
+	}
+	if v.discord == nil {
+		l.Push(lua.LNil)
+		l.Push(lua.LString("discord unavailable"))
+		return 2
+	}
+
+	spec := l.CheckTable(1)
+	channelID := luaSnowflake(spec.RawGetString("channel_id"), v.channel)
+	message, ok, err := luaToAny(spec.RawGetString("message"))
+	if err != nil {
+		l.RaiseError("invalid send_channel spec")
+		return 0
+	}
+	if !ok || channelID == 0 {
+		l.RaiseError("invalid send_channel spec")
+		return 0
+	}
+
+	result, execErr := v.discord.SendChannel(v.ctx(), v.plugin, channelID, message)
+	if execErr != nil {
+		l.Push(lua.LNil)
+		l.Push(lua.LString(execErr.Error()))
+		return 2
+	}
+
+	l.Push(v.luaMessageResult(l, result))
+	l.Push(lua.LNil)
+	return 2
+}
+
+func (v *VM) luaDiscordTimeoutMember(l *lua.LState) int {
+	if !v.perms.Discord.TimeoutMember {
+		l.RaiseError("permission denied: discord.timeout_member")
+		return 0
+	}
+	if v.discord == nil {
+		l.Push(lua.LFalse)
+		l.Push(lua.LString("discord unavailable"))
+		return 2
+	}
+
+	spec := l.CheckTable(1)
+	guildID := v.tableGuildID(spec, "guild_id")
+	userID := luaSnowflake(spec.RawGetString("user_id"), v.userID)
+	untilUnix := luaIntDefault(spec.RawGetString("until_unix"), 0)
+	if guildID == 0 || userID == 0 || untilUnix <= 0 {
+		l.RaiseError("invalid timeout spec")
+		return 0
+	}
+
+	err := v.discord.TimeoutMember(v.ctx(), guildID, userID, time.Unix(untilUnix, 0).UTC())
+	if err != nil {
+		l.Push(lua.LFalse)
+		l.Push(lua.LString(err.Error()))
+		return 2
+	}
+
+	l.Push(lua.LTrue)
+	l.Push(lua.LNil)
+	return 2
+}
+
+func (v *VM) luaMessageResult(l *lua.LState, result MessageResult) *lua.LTable {
+	out := l.NewTable()
+	out.RawSetString("message_id", lua.LString(strconv.FormatUint(result.MessageID, 10)))
+	out.RawSetString("channel_id", lua.LString(strconv.FormatUint(result.ChannelID, 10)))
+	if result.UserID != 0 {
+		out.RawSetString("user_id", lua.LString(strconv.FormatUint(result.UserID, 10)))
+	}
+	return out
 }
 
 func (v *VM) luaRequire(l *lua.LState) int {

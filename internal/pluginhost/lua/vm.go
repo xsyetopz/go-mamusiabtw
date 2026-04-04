@@ -32,9 +32,22 @@ type Options struct {
 	PluginDir   string
 	Permissions permissions.Permissions
 
+	Discord    Discord
 	Store      Store
 	I18n       *i18n.Registry
 	HTTPClient *http.Client
+}
+
+type Discord interface {
+	SendDM(ctx context.Context, pluginID string, userID uint64, message any) (MessageResult, error)
+	SendChannel(ctx context.Context, pluginID string, channelID uint64, message any) (MessageResult, error)
+	TimeoutMember(ctx context.Context, guildID, userID uint64, until time.Time) error
+}
+
+type MessageResult struct {
+	MessageID uint64
+	ChannelID uint64
+	UserID    uint64
 }
 
 type Store interface {
@@ -42,6 +55,8 @@ type Store interface {
 	UserSettings() store.UserSettingsStore
 	Reminders() store.ReminderStore
 	CheckIns() store.CheckInStore
+	Warnings() store.WarningStore
+	Audit() store.AuditStore
 }
 
 type Payload struct {
@@ -55,13 +70,14 @@ type Payload struct {
 type VM struct {
 	mu sync.Mutex
 
-	logger *slog.Logger
-	plugin string
-	dir    string
-	perms  permissions.Permissions
-	store  Store
-	i18n   *i18n.Registry
-	http   *http.Client
+	logger  *slog.Logger
+	plugin  string
+	dir     string
+	perms   permissions.Permissions
+	discord Discord
+	store   Store
+	i18n    *i18n.Registry
+	http    *http.Client
 
 	L *lua.LState
 
@@ -71,6 +87,8 @@ type VM struct {
 	execCtx context.Context
 	locale  string
 	userID  uint64
+	guildID uint64
+	channel uint64
 }
 
 func NewFromFile(fileName string, opts Options) (*VM, error) {
@@ -102,6 +120,7 @@ func NewFromFile(fileName string, opts Options) (*VM, error) {
 		plugin:      opts.PluginID,
 		dir:         opts.PluginDir,
 		perms:       opts.Permissions,
+		discord:     opts.Discord,
 		store:       opts.Store,
 		i18n:        opts.I18n,
 		http:        pluginHTTPClient(opts.HTTPClient),
@@ -189,10 +208,14 @@ func (v *VM) CallHandle(ctx context.Context, funcName string, cmd string, payloa
 	v.execCtx = timeoutCtx
 	v.locale = strings.TrimSpace(payload.Locale)
 	v.userID = parseSnowflakeString(payload.UserID)
+	v.guildID = parseSnowflakeString(payload.GuildID)
+	v.channel = parseSnowflakeString(payload.ChannelID)
 	defer func() {
 		v.execCtx = nil
 		v.locale = ""
 		v.userID = 0
+		v.guildID = 0
+		v.channel = 0
 	}()
 
 	payloadTable, err := v.payloadToLua(payload)
@@ -270,10 +293,14 @@ func (v *VM) registerHostAPI() {
 	userSettingsTable := v.L.NewTable()
 	checkInsTable := v.L.NewTable()
 	remindersTable := v.L.NewTable()
+	warningsTable := v.L.NewTable()
+	auditTable := v.L.NewTable()
 	optionTable := v.L.NewTable()
 	uiTable := v.L.NewTable()
 	effectsTable := v.L.NewTable()
+	discordTable := v.L.NewTable()
 	randomTable := v.L.NewTable()
+	timeTable := v.L.NewTable()
 	httpTable := v.L.NewTable()
 
 	logTable.RawSetString("info", v.L.NewFunction(v.luaLog))
@@ -299,6 +326,13 @@ func (v *VM) registerHostAPI() {
 	remindersTable.RawSetString("list", v.L.NewFunction(v.luaRemindersList))
 	remindersTable.RawSetString("delete", v.L.NewFunction(v.luaRemindersDelete))
 
+	warningsTable.RawSetString("count", v.L.NewFunction(v.luaWarningsCount))
+	warningsTable.RawSetString("list", v.L.NewFunction(v.luaWarningsList))
+	warningsTable.RawSetString("create", v.L.NewFunction(v.luaWarningsCreate))
+	warningsTable.RawSetString("delete", v.L.NewFunction(v.luaWarningsDelete))
+
+	auditTable.RawSetString("append", v.L.NewFunction(v.luaAuditAppend))
+
 	optionTable.RawSetString("string", v.L.NewFunction(v.luaStringOption))
 	optionTable.RawSetString("bool", v.L.NewFunction(v.luaBoolOption))
 	optionTable.RawSetString("int", v.L.NewFunction(v.luaIntOption))
@@ -320,9 +354,16 @@ func (v *VM) registerHostAPI() {
 
 	effectsTable.RawSetString("send_channel", v.L.NewFunction(v.luaEffectSendChannel))
 	effectsTable.RawSetString("send_dm", v.L.NewFunction(v.luaEffectSendDM))
+	effectsTable.RawSetString("timeout_member", v.L.NewFunction(v.luaEffectTimeoutMember))
+
+	discordTable.RawSetString("send_dm", v.L.NewFunction(v.luaDiscordSendDM))
+	discordTable.RawSetString("send_channel", v.L.NewFunction(v.luaDiscordSendChannel))
+	discordTable.RawSetString("timeout_member", v.L.NewFunction(v.luaDiscordTimeoutMember))
 
 	randomTable.RawSetString("int", v.L.NewFunction(v.luaRandomInt))
 	randomTable.RawSetString("choice", v.L.NewFunction(v.luaRandomChoice))
+
+	timeTable.RawSetString("unix", v.L.NewFunction(v.luaTimeUnix))
 
 	httpTable.RawSetString("get", v.L.NewFunction(v.luaHTTPGet))
 	httpTable.RawSetString("get_json", v.L.NewFunction(v.luaHTTPGetJSON))
@@ -333,10 +374,14 @@ func (v *VM) registerHostAPI() {
 	bot.RawSetString("usersettings", userSettingsTable)
 	bot.RawSetString("checkins", checkInsTable)
 	bot.RawSetString("reminders", remindersTable)
+	bot.RawSetString("warnings", warningsTable)
+	bot.RawSetString("audit", auditTable)
 	bot.RawSetString("option", optionTable)
 	bot.RawSetString("ui", uiTable)
 	bot.RawSetString("effects", effectsTable)
+	bot.RawSetString("discord", discordTable)
 	bot.RawSetString("random", randomTable)
+	bot.RawSetString("time", timeTable)
 	bot.RawSetString("http", httpTable)
 	bot.RawSetString("plugin", v.L.NewFunction(v.luaPlugin))
 	bot.RawSetString("command", v.L.NewFunction(v.luaCommand))

@@ -9,8 +9,10 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 
@@ -24,6 +26,55 @@ type roundTripperFunc func(*http.Request) (*http.Response, error)
 
 func (fn roundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) {
 	return fn(req)
+}
+
+type fakeDiscordExecutor struct {
+	sendDMErr        error
+	sendChannelErr   error
+	timeoutErr       error
+	sendDMCalls      int
+	sendChannelCalls int
+	timeoutCalls     int
+	lastChannel      uint64
+	lastGuild        uint64
+	lastUser         uint64
+	lastUntil        time.Time
+	lastMessage      any
+}
+
+func (f *fakeDiscordExecutor) TimeoutMember(_ context.Context, guildID, userID uint64, until time.Time) error {
+	f.timeoutCalls++
+	f.lastGuild = guildID
+	f.lastUser = userID
+	f.lastUntil = until
+	return f.timeoutErr
+}
+
+func (f *fakeDiscordExecutor) SendDM(_ context.Context, _ string, userID uint64, message any) (luaplugin.MessageResult, error) {
+	f.sendDMCalls++
+	f.lastUser = userID
+	f.lastMessage = message
+	if f.sendDMErr != nil {
+		return luaplugin.MessageResult{}, f.sendDMErr
+	}
+	return luaplugin.MessageResult{
+		MessageID: 101,
+		ChannelID: 202,
+		UserID:    userID,
+	}, nil
+}
+
+func (f *fakeDiscordExecutor) SendChannel(_ context.Context, _ string, channelID uint64, message any) (luaplugin.MessageResult, error) {
+	f.sendChannelCalls++
+	f.lastChannel = channelID
+	f.lastMessage = message
+	if f.sendChannelErr != nil {
+		return luaplugin.MessageResult{}, f.sendChannelErr
+	}
+	return luaplugin.MessageResult{
+		MessageID: 303,
+		ChannelID: channelID,
+	}, nil
 }
 
 func TestDescriptorRoutesAndKV(t *testing.T) {
@@ -476,6 +527,378 @@ func TestWellnessPluginRoutes(t *testing.T) {
 	}
 	if content, _ := deleteResult["content"].(string); !strings.Contains(content, "Deleted") {
 		t.Fatalf("unexpected delete component response: %#v", deleteResult)
+	}
+}
+
+func TestModerationPluginRoutes(t *testing.T) {
+	t.Parallel()
+
+	db := openTestDB(t)
+	t.Cleanup(func() { _ = db.Close() })
+	if err := initSQLiteSchema(db, "../../../migrations/sqlite/001_init.sql"); err != nil {
+		t.Fatalf("init schema: %v", err)
+	}
+
+	store, err := sqlitestore.New(db)
+	if err != nil {
+		t.Fatalf("store: %v", err)
+	}
+
+	var logs bytes.Buffer
+	logger := slog.New(slog.NewTextHandler(&logs, &slog.HandlerOptions{}))
+
+	reg, err := i18n.LoadCore(filepath.FromSlash("../../../locales"))
+	if err != nil {
+		t.Fatalf("i18n: %v", err)
+	}
+	if err = reg.LoadPluginLocales("moderation", filepath.FromSlash("../../../plugins/moderation/locales")); err != nil {
+		t.Fatalf("plugin i18n: %v", err)
+	}
+
+	script := filepath.FromSlash("../../../plugins/moderation/plugin.lua")
+	discordExecutor := &fakeDiscordExecutor{}
+	vm, err := luaplugin.NewFromFile(script, luaplugin.Options{
+		Logger:    logger,
+		PluginID:  "moderation",
+		PluginDir: filepath.Dir(script),
+		Permissions: permissions.Permissions{
+			Storage: permissions.StoragePermissions{
+				Warnings: true,
+				Audit:    true,
+			},
+			Discord: permissions.DiscordPermissions{
+				SendDM:        true,
+				TimeoutMember: true,
+			},
+		},
+		Discord: discordExecutor,
+		Store:   store,
+		I18n:    &reg,
+	})
+	if err != nil {
+		t.Fatalf("NewFromFile(moderation): %v", err)
+	}
+	t.Cleanup(vm.Close)
+
+	definition, ok := vm.Definition()
+	if !ok {
+		t.Fatalf("expected descriptor definition")
+	}
+	if len(definition.Commands) != 2 {
+		t.Fatalf("unexpected command count: %#v", definition.Commands)
+	}
+	if got := definition.Commands[0].DefaultMemberPermissions; len(got) == 0 {
+		t.Fatalf("expected default member permissions on moderation commands")
+	}
+
+	ctx := context.Background()
+	baseOptions := map[string]any{
+		"user":   "99",
+		"reason": "spam",
+		"__resolved:user": map[string]any{
+			"id":      "99",
+			"bot":     false,
+			"system":  false,
+			"mention": "<@99>",
+		},
+	}
+
+	for i := 0; i < 3; i++ {
+		got, hasValue, callErr := vm.CallRoute(ctx, luaplugin.RouteCommand, "warn", luaplugin.Payload{
+			GuildID: "7",
+			UserID:  "42",
+			Locale:  "en-US",
+			Options: baseOptions,
+		})
+		if callErr != nil {
+			t.Fatalf("CallRoute(warn %d): %v", i+1, callErr)
+		}
+		if !hasValue {
+			t.Fatalf("expected warn response %d", i+1)
+		}
+
+		warnMap, ok := got.(map[string]any)
+		if !ok {
+			t.Fatalf("expected warn response object, got %T", got)
+		}
+		content, _ := warnMap["content"].(string)
+		if !strings.Contains(content, "<@99>") {
+			t.Fatalf("unexpected warn response: %#v", warnMap)
+		}
+		if _, hasActions := warnMap["actions"]; hasActions {
+			t.Fatalf("expected no deferred actions in interaction response, got %#v", warnMap)
+		}
+		if i == 2 && !strings.Contains(content, "time-out for 10 minutes") {
+			t.Fatalf("expected successful timeout branch, got %#v", warnMap)
+		}
+	}
+	if discordExecutor.timeoutCalls != 1 {
+		t.Fatalf("expected one synchronous timeout call, got %d", discordExecutor.timeoutCalls)
+	}
+	if discordExecutor.sendDMCalls != 3 {
+		t.Fatalf("expected one synchronous DM send per warn, got %d", discordExecutor.sendDMCalls)
+	}
+	if discordExecutor.lastGuild != 7 || discordExecutor.lastUser != 99 {
+		t.Fatalf("unexpected timeout target: guild=%d user=%d", discordExecutor.lastGuild, discordExecutor.lastUser)
+	}
+
+	warnings, err := store.Warnings().ListWarnings(ctx, 7, 99, 10)
+	if err != nil || len(warnings) == 0 {
+		t.Fatalf("expected stored warnings, got %#v (%v)", warnings, err)
+	}
+	var timeoutAuditCount int
+	if scanErr := db.QueryRow(`SELECT COUNT(1) FROM audit_log WHERE action = 'warn.timeout'`).Scan(&timeoutAuditCount); scanErr != nil {
+		t.Fatalf("count timeout audits: %v", scanErr)
+	}
+	if timeoutAuditCount != 1 {
+		t.Fatalf("expected one timeout audit entry, got %d", timeoutAuditCount)
+	}
+
+	got, hasValue, err := vm.CallRoute(ctx, luaplugin.RouteCommand, "unwarn", luaplugin.Payload{
+		GuildID: "7",
+		UserID:  "42",
+		Locale:  "en-US",
+		Options: map[string]any{
+			"user": "99",
+			"__resolved:user": map[string]any{
+				"id":      "99",
+				"bot":     false,
+				"system":  false,
+				"mention": "<@99>",
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("CallRoute(unwarn): %v", err)
+	}
+	if !hasValue {
+		t.Fatalf("expected unwarn response")
+	}
+	unwarnMap, ok := got.(map[string]any)
+	if !ok {
+		t.Fatalf("expected unwarn response object, got %T", got)
+	}
+	components, _ := unwarnMap["components"].([]any)
+	if len(components) != 1 {
+		t.Fatalf("expected unwarn select menu, got %#v", unwarnMap)
+	}
+
+	value := warnings[0].ID + "|42|99|" + strconv.FormatInt(time.Now().UTC().Unix(), 10)
+	got, hasValue, err = vm.CallRoute(ctx, luaplugin.RouteComponent, "unwarn_select", luaplugin.Payload{
+		GuildID: "7",
+		UserID:  "42",
+		Locale:  "en-US",
+		Options: map[string]any{
+			"type":   "string_select",
+			"values": []any{value},
+		},
+	})
+	if err != nil {
+		t.Fatalf("CallRoute(unwarn_select): %v", err)
+	}
+	if !hasValue {
+		t.Fatalf("expected unwarn_select response")
+	}
+	updateMap, ok := got.(map[string]any)
+	if !ok {
+		t.Fatalf("expected component response object, got %T", got)
+	}
+	updateContent, _ := updateMap["content"].(string)
+	if !strings.Contains(updateContent, "<@99>") {
+		t.Fatalf("unexpected unwarn update: %#v", updateMap)
+	}
+}
+
+func TestModerationPluginWarnTimeoutFailure(t *testing.T) {
+	t.Parallel()
+
+	db := openTestDB(t)
+	t.Cleanup(func() { _ = db.Close() })
+	if err := initSQLiteSchema(db, "../../../migrations/sqlite/001_init.sql"); err != nil {
+		t.Fatalf("init schema: %v", err)
+	}
+
+	store, err := sqlitestore.New(db)
+	if err != nil {
+		t.Fatalf("store: %v", err)
+	}
+
+	var logs bytes.Buffer
+	logger := slog.New(slog.NewTextHandler(&logs, &slog.HandlerOptions{}))
+
+	reg, err := i18n.LoadCore(filepath.FromSlash("../../../locales"))
+	if err != nil {
+		t.Fatalf("i18n: %v", err)
+	}
+	if err = reg.LoadPluginLocales("moderation", filepath.FromSlash("../../../plugins/moderation/locales")); err != nil {
+		t.Fatalf("plugin i18n: %v", err)
+	}
+
+	discordExecutor := &fakeDiscordExecutor{timeoutErr: io.EOF}
+	script := filepath.FromSlash("../../../plugins/moderation/plugin.lua")
+	vm, err := luaplugin.NewFromFile(script, luaplugin.Options{
+		Logger:    logger,
+		PluginID:  "moderation",
+		PluginDir: filepath.Dir(script),
+		Permissions: permissions.Permissions{
+			Storage: permissions.StoragePermissions{
+				Warnings: true,
+				Audit:    true,
+			},
+			Discord: permissions.DiscordPermissions{
+				SendDM:        true,
+				TimeoutMember: true,
+			},
+		},
+		Discord: discordExecutor,
+		Store:   store,
+		I18n:    &reg,
+	})
+	if err != nil {
+		t.Fatalf("NewFromFile(moderation): %v", err)
+	}
+	t.Cleanup(vm.Close)
+
+	ctx := context.Background()
+	options := map[string]any{
+		"user":   "99",
+		"reason": "spam",
+		"__resolved:user": map[string]any{
+			"id":      "99",
+			"bot":     false,
+			"system":  false,
+			"mention": "<@99>",
+		},
+	}
+
+	for i := 0; i < 3; i++ {
+		got, hasValue, callErr := vm.CallRoute(ctx, luaplugin.RouteCommand, "warn", luaplugin.Payload{
+			GuildID: "7",
+			UserID:  "42",
+			Locale:  "en-US",
+			Options: options,
+		})
+		if callErr != nil {
+			t.Fatalf("CallRoute(warn %d): %v", i+1, callErr)
+		}
+		if !hasValue {
+			t.Fatalf("expected warn response %d", i+1)
+		}
+		if i != 2 {
+			continue
+		}
+
+		warnMap, ok := got.(map[string]any)
+		if !ok {
+			t.Fatalf("expected warn response object, got %T", got)
+		}
+		content, _ := warnMap["content"].(string)
+		if !strings.Contains(content, "I tried to time them out too, but I couldn't.") {
+			t.Fatalf("expected timeout failure branch, got %#v", warnMap)
+		}
+		if _, hasActions := warnMap["actions"]; hasActions {
+			t.Fatalf("expected no deferred actions on timeout failure, got %#v", warnMap)
+		}
+	}
+
+	if discordExecutor.timeoutCalls != 1 {
+		t.Fatalf("expected one synchronous timeout attempt, got %d", discordExecutor.timeoutCalls)
+	}
+	if discordExecutor.sendDMCalls != 3 {
+		t.Fatalf("expected one synchronous DM send per warn, got %d", discordExecutor.sendDMCalls)
+	}
+	var timeoutAuditCount int
+	if scanErr := db.QueryRow(`SELECT COUNT(1) FROM audit_log WHERE action = 'warn.timeout'`).Scan(&timeoutAuditCount); scanErr != nil {
+		t.Fatalf("count timeout audits: %v", scanErr)
+	}
+	if timeoutAuditCount != 0 {
+		t.Fatalf("expected no timeout audit entry on failure, got %d", timeoutAuditCount)
+	}
+}
+
+func TestDiscordSendAPIs(t *testing.T) {
+	t.Parallel()
+
+	var logs bytes.Buffer
+	logger := slog.New(slog.NewTextHandler(&logs, &slog.HandlerOptions{}))
+	discordExecutor := &fakeDiscordExecutor{}
+
+	dir := t.TempDir()
+	script := filepath.Join(dir, "plugin.lua")
+	if err := os.WriteFile(script, []byte(`
+return bot.plugin({
+  commands = {
+    bot.command("sendtest", {
+      description = "Send test messages.",
+      run = function(ctx)
+        local dm_result, dm_err = bot.discord.send_dm({
+          user_id = ctx.user.id,
+          message = { content = "dm test" },
+        })
+        if dm_result == nil or dm_err ~= nil then
+          error("dm failed")
+        end
+
+        local channel_result, channel_err = bot.discord.send_channel({
+          message = { content = "channel test" },
+        })
+        if channel_result == nil or channel_err ~= nil then
+          error("channel failed")
+        end
+
+        return bot.ui.reply({
+          content = dm_result.message_id .. ":" .. channel_result.channel_id,
+          ephemeral = true,
+        })
+      end,
+    }),
+  },
+})
+`), 0o644); err != nil {
+		t.Fatalf("write plugin: %v", err)
+	}
+
+	vm, err := luaplugin.NewFromFile(script, luaplugin.Options{
+		Logger:    logger,
+		PluginID:  "sendtest",
+		PluginDir: dir,
+		Permissions: permissions.Permissions{
+			Discord: permissions.DiscordPermissions{
+				SendDM:      true,
+				SendChannel: true,
+			},
+		},
+		Discord: discordExecutor,
+	})
+	if err != nil {
+		t.Fatalf("NewFromFile(sendtest): %v", err)
+	}
+	t.Cleanup(vm.Close)
+
+	got, hasValue, err := vm.CallRoute(context.Background(), luaplugin.RouteCommand, "sendtest", luaplugin.Payload{
+		ChannelID: "77",
+		UserID:    "42",
+		Locale:    "en-US",
+	})
+	if err != nil {
+		t.Fatalf("CallRoute(sendtest): %v", err)
+	}
+	if !hasValue {
+		t.Fatalf("expected sendtest value")
+	}
+
+	gotMap, ok := got.(map[string]any)
+	if !ok {
+		t.Fatalf("expected object, got %T", got)
+	}
+	if gotMap["content"] != "101:77" {
+		t.Fatalf("unexpected content: %#v", gotMap)
+	}
+	if discordExecutor.sendDMCalls != 1 || discordExecutor.sendChannelCalls != 1 {
+		t.Fatalf("unexpected send call counts: dm=%d channel=%d", discordExecutor.sendDMCalls, discordExecutor.sendChannelCalls)
+	}
+	if discordExecutor.lastUser != 42 || discordExecutor.lastChannel != 77 {
+		t.Fatalf("unexpected send targets: user=%d channel=%d", discordExecutor.lastUser, discordExecutor.lastChannel)
 	}
 }
 

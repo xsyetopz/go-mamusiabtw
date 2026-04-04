@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/disgoorg/disgo/discord"
+	"github.com/disgoorg/omit"
 	"github.com/disgoorg/snowflake/v2"
 	"github.com/robfig/cron/v3"
 
@@ -287,7 +288,9 @@ func eventAllowed(perms permissions.Permissions, eventName string) bool {
 type automationAction struct {
 	Type      string
 	ChannelID string
+	GuildID   string
 	UserID    string
+	UntilUnix int64
 	Message   any
 }
 
@@ -320,11 +323,15 @@ func parseAutomationActions(raw any) ([]automationAction, error) {
 			return nil, errors.New("action missing type")
 		}
 		ch, _ := im["channel_id"].(string)
+		guildID, _ := im["guild_id"].(string)
 		uid, _ := im["user_id"].(string)
+		untilUnix, _ := asInt64(im, "until_unix")
 		out = append(out, automationAction{
 			Type:      typ,
 			ChannelID: strings.TrimSpace(ch),
+			GuildID:   strings.TrimSpace(guildID),
 			UserID:    strings.TrimSpace(uid),
+			UntilUnix: untilUnix,
 			Message:   im["message"],
 		})
 	}
@@ -377,12 +384,59 @@ func (p *pluginAutomation) executeAutomationAction(
 		p.executeSendChannel(ctx, pluginID, perms, trigger, a)
 	case "send_dm":
 		p.executeSendDM(ctx, pluginID, perms, trigger, a)
+	case "timeout_member":
+		p.executeTimeoutMember(ctx, pluginID, perms, trigger, a)
 	default:
 		p.logger.WarnContext(
 			ctx,
 			"plugin automation unsupported action",
 			slog.String("plugin", pluginID),
 			slog.String("type", a.Type),
+		)
+	}
+}
+
+func (p *pluginAutomation) executeTimeoutMember(
+	ctx context.Context,
+	pluginID string,
+	perms permissions.Permissions,
+	trigger pluginhost.Payload,
+	a automationAction,
+) {
+	if !perms.Discord.TimeoutMember {
+		p.logger.WarnContext(ctx, "plugin timeout_member denied", slog.String("plugin", pluginID))
+		return
+	}
+
+	guildID := strings.TrimSpace(a.GuildID)
+	if guildID == "" {
+		guildID = strings.TrimSpace(trigger.GuildID)
+	}
+	userID := strings.TrimSpace(a.UserID)
+	if userID == "" {
+		userID = strings.TrimSpace(trigger.UserID)
+	}
+	if guildID == "" || userID == "" || a.UntilUnix <= 0 {
+		p.logger.WarnContext(ctx, "plugin timeout_member missing fields", slog.String("plugin", pluginID))
+		return
+	}
+
+	gid, guildErr := snowflake.Parse(guildID)
+	uid, userErr := snowflake.Parse(userID)
+	if guildErr != nil || userErr != nil {
+		p.logger.WarnContext(ctx, "plugin timeout_member invalid ids", slog.String("plugin", pluginID))
+		return
+	}
+
+	until := time.Unix(a.UntilUnix, 0).UTC()
+	if _, err := p.bot.client.Rest.UpdateMember(gid, uid, discord.MemberUpdate{
+		CommunicationDisabledUntil: omit.NewPtr(until),
+	}); err != nil {
+		p.logger.WarnContext(
+			ctx,
+			"plugin timeout_member failed",
+			slog.String("plugin", pluginID),
+			slog.String("err", err.Error()),
 		)
 	}
 }

@@ -6,11 +6,14 @@
       "kv": false,
       "user_settings": false,
       "checkins": false,
-      "reminders": false
+      "reminders": false,
+      "warnings": false,
+      "audit": false
     },
     "discord": {
       "send_channel": false,
-      "send_dm": false
+      "send_dm": false,
+      "timeout_member": false
     },
     "network": {
       "http": false
@@ -39,6 +42,16 @@
         "user_settings": true,
         "checkins": true,
         "reminders": true
+      }
+    },
+    "moderation": {
+      "storage": {
+        "warnings": true,
+        "audit": true
+      },
+      "discord": {
+        "send_dm": true,
+        "timeout_member": true
       }
     }
   }

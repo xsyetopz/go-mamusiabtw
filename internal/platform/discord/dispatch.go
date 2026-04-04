@@ -10,7 +10,6 @@ import (
 	"github.com/disgoorg/disgo/events"
 
 	"github.com/xsyetopz/go-mamusiabtw/internal/features/commandapi"
-	cmdmoderation "github.com/xsyetopz/go-mamusiabtw/internal/features/moderation"
 	"github.com/xsyetopz/go-mamusiabtw/internal/platform/discord/interactions"
 	"github.com/xsyetopz/go-mamusiabtw/internal/pluginhost"
 	"github.com/xsyetopz/go-mamusiabtw/internal/present"
@@ -230,10 +229,6 @@ func (b *Bot) onComponent(e *events.ComponentInteractionCreate) {
 		return
 	}
 
-	if b.handleUnwarnComponent(ctx, e, t, locale, customID) {
-		return
-	}
-
 	b.handlePluginComponent(ctx, e, t, locale, customID)
 }
 
@@ -254,49 +249,6 @@ func (b *Bot) takeComponentCooldown(
 			_ = e.CreateMessage(msg)
 			return false
 		}
-	}
-	return true
-}
-
-func (b *Bot) handleUnwarnComponent(
-	ctx context.Context,
-	e *events.ComponentInteractionCreate,
-	t commandapi.Translator,
-	locale discord.Locale,
-	customID string,
-) bool {
-	if !strings.HasPrefix(customID, "mamusiabtw:unwarn:") {
-		return false
-	}
-	if !b.moduleEnabled("moderation") {
-		_ = e.Acknowledge()
-		return true
-	}
-
-	data := e.StringSelectMenuInteractionData()
-	action, err := cmdmoderation.HandleUnwarnSelection(ctx, e, t, b.services(locale), customID, data.Values)
-	if err != nil {
-		b.logger.ErrorContext(
-			ctx,
-			"component failed",
-			slog.String("custom_id", customID),
-			slog.String("err", err.Error()),
-		)
-		_ = e.CreateMessage(interactions.NoticeMessage(present.KindError, "", t.S("err.generic", nil), true))
-		return true
-	}
-	if action == nil {
-		_ = e.Acknowledge()
-		return true
-	}
-	if execErr := action.Execute(e); execErr != nil {
-		b.logger.ErrorContext(
-			ctx,
-			"component action failed",
-			slog.String("custom_id", customID),
-			slog.String("err", execErr.Error()),
-		)
-		_ = e.CreateMessage(interactions.NoticeMessage(present.KindError, "", t.S("err.generic", nil), true))
 	}
 	return true
 }
@@ -361,7 +313,10 @@ func (b *Bot) handlePluginComponent(
 	b.executePluginActionFromComponent(e, action)
 }
 
-func (b *Bot) executePluginActionFromComponent(e *events.ComponentInteractionCreate, action pluginAction) {
+func (b *Bot) executePluginActionFromComponent(
+	e *events.ComponentInteractionCreate,
+	action pluginAction,
+) {
 	switch action.Kind {
 	case pluginActionNone:
 		_ = e.Acknowledge()

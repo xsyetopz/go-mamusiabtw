@@ -122,6 +122,9 @@ func pluginActionFromMap(
 	defaultEphemeral bool,
 	mode pluginResponseMode,
 ) (pluginAction, error) {
+	if _, ok := m["actions"]; ok {
+		return pluginAction{}, errors.New("actions are automation-only")
+	}
 	if presentRaw, ok := m["present"]; ok {
 		msg, err := parsePresent(pluginID, presentRaw)
 		if err != nil {
@@ -921,6 +924,27 @@ func asInt(m map[string]any, key string) (int, bool) {
 		}
 		return int(vv), true
 	case int:
+		return vv, true
+	default:
+		return 0, false
+	}
+}
+
+func asInt64(m map[string]any, key string) (int64, bool) {
+	v, ok := m[key]
+	if !ok {
+		return 0, false
+	}
+
+	switch vv := v.(type) {
+	case float64:
+		if math.IsNaN(vv) || math.IsInf(vv, 0) {
+			return 0, false
+		}
+		return int64(vv), true
+	case int:
+		return int64(vv), true
+	case int64:
 		return vv, true
 	default:
 		return 0, false

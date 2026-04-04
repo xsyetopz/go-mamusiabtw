@@ -46,6 +46,12 @@
             },
             "reminders": {
               "type": "boolean"
+            },
+            "warnings": {
+              "type": "boolean"
+            },
+            "audit": {
+              "type": "boolean"
             }
           }
         },
@@ -57,6 +63,9 @@
               "type": "boolean"
             },
             "send_dm": {
+              "type": "boolean"
+            },
+            "timeout_member": {
               "type": "boolean"
             }
           }

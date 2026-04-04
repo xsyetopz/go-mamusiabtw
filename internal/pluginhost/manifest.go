@@ -30,8 +30,9 @@ type Command struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	// DescriptionID is an optional i18n key used for command description localization.
-	DescriptionID string `json:"description_id,omitempty"`
-	Ephemeral     bool   `json:"ephemeral"`
+	DescriptionID            string   `json:"description_id,omitempty"`
+	Ephemeral                bool     `json:"ephemeral"`
+	DefaultMemberPermissions []string `json:"default_member_permissions,omitempty"`
 
 	Options []CommandOption `json:"options"`
 

@@ -8,7 +8,6 @@ import (
 	cmdemojis "github.com/xsyetopz/go-mamusiabtw/internal/features/manager/emojis"
 	cmdroles "github.com/xsyetopz/go-mamusiabtw/internal/features/manager/roles"
 	cmdstickers "github.com/xsyetopz/go-mamusiabtw/internal/features/manager/stickers"
-	cmdmoderation "github.com/xsyetopz/go-mamusiabtw/internal/features/moderation"
 
 	"github.com/xsyetopz/go-mamusiabtw/internal/features/commandapi"
 )
@@ -43,13 +42,6 @@ func Catalog() []ModuleDescriptor {
 			DefaultEnabled: true,
 			Toggleable:     false,
 			Commands:       cmdadmin.Commands,
-		},
-		{
-			ID:             "moderation",
-			Name:           "Moderation",
-			DefaultEnabled: true,
-			Toggleable:     true,
-			Commands:       cmdmoderation.Commands,
 		},
 		{
 			ID:             "manager",

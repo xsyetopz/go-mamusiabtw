@@ -24,6 +24,7 @@
 ---@field group string
 ---@field subcommand string
 ---@field args table<string, any>
+---@field resolved table<string, table>
 
 ---@class MamusiaBtwComponentContext
 ---@field id string
@@ -200,6 +201,7 @@
 ---@field description string
 ---@field description_id? string
 ---@field ephemeral? boolean
+---@field default_member_permissions? string[]
 ---@field options? MamusiaBtwCommandOption[]
 ---@field subcommands? MamusiaBtwSubcommand[]
 ---@field groups? MamusiaBtwCommandGroup[]
@@ -252,12 +254,27 @@
 ---@field text_input fun(id: string, spec: table): MamusiaBtwModalField
 
 ---@class MamusiaBtwEffectsAPI
+---Automation-only effects for event/job handlers.
 ---@field send_channel fun(spec: { channel_id?: string, message: MamusiaBtwResponse|string }): table
 ---@field send_dm fun(spec: { user_id?: string, message: MamusiaBtwResponse|string }): table
+---@field timeout_member fun(spec: { guild_id?: string, user_id?: string, until_unix: integer }): table
+
+---@class MamusiaBtwDiscordSendResult
+---@field message_id string
+---@field channel_id string
+---@field user_id? string
+
+---@class MamusiaBtwDiscordAPI
+---@field send_dm fun(spec: { user_id?: string, message: MamusiaBtwResponse|string }): (MamusiaBtwDiscordSendResult|nil, string|nil)
+---@field send_channel fun(spec: { channel_id?: string, message: MamusiaBtwResponse|string }): (MamusiaBtwDiscordSendResult|nil, string|nil)
+---@field timeout_member fun(spec: { guild_id?: string, user_id?: string, until_unix: integer }): (boolean, string|nil)
 
 ---@class MamusiaBtwRandomAPI
 ---@field int fun(min: integer, max: integer): integer
 ---@field choice fun(list: any[]): any
+
+---@class MamusiaBtwTimeAPI
+---@field unix fun(): integer
 
 ---@class MamusiaBtwHTTPResponse
 ---@field status integer
@@ -317,6 +334,23 @@
 ---@field list fun(user_id?: string|integer, limit?: integer): MamusiaBtwReminder[]
 ---@field delete fun(user_id: string|integer, reminder_id: string): boolean
 
+---@class MamusiaBtwWarning
+---@field id string
+---@field guild_id integer
+---@field user_id integer
+---@field moderator_id integer
+---@field reason string
+---@field created_at integer
+
+---@class MamusiaBtwWarningsAPI
+---@field count fun(guild_id?: string|integer, user_id?: string|integer): integer
+---@field list fun(guild_id?: string|integer, user_id?: string|integer, limit?: integer): MamusiaBtwWarning[]
+---@field create fun(spec: { id?: string, guild_id?: string|integer, user_id?: string|integer, moderator_id?: string|integer, reason: string, created_at?: integer }): MamusiaBtwWarning
+---@field delete fun(warning_id: string): boolean
+
+---@class MamusiaBtwAuditAPI
+---@field append fun(spec: { guild_id?: string|integer, actor_id?: string|integer, action: string, target_type?: 'user'|'guild', target_id?: string|integer, created_at?: integer, meta_json?: string }): boolean
+
 ---@class MamusiaBtwAPI
 ---@field log MamusiaBtwLogAPI
 ---@field i18n MamusiaBtwI18nAPI
@@ -324,10 +358,14 @@
 ---@field usersettings MamusiaBtwUserSettingsAPI
 ---@field checkins MamusiaBtwCheckInsAPI
 ---@field reminders MamusiaBtwRemindersAPI
+---@field warnings MamusiaBtwWarningsAPI
+---@field audit MamusiaBtwAuditAPI
 ---@field option MamusiaBtwOptionAPI
 ---@field ui MamusiaBtwUIAPI
 ---@field effects MamusiaBtwEffectsAPI
+---@field discord MamusiaBtwDiscordAPI
 ---@field random MamusiaBtwRandomAPI
+---@field time MamusiaBtwTimeAPI
 ---@field http MamusiaBtwHTTPAPI
 ---@field plugin fun(spec: MamusiaBtwPluginDefinition): MamusiaBtwPluginDefinition
 ---@field command fun(name: string, spec: table): MamusiaBtwCommandRoute

@@ -1,0 +1,16 @@
+{
+  "$schema": "https://raw.githubusercontent.com/xsyetopz/go-mamusiabtw/refs/heads/main/schemas/plugin.schema.v1.json",
+  "id": "moderation",
+  "name": "Moderation",
+  "version": "0.1.0",
+  "permissions": {
+    "storage": {
+      "warnings": true,
+      "audit": true
+    },
+    "discord": {
+      "send_dm": true,
+      "timeout_member": true
+    }
+  }
+}

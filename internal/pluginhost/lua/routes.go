@@ -78,10 +78,14 @@ func (v *VM) CallRoute(ctx context.Context, kind RouteKind, routeID string, payl
 	v.execCtx = timeoutCtx
 	v.locale = strings.TrimSpace(payload.Locale)
 	v.userID = parseSnowflakeString(payload.UserID)
+	v.guildID = parseSnowflakeString(payload.GuildID)
+	v.channel = parseSnowflakeString(payload.ChannelID)
 	defer func() {
 		v.execCtx = nil
 		v.locale = ""
 		v.userID = 0
+		v.guildID = 0
+		v.channel = 0
 	}()
 
 	ctxTable, err := v.routeContextToLua(kind, routeID, payload)
@@ -136,11 +140,17 @@ func (v *VM) routeContextToLua(kind RouteKind, routeID string, payload Payload) 
 		if err != nil {
 			return nil, fmt.Errorf("command args: %w", err)
 		}
+		resolved := commandResolved(payload.Options)
+		resolvedTable, err := anyToLuaValue(v.L, resolved, 0)
+		if err != nil {
+			return nil, fmt.Errorf("command resolved: %w", err)
+		}
 		commandTable := v.L.NewTable()
 		commandTable.RawSetString("name", lua.LString(strings.TrimSpace(routeID)))
 		commandTable.RawSetString("group", lua.LString(payloadString(payload.Options, "__group")))
 		commandTable.RawSetString("subcommand", lua.LString(payloadString(payload.Options, "__subcommand")))
 		commandTable.RawSetString("args", argsTable)
+		commandTable.RawSetString("resolved", resolvedTable)
 		root.RawSetString("command", commandTable)
 		root.RawSetString("args", argsTable)
 	case RouteComponent:
@@ -196,10 +206,32 @@ func commandArgs(options map[string]any) map[string]any {
 		case "__group", "__subcommand":
 			continue
 		default:
+			if strings.HasPrefix(key, "__resolved:") {
+				continue
+			}
 			args[key] = value
 		}
 	}
 	return args
+}
+
+func commandResolved(options map[string]any) map[string]any {
+	if len(options) == 0 {
+		return map[string]any{}
+	}
+
+	resolved := map[string]any{}
+	for key, value := range options {
+		if !strings.HasPrefix(key, "__resolved:") {
+			continue
+		}
+		name := strings.TrimSpace(strings.TrimPrefix(key, "__resolved:"))
+		if name == "" {
+			continue
+		}
+		resolved[name] = value
+	}
+	return resolved
 }
 
 func payloadString(options map[string]any, key string) string {

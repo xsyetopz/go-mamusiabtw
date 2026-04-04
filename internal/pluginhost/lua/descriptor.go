@@ -28,13 +28,14 @@ type Definition struct {
 }
 
 type CommandSpec struct {
-	Name          string
-	Description   string
-	DescriptionID string
-	Ephemeral     bool
-	Options       []CommandOptionSpec
-	Subcommands   []SubcommandSpec
-	Groups        []CommandGroupSpec
+	Name                     string
+	Description              string
+	DescriptionID            string
+	Ephemeral                bool
+	DefaultMemberPermissions []string
+	Options                  []CommandOptionSpec
+	Subcommands              []SubcommandSpec
+	Groups                   []CommandGroupSpec
 }
 
 type CommandOptionSpec struct {
@@ -222,10 +223,11 @@ func parseCommandEntries(raw lua.LValue) ([]CommandSpec, map[string]*lua.LFuncti
 
 func parseCommandTable(table *lua.LTable) (CommandSpec, error) {
 	spec := CommandSpec{
-		Name:          tableString(table, "name"),
-		Description:   tableString(table, "description"),
-		DescriptionID: tableString(table, "description_id"),
-		Ephemeral:     tableBool(table, "ephemeral"),
+		Name:                     tableString(table, "name"),
+		Description:              tableString(table, "description"),
+		DescriptionID:            tableString(table, "description_id"),
+		Ephemeral:                tableBool(table, "ephemeral"),
+		DefaultMemberPermissions: tableStringSlice(table, "default_member_permissions"),
 	}
 	if spec.Description == "" {
 		return CommandSpec{}, errors.New("missing description")
@@ -599,6 +601,28 @@ func tableIntSlice(table *lua.LTable, key string) []int {
 			continue
 		}
 		out = append(out, int(number))
+	}
+	return out
+}
+
+func tableStringSlice(table *lua.LTable, key string) []string {
+	raw := table.RawGetString(key)
+	list, err := requireArray(raw, "")
+	if err != nil {
+		return nil
+	}
+
+	out := make([]string, 0, len(list))
+	for _, item := range list {
+		value, ok := item.(lua.LString)
+		if !ok {
+			continue
+		}
+		text := strings.TrimSpace(value.String())
+		if text == "" {
+			continue
+		}
+		out = append(out, text)
 	}
 	return out
 }

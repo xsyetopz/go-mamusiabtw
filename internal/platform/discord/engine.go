@@ -13,6 +13,7 @@ import (
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/disgo/gateway"
+	"github.com/disgoorg/omit"
 	"github.com/disgoorg/snowflake/v2"
 
 	"github.com/xsyetopz/go-mamusiabtw/internal/buildinfo"
@@ -21,6 +22,7 @@ import (
 	"github.com/xsyetopz/go-mamusiabtw/internal/i18n"
 	"github.com/xsyetopz/go-mamusiabtw/internal/platform/discord/interactions"
 	"github.com/xsyetopz/go-mamusiabtw/internal/pluginhost"
+	pluginhostlua "github.com/xsyetopz/go-mamusiabtw/internal/pluginhost/lua"
 	"github.com/xsyetopz/go-mamusiabtw/internal/present"
 	"github.com/xsyetopz/go-mamusiabtw/internal/store"
 )
@@ -216,6 +218,7 @@ func (b *Bot) initPlugins(deps Dependencies) error {
 			TrustedKeysFile:     deps.TrustedKeysFile,
 			PermissionsFile:     deps.PermissionsFile,
 			Store:               deps.Store,
+			Discord:             pluginDiscordExecutor{bot: b},
 			Logger:              b.logger,
 			I18n:                &b.i18n,
 		})
@@ -229,6 +232,94 @@ func (b *Bot) initPlugins(deps Dependencies) error {
 		b.pluginAuto = newPluginAutomation(b)
 	}
 	return nil
+}
+
+type pluginDiscordExecutor struct {
+	bot *Bot
+}
+
+func (e pluginDiscordExecutor) SendDM(
+	ctx context.Context,
+	pluginID string,
+	userID uint64,
+	message any,
+) (pluginhostlua.MessageResult, error) {
+	if e.bot == nil || e.bot.client == nil {
+		return pluginhostlua.MessageResult{}, errors.New("discord client unavailable")
+	}
+	if userID == 0 {
+		return pluginhostlua.MessageResult{}, errors.New("invalid user id")
+	}
+
+	msg, err := parseAutomationMessage(pluginID, message)
+	if err != nil {
+		return pluginhostlua.MessageResult{}, err
+	}
+	if msg.Flags&discord.MessageFlagEphemeral != 0 {
+		return pluginhostlua.MessageResult{}, errors.New("ephemeral not supported for send_dm")
+	}
+
+	dmID, err := e.bot.ensureDMChannel(ctx, userID)
+	if err != nil {
+		return pluginhostlua.MessageResult{}, err
+	}
+
+	created, err := e.bot.client.Rest.CreateMessage(snowflake.ID(dmID), msg)
+	if err != nil {
+		return pluginhostlua.MessageResult{}, err
+	}
+
+	return pluginhostlua.MessageResult{
+		MessageID: uint64(created.ID),
+		ChannelID: uint64(created.ChannelID),
+		UserID:    userID,
+	}, nil
+}
+
+func (e pluginDiscordExecutor) SendChannel(
+	ctx context.Context,
+	pluginID string,
+	channelID uint64,
+	message any,
+) (pluginhostlua.MessageResult, error) {
+	if e.bot == nil || e.bot.client == nil {
+		return pluginhostlua.MessageResult{}, errors.New("discord client unavailable")
+	}
+	if channelID == 0 {
+		return pluginhostlua.MessageResult{}, errors.New("invalid channel id")
+	}
+
+	msg, err := parseAutomationMessage(pluginID, message)
+	if err != nil {
+		return pluginhostlua.MessageResult{}, err
+	}
+	if msg.Flags&discord.MessageFlagEphemeral != 0 {
+		return pluginhostlua.MessageResult{}, errors.New("ephemeral not supported for send_channel")
+	}
+
+	created, err := e.bot.client.Rest.CreateMessage(snowflake.ID(channelID), msg)
+	if err != nil {
+		return pluginhostlua.MessageResult{}, err
+	}
+
+	return pluginhostlua.MessageResult{
+		MessageID: uint64(created.ID),
+		ChannelID: uint64(created.ChannelID),
+	}, nil
+}
+
+func (e pluginDiscordExecutor) TimeoutMember(ctx context.Context, guildID, userID uint64, until time.Time) error {
+	if e.bot == nil || e.bot.client == nil {
+		return errors.New("discord client unavailable")
+	}
+	if guildID == 0 || userID == 0 {
+		return errors.New("invalid guild or user id")
+	}
+
+	_, err := e.bot.client.Rest.UpdateMember(snowflake.ID(guildID), snowflake.ID(userID), discord.MemberUpdate{
+		CommunicationDisabledUntil: omit.NewPtr(until.UTC()),
+	})
+	return err
 }
 
 func (b *Bot) newClient(token string) (*bot.Client, error) {
