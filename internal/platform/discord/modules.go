@@ -39,6 +39,8 @@ func (b *Bot) refreshRuntimeCatalog(ctx context.Context) error {
 	commands := map[string]commandapi.SlashCommand{}
 	order := []commandapi.SlashCommand{}
 	pluginCommands := map[string]pluginCommandRoute{}
+	pluginUserCommands := map[string]pluginCommandRoute{}
+	pluginMessageCommands := map[string]pluginCommandRoute{}
 	pluginRoutes := map[string]pluginRoute{}
 
 	for _, desc := range features.Catalog() {
@@ -74,12 +76,24 @@ func (b *Bot) refreshRuntimeCatalog(ctx context.Context) error {
 		}
 	}
 
-	b.appendPluginModules(ctx, modules, pluginRoutes, pluginCommands, commands, b.pluginHost, states)
+	b.appendPluginModules(
+		ctx,
+		modules,
+		pluginRoutes,
+		pluginCommands,
+		pluginUserCommands,
+		pluginMessageCommands,
+		commands,
+		b.pluginHost,
+		states,
+	)
 
 	b.modules = modules
 	b.commands = commands
 	b.order = order
 	b.pluginCommands = pluginCommands
+	b.pluginUserCommands = pluginUserCommands
+	b.pluginMessageCommands = pluginMessageCommands
 	b.pluginRoutes = pluginRoutes
 	return nil
 }
@@ -127,6 +141,8 @@ func (b *Bot) appendPluginModules(
 	modules map[string]commandapi.ModuleInfo,
 	pluginRoutes map[string]pluginRoute,
 	pluginCommands map[string]pluginCommandRoute,
+	pluginUserCommands map[string]pluginCommandRoute,
+	pluginMessageCommands map[string]pluginCommandRoute,
 	builtinCommands map[string]commandapi.SlashCommand,
 	host *pluginhost.Host,
 	states map[string]store.ModuleState,
@@ -168,6 +184,22 @@ func (b *Bot) appendPluginModules(
 		for _, cmd := range info.Commands {
 			name := strings.TrimSpace(cmd.Name)
 			if name == "" {
+				continue
+			}
+			switch pluginhost.NormalizeCommandType(cmd.Type) {
+			case pluginhost.CommandTypeUser:
+				if _, exists := pluginUserCommands[name]; exists {
+					b.logger.WarnContext(ctx, "duplicate plugin user command, skipping", slog.String("command", name), slog.String("module", info.ID))
+					continue
+				}
+				pluginUserCommands[name] = pluginCommandRoute{host: host, pluginID: info.ID}
+				continue
+			case pluginhost.CommandTypeMessage:
+				if _, exists := pluginMessageCommands[name]; exists {
+					b.logger.WarnContext(ctx, "duplicate plugin message command, skipping", slog.String("command", name), slog.String("module", info.ID))
+					continue
+				}
+				pluginMessageCommands[name] = pluginCommandRoute{host: host, pluginID: info.ID}
 				continue
 			}
 			if _, exists := builtinCommands[name]; exists {

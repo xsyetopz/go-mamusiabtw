@@ -26,6 +26,8 @@ type MessageInfo struct {
 	AuthorID  uint64
 	Content   string
 	CreatedAt int64
+	EditedAt  int64
+	Pinned    bool
 }
 
 type EmojiResult struct {
@@ -129,7 +131,7 @@ type StickerDeleteSpec struct {
 }
 
 func (v *VM) luaDiscordSetSlowmode(l *lua.LState) int {
-	if !v.perms.Discord.SetSlowmode {
+	if !v.perms.Discord.Channels {
 		l.RaiseError("permission denied: discord.set_slowmode")
 		return 0
 	}
@@ -155,7 +157,7 @@ func (v *VM) luaDiscordSetSlowmode(l *lua.LState) int {
 }
 
 func (v *VM) luaDiscordSetNickname(l *lua.LState) int {
-	if !v.perms.Discord.SetNickname {
+	if !v.perms.Discord.Members {
 		l.RaiseError("permission denied: discord.set_nickname")
 		return 0
 	}
@@ -183,7 +185,7 @@ func (v *VM) luaDiscordSetNickname(l *lua.LState) int {
 }
 
 func (v *VM) luaDiscordCreateRole(l *lua.LState) int {
-	if !v.perms.Discord.CreateRole {
+	if !v.perms.Discord.Roles {
 		l.RaiseError("permission denied: discord.create_role")
 		return 0
 	}
@@ -212,7 +214,7 @@ func (v *VM) luaDiscordCreateRole(l *lua.LState) int {
 }
 
 func (v *VM) luaDiscordEditRole(l *lua.LState) int {
-	if !v.perms.Discord.EditRole {
+	if !v.perms.Discord.Roles {
 		l.RaiseError("permission denied: discord.edit_role")
 		return 0
 	}
@@ -242,7 +244,7 @@ func (v *VM) luaDiscordEditRole(l *lua.LState) int {
 }
 
 func (v *VM) luaDiscordDeleteRole(l *lua.LState) int {
-	if !v.perms.Discord.DeleteRole {
+	if !v.perms.Discord.Roles {
 		l.RaiseError("permission denied: discord.delete_role")
 		return 0
 	}
@@ -277,9 +279,9 @@ func (v *VM) luaDiscordRoleMemberMutation(l *lua.LState, add bool) int {
 	if !add {
 		permName = "discord.remove_role"
 	}
-	allowed := v.perms.Discord.AddRole
+	allowed := v.perms.Discord.Roles
 	if !add {
-		allowed = v.perms.Discord.RemoveRole
+		allowed = v.perms.Discord.Roles
 	}
 	if !allowed {
 		l.RaiseError("permission denied: %s", permName)
@@ -313,7 +315,7 @@ func (v *VM) luaDiscordRoleMemberMutation(l *lua.LState, add bool) int {
 }
 
 func (v *VM) luaDiscordListMessages(l *lua.LState) int {
-	if !v.perms.Discord.ListMessages {
+	if !v.perms.Discord.Messages {
 		l.RaiseError("permission denied: discord.list_messages")
 		return 0
 	}
@@ -338,7 +340,7 @@ func (v *VM) luaDiscordListMessages(l *lua.LState) int {
 	if err != nil {
 		return pushDiscordValueResult(l, nil, err.Error())
 	}
-	out := make([]map[string]any, 0, len(items))
+	out := make([]any, 0, len(items))
 	for _, item := range items {
 		out = append(out, messageMap(item))
 	}
@@ -346,7 +348,7 @@ func (v *VM) luaDiscordListMessages(l *lua.LState) int {
 }
 
 func (v *VM) luaDiscordDeleteMessage(l *lua.LState) int {
-	if !v.perms.Discord.DeleteMessage {
+	if !v.perms.Discord.Messages {
 		l.RaiseError("permission denied: discord.delete_message")
 		return 0
 	}
@@ -370,7 +372,7 @@ func (v *VM) luaDiscordDeleteMessage(l *lua.LState) int {
 }
 
 func (v *VM) luaDiscordBulkDeleteMessages(l *lua.LState) int {
-	if !v.perms.Discord.BulkDeleteMessages {
+	if !v.perms.Discord.Messages {
 		l.RaiseError("permission denied: discord.bulk_delete_messages")
 		return 0
 	}
@@ -394,7 +396,7 @@ func (v *VM) luaDiscordBulkDeleteMessages(l *lua.LState) int {
 }
 
 func (v *VM) luaDiscordPurgeMessages(l *lua.LState) int {
-	if !v.perms.Discord.PurgeMessages {
+	if !v.perms.Discord.Messages {
 		l.RaiseError("permission denied: discord.purge_messages")
 		return 0
 	}
@@ -422,7 +424,7 @@ func (v *VM) luaDiscordPurgeMessages(l *lua.LState) int {
 }
 
 func (v *VM) luaDiscordCreateEmoji(l *lua.LState) int {
-	if !v.perms.Discord.CreateEmoji {
+	if !v.perms.Discord.Emojis {
 		l.RaiseError("permission denied: discord.create_emoji")
 		return 0
 	}
@@ -457,7 +459,7 @@ func (v *VM) luaDiscordCreateEmoji(l *lua.LState) int {
 }
 
 func (v *VM) luaDiscordEditEmoji(l *lua.LState) int {
-	if !v.perms.Discord.EditEmoji {
+	if !v.perms.Discord.Emojis {
 		l.RaiseError("permission denied: discord.edit_emoji")
 		return 0
 	}
@@ -487,7 +489,7 @@ func (v *VM) luaDiscordEditEmoji(l *lua.LState) int {
 }
 
 func (v *VM) luaDiscordDeleteEmoji(l *lua.LState) int {
-	if !v.perms.Discord.DeleteEmoji {
+	if !v.perms.Discord.Emojis {
 		l.RaiseError("permission denied: discord.delete_emoji")
 		return 0
 	}
@@ -511,7 +513,7 @@ func (v *VM) luaDiscordDeleteEmoji(l *lua.LState) int {
 }
 
 func (v *VM) luaDiscordCreateSticker(l *lua.LState) int {
-	if !v.perms.Discord.CreateSticker {
+	if !v.perms.Discord.Stickers {
 		l.RaiseError("permission denied: discord.create_sticker")
 		return 0
 	}
@@ -548,7 +550,7 @@ func (v *VM) luaDiscordCreateSticker(l *lua.LState) int {
 }
 
 func (v *VM) luaDiscordEditSticker(l *lua.LState) int {
-	if !v.perms.Discord.EditSticker {
+	if !v.perms.Discord.Stickers {
 		l.RaiseError("permission denied: discord.edit_sticker")
 		return 0
 	}
@@ -581,7 +583,7 @@ func (v *VM) luaDiscordEditSticker(l *lua.LState) int {
 }
 
 func (v *VM) luaDiscordDeleteSticker(l *lua.LState) int {
-	if !v.perms.Discord.DeleteSticker {
+	if !v.perms.Discord.Stickers {
 		l.RaiseError("permission denied: discord.delete_sticker")
 		return 0
 	}
@@ -652,13 +654,20 @@ func roleMap(role RoleResult) map[string]any {
 }
 
 func messageMap(message MessageInfo) map[string]any {
-	return map[string]any{
+	out := map[string]any{
 		"id":         message.ID,
 		"channel_id": message.ChannelID,
 		"author_id":  message.AuthorID,
 		"content":    message.Content,
 		"created_at": message.CreatedAt,
 	}
+	if message.EditedAt > 0 {
+		out["edited_at"] = message.EditedAt
+	}
+	if message.Pinned {
+		out["pinned"] = true
+	}
+	return out
 }
 
 func luaOptionalInt(spec *lua.LTable, key string) *int {

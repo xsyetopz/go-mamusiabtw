@@ -11,32 +11,18 @@
       "audit": false
     },
     "discord": {
-      "get_self_user": false,
-      "get_user": false,
-      "get_member": false,
-      "get_guild": false,
-      "get_role": false,
-      "get_channel": false,
-      "send_channel": false,
-      "send_dm": false,
-      "timeout_member": false,
-      "set_slowmode": false,
-      "set_nickname": false,
-      "create_role": false,
-      "edit_role": false,
-      "delete_role": false,
-      "add_role": false,
-      "remove_role": false,
-      "list_messages": false,
-      "delete_message": false,
-      "bulk_delete_messages": false,
-      "purge_messages": false,
-      "create_emoji": false,
-      "edit_emoji": false,
-      "delete_emoji": false,
-      "create_sticker": false,
-      "edit_sticker": false,
-      "delete_sticker": false
+      "users": false,
+      "guilds": false,
+      "channels": false,
+      "messages": false,
+      "reactions": false,
+      "members": false,
+      "roles": false,
+      "threads": false,
+      "invites": false,
+      "webhooks": false,
+      "emojis": false,
+      "stickers": false
     },
     "network": {
       "http": false
@@ -73,37 +59,24 @@
         "audit": true
       },
       "discord": {
-        "send_dm": true,
-        "timeout_member": true
+        "messages": true,
+        "members": true
       }
     },
     "info": {
       "discord": {
-        "get_self_user": true,
-        "get_user": true,
-        "get_member": true,
-        "get_guild": true
+        "users": true,
+        "members": true,
+        "guilds": true
       }
     },
     "manager": {
       "discord": {
-        "set_slowmode": true,
-        "set_nickname": true,
-        "create_role": true,
-        "edit_role": true,
-        "delete_role": true,
-        "add_role": true,
-        "remove_role": true,
-        "list_messages": true,
-        "delete_message": true,
-        "bulk_delete_messages": true,
-        "purge_messages": true,
-        "create_emoji": true,
-        "edit_emoji": true,
-        "delete_emoji": true,
-        "create_sticker": true,
-        "edit_sticker": true,
-        "delete_sticker": true
+        "channels": true,
+        "messages": true,
+        "roles": true,
+        "emojis": true,
+        "stickers": true
       }
     }
   }

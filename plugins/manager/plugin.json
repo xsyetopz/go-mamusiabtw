@@ -5,20 +5,11 @@
   "version": "0.1.0",
   "permissions": {
     "discord": {
-      "set_slowmode": true,
-      "set_nickname": true,
-      "create_role": true,
-      "edit_role": true,
-      "delete_role": true,
-      "add_role": true,
-      "remove_role": true,
-      "purge_messages": true,
-      "create_emoji": true,
-      "edit_emoji": true,
-      "delete_emoji": true,
-      "create_sticker": true,
-      "edit_sticker": true,
-      "delete_sticker": true
+      "channels": true,
+      "messages": true,
+      "roles": true,
+      "emojis": true,
+      "stickers": true
     }
   }
 }

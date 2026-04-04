@@ -3,19 +3,25 @@ package pluginhost
 import "github.com/xsyetopz/go-mamusiabtw/internal/pluginhost/lua"
 
 func commandsFromDefinition(def luaplugin.Definition) []Command {
-	out := make([]Command, 0, len(def.Commands))
-	for _, command := range def.Commands {
-		out = append(out, Command{
-			Name:                     command.Name,
-			Description:              command.Description,
-			DescriptionID:            command.DescriptionID,
-			Ephemeral:                command.Ephemeral,
-			DefaultMemberPermissions: append([]string(nil), command.DefaultMemberPermissions...),
-			Options:                  optionsFromDefinition(command.Options),
-			Subcommands:              subcommandsFromDefinition(command.Subcommands),
-			Groups:                   groupsFromDefinition(command.Groups),
-		})
+	out := make([]Command, 0, len(def.Commands)+len(def.UserCommands)+len(def.MessageCommands))
+	appendCommands := func(list []luaplugin.CommandSpec) {
+		for _, command := range list {
+			out = append(out, Command{
+				Type:                     command.Type,
+				Name:                     command.Name,
+				Description:              command.Description,
+				DescriptionID:            command.DescriptionID,
+				Ephemeral:                command.Ephemeral,
+				DefaultMemberPermissions: append([]string(nil), command.DefaultMemberPermissions...),
+				Options:                  optionsFromDefinition(command.Options),
+				Subcommands:              subcommandsFromDefinition(command.Subcommands),
+				Groups:                   groupsFromDefinition(command.Groups),
+			})
+		}
 	}
+	appendCommands(def.Commands)
+	appendCommands(def.UserCommands)
+	appendCommands(def.MessageCommands)
 	return out
 }
 
@@ -28,6 +34,7 @@ func optionsFromDefinition(list []luaplugin.CommandOptionSpec) []CommandOption {
 			Description:   opt.Description,
 			DescriptionID: opt.DescriptionID,
 			Required:      opt.Required,
+			Autocomplete:  opt.Autocomplete,
 			Choices:       choicesFromDefinition(opt.Choices),
 			MinValue:      opt.MinValue,
 			MaxValue:      opt.MaxValue,

@@ -31,32 +31,18 @@ type StoragePermissions struct {
 }
 
 type DiscordPermissions struct {
-	GetSelfUser        bool `json:"get_self_user"`
-	GetUser            bool `json:"get_user"`
-	GetMember          bool `json:"get_member"`
-	GetGuild           bool `json:"get_guild"`
-	GetRole            bool `json:"get_role"`
-	GetChannel         bool `json:"get_channel"`
-	SendChannel        bool `json:"send_channel"`
-	SendDM             bool `json:"send_dm"`
-	TimeoutMember      bool `json:"timeout_member"`
-	SetSlowmode        bool `json:"set_slowmode"`
-	SetNickname        bool `json:"set_nickname"`
-	CreateRole         bool `json:"create_role"`
-	EditRole           bool `json:"edit_role"`
-	DeleteRole         bool `json:"delete_role"`
-	AddRole            bool `json:"add_role"`
-	RemoveRole         bool `json:"remove_role"`
-	ListMessages       bool `json:"list_messages"`
-	DeleteMessage      bool `json:"delete_message"`
-	BulkDeleteMessages bool `json:"bulk_delete_messages"`
-	PurgeMessages      bool `json:"purge_messages"`
-	CreateEmoji        bool `json:"create_emoji"`
-	EditEmoji          bool `json:"edit_emoji"`
-	DeleteEmoji        bool `json:"delete_emoji"`
-	CreateSticker      bool `json:"create_sticker"`
-	EditSticker        bool `json:"edit_sticker"`
-	DeleteSticker      bool `json:"delete_sticker"`
+	Users     bool `json:"users"`
+	Guilds    bool `json:"guilds"`
+	Channels  bool `json:"channels"`
+	Messages  bool `json:"messages"`
+	Reactions bool `json:"reactions"`
+	Members   bool `json:"members"`
+	Roles     bool `json:"roles"`
+	Threads   bool `json:"threads"`
+	Invites   bool `json:"invites"`
+	Webhooks  bool `json:"webhooks"`
+	Emojis    bool `json:"emojis"`
+	Stickers  bool `json:"stickers"`
 }
 
 type NetworkPermissions struct {
@@ -132,32 +118,18 @@ func Effective(requested, granted Permissions) Permissions {
 			Audit:        requested.Storage.Audit && granted.Storage.Audit,
 		},
 		Discord: DiscordPermissions{
-			GetSelfUser:        requested.Discord.GetSelfUser && granted.Discord.GetSelfUser,
-			GetUser:            requested.Discord.GetUser && granted.Discord.GetUser,
-			GetMember:          requested.Discord.GetMember && granted.Discord.GetMember,
-			GetGuild:           requested.Discord.GetGuild && granted.Discord.GetGuild,
-			GetRole:            requested.Discord.GetRole && granted.Discord.GetRole,
-			GetChannel:         requested.Discord.GetChannel && granted.Discord.GetChannel,
-			SendChannel:        requested.Discord.SendChannel && granted.Discord.SendChannel,
-			SendDM:             requested.Discord.SendDM && granted.Discord.SendDM,
-			TimeoutMember:      requested.Discord.TimeoutMember && granted.Discord.TimeoutMember,
-			SetSlowmode:        requested.Discord.SetSlowmode && granted.Discord.SetSlowmode,
-			SetNickname:        requested.Discord.SetNickname && granted.Discord.SetNickname,
-			CreateRole:         requested.Discord.CreateRole && granted.Discord.CreateRole,
-			EditRole:           requested.Discord.EditRole && granted.Discord.EditRole,
-			DeleteRole:         requested.Discord.DeleteRole && granted.Discord.DeleteRole,
-			AddRole:            requested.Discord.AddRole && granted.Discord.AddRole,
-			RemoveRole:         requested.Discord.RemoveRole && granted.Discord.RemoveRole,
-			ListMessages:       requested.Discord.ListMessages && granted.Discord.ListMessages,
-			DeleteMessage:      requested.Discord.DeleteMessage && granted.Discord.DeleteMessage,
-			BulkDeleteMessages: requested.Discord.BulkDeleteMessages && granted.Discord.BulkDeleteMessages,
-			PurgeMessages:      requested.Discord.PurgeMessages && granted.Discord.PurgeMessages,
-			CreateEmoji:        requested.Discord.CreateEmoji && granted.Discord.CreateEmoji,
-			EditEmoji:          requested.Discord.EditEmoji && granted.Discord.EditEmoji,
-			DeleteEmoji:        requested.Discord.DeleteEmoji && granted.Discord.DeleteEmoji,
-			CreateSticker:      requested.Discord.CreateSticker && granted.Discord.CreateSticker,
-			EditSticker:        requested.Discord.EditSticker && granted.Discord.EditSticker,
-			DeleteSticker:      requested.Discord.DeleteSticker && granted.Discord.DeleteSticker,
+			Users:     requested.Discord.Users && granted.Discord.Users,
+			Guilds:    requested.Discord.Guilds && granted.Discord.Guilds,
+			Channels:  requested.Discord.Channels && granted.Discord.Channels,
+			Messages:  requested.Discord.Messages && granted.Discord.Messages,
+			Reactions: requested.Discord.Reactions && granted.Discord.Reactions,
+			Members:   requested.Discord.Members && granted.Discord.Members,
+			Roles:     requested.Discord.Roles && granted.Discord.Roles,
+			Threads:   requested.Discord.Threads && granted.Discord.Threads,
+			Invites:   requested.Discord.Invites && granted.Discord.Invites,
+			Webhooks:  requested.Discord.Webhooks && granted.Discord.Webhooks,
+			Emojis:    requested.Discord.Emojis && granted.Discord.Emojis,
+			Stickers:  requested.Discord.Stickers && granted.Discord.Stickers,
 		},
 		Network: NetworkPermissions{
 			HTTP: requested.Network.HTTP && granted.Network.HTTP,
@@ -182,32 +154,18 @@ func merge(base, override Permissions) Permissions {
 	out.Storage.Reminders = out.Storage.Reminders || override.Storage.Reminders
 	out.Storage.Warnings = out.Storage.Warnings || override.Storage.Warnings
 	out.Storage.Audit = out.Storage.Audit || override.Storage.Audit
-	out.Discord.SendChannel = out.Discord.SendChannel || override.Discord.SendChannel
-	out.Discord.GetSelfUser = out.Discord.GetSelfUser || override.Discord.GetSelfUser
-	out.Discord.GetUser = out.Discord.GetUser || override.Discord.GetUser
-	out.Discord.GetMember = out.Discord.GetMember || override.Discord.GetMember
-	out.Discord.GetGuild = out.Discord.GetGuild || override.Discord.GetGuild
-	out.Discord.GetRole = out.Discord.GetRole || override.Discord.GetRole
-	out.Discord.GetChannel = out.Discord.GetChannel || override.Discord.GetChannel
-	out.Discord.SendDM = out.Discord.SendDM || override.Discord.SendDM
-	out.Discord.TimeoutMember = out.Discord.TimeoutMember || override.Discord.TimeoutMember
-	out.Discord.SetSlowmode = out.Discord.SetSlowmode || override.Discord.SetSlowmode
-	out.Discord.SetNickname = out.Discord.SetNickname || override.Discord.SetNickname
-	out.Discord.CreateRole = out.Discord.CreateRole || override.Discord.CreateRole
-	out.Discord.EditRole = out.Discord.EditRole || override.Discord.EditRole
-	out.Discord.DeleteRole = out.Discord.DeleteRole || override.Discord.DeleteRole
-	out.Discord.AddRole = out.Discord.AddRole || override.Discord.AddRole
-	out.Discord.RemoveRole = out.Discord.RemoveRole || override.Discord.RemoveRole
-	out.Discord.ListMessages = out.Discord.ListMessages || override.Discord.ListMessages
-	out.Discord.DeleteMessage = out.Discord.DeleteMessage || override.Discord.DeleteMessage
-	out.Discord.BulkDeleteMessages = out.Discord.BulkDeleteMessages || override.Discord.BulkDeleteMessages
-	out.Discord.PurgeMessages = out.Discord.PurgeMessages || override.Discord.PurgeMessages
-	out.Discord.CreateEmoji = out.Discord.CreateEmoji || override.Discord.CreateEmoji
-	out.Discord.EditEmoji = out.Discord.EditEmoji || override.Discord.EditEmoji
-	out.Discord.DeleteEmoji = out.Discord.DeleteEmoji || override.Discord.DeleteEmoji
-	out.Discord.CreateSticker = out.Discord.CreateSticker || override.Discord.CreateSticker
-	out.Discord.EditSticker = out.Discord.EditSticker || override.Discord.EditSticker
-	out.Discord.DeleteSticker = out.Discord.DeleteSticker || override.Discord.DeleteSticker
+	out.Discord.Users = out.Discord.Users || override.Discord.Users
+	out.Discord.Guilds = out.Discord.Guilds || override.Discord.Guilds
+	out.Discord.Channels = out.Discord.Channels || override.Discord.Channels
+	out.Discord.Messages = out.Discord.Messages || override.Discord.Messages
+	out.Discord.Reactions = out.Discord.Reactions || override.Discord.Reactions
+	out.Discord.Members = out.Discord.Members || override.Discord.Members
+	out.Discord.Roles = out.Discord.Roles || override.Discord.Roles
+	out.Discord.Threads = out.Discord.Threads || override.Discord.Threads
+	out.Discord.Invites = out.Discord.Invites || override.Discord.Invites
+	out.Discord.Webhooks = out.Discord.Webhooks || override.Discord.Webhooks
+	out.Discord.Emojis = out.Discord.Emojis || override.Discord.Emojis
+	out.Discord.Stickers = out.Discord.Stickers || override.Discord.Stickers
 	out.Network.HTTP = out.Network.HTTP || override.Network.HTTP
 	out.Automation.Jobs = out.Automation.Jobs || override.Automation.Jobs
 	out.Automation.Events.MemberJoinLeave = out.Automation.Events.MemberJoinLeave ||

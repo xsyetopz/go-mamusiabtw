@@ -138,7 +138,7 @@ func (v *VM) routeContextToLua(kind RouteKind, routeID string, payload Payload) 
 	root.RawSetString("options", optionsTable)
 
 	switch kind {
-	case RouteCommand:
+	case RouteCommand, RouteUserCommand, RouteMessageCommand:
 		args := commandArgs(payload.Options)
 		argsTable, err := anyToLuaValue(v.L, args, 0)
 		if err != nil {
@@ -151,12 +151,48 @@ func (v *VM) routeContextToLua(kind RouteKind, routeID string, payload Payload) 
 		}
 		commandTable := v.L.NewTable()
 		commandTable.RawSetString("name", lua.LString(strings.TrimSpace(routeID)))
+		commandTable.RawSetString("kind", lua.LString(routeKindName(kind)))
 		commandTable.RawSetString("group", lua.LString(payloadString(payload.Options, "__group")))
 		commandTable.RawSetString("subcommand", lua.LString(payloadString(payload.Options, "__subcommand")))
 		commandTable.RawSetString("args", argsTable)
 		commandTable.RawSetString("resolved", resolvedTable)
 		root.RawSetString("command", commandTable)
 		root.RawSetString("args", argsTable)
+		if kind == RouteUserCommand || kind == RouteMessageCommand {
+			targetTable, targetErr := targetContextTable(v.L, payload.Options)
+			if targetErr != nil {
+				return nil, targetErr
+			}
+			root.RawSetString("target", targetTable)
+		}
+	case RouteAutocomplete:
+		args := commandArgs(payload.Options)
+		argsTable, err := anyToLuaValue(v.L, args, 0)
+		if err != nil {
+			return nil, fmt.Errorf("autocomplete args: %w", err)
+		}
+		commandTable := v.L.NewTable()
+		commandTable.RawSetString("name", lua.LString(payloadString(payload.Options, "__command")))
+		commandTable.RawSetString("kind", lua.LString("slash"))
+		commandTable.RawSetString("group", lua.LString(payloadString(payload.Options, "__group")))
+		commandTable.RawSetString("subcommand", lua.LString(payloadString(payload.Options, "__subcommand")))
+		commandTable.RawSetString("args", argsTable)
+		root.RawSetString("command", commandTable)
+		root.RawSetString("args", argsTable)
+
+		autocompleteTable := v.L.NewTable()
+		autocompleteTable.RawSetString("command", lua.LString(payloadString(payload.Options, "__command")))
+		autocompleteTable.RawSetString("group", lua.LString(payloadString(payload.Options, "__group")))
+		autocompleteTable.RawSetString("subcommand", lua.LString(payloadString(payload.Options, "__subcommand")))
+		autocompleteTable.RawSetString("option", lua.LString(payloadString(payload.Options, "__option")))
+		if value, ok := payload.Options["__value"]; ok {
+			lv, valueErr := anyToLuaValue(v.L, value, 0)
+			if valueErr != nil {
+				return nil, fmt.Errorf("autocomplete value: %w", valueErr)
+			}
+			autocompleteTable.RawSetString("value", lv)
+		}
+		root.RawSetString("autocomplete", autocompleteTable)
 	case RouteComponent:
 		componentTable := v.L.NewTable()
 		componentTable.RawSetString("id", lua.LString(strings.TrimSpace(routeID)))
@@ -236,6 +272,43 @@ func commandResolved(options map[string]any) map[string]any {
 		resolved[name] = value
 	}
 	return resolved
+}
+
+func routeKindName(kind RouteKind) string {
+	switch kind {
+	case RouteUserCommand:
+		return "user"
+	case RouteMessageCommand:
+		return "message"
+	default:
+		return "slash"
+	}
+}
+
+func targetContextTable(l *lua.LState, options map[string]any) (*lua.LTable, error) {
+	target := l.NewTable()
+	if user, ok := options["__target_user"]; ok {
+		lv, err := anyToLuaValue(l, user, 0)
+		if err != nil {
+			return nil, fmt.Errorf("target user: %w", err)
+		}
+		target.RawSetString("user", lv)
+	}
+	if member, ok := options["__target_member"]; ok {
+		lv, err := anyToLuaValue(l, member, 0)
+		if err != nil {
+			return nil, fmt.Errorf("target member: %w", err)
+		}
+		target.RawSetString("member", lv)
+	}
+	if message, ok := options["__target_message"]; ok {
+		lv, err := anyToLuaValue(l, message, 0)
+		if err != nil {
+			return nil, fmt.Errorf("target message: %w", err)
+		}
+		target.RawSetString("message", lv)
+	}
+	return target, nil
 }
 
 func payloadString(options map[string]any, key string) string {

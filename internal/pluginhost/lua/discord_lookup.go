@@ -55,7 +55,7 @@ type ChannelResult struct {
 }
 
 func (v *VM) luaDiscordSelfUser(l *lua.LState) int {
-	if !v.perms.Discord.GetSelfUser {
+	if !v.perms.Discord.Users {
 		l.RaiseError("permission denied: discord.get_self_user")
 		return 0
 	}
@@ -71,7 +71,7 @@ func (v *VM) luaDiscordSelfUser(l *lua.LState) int {
 }
 
 func (v *VM) luaDiscordGetUser(l *lua.LState) int {
-	if !v.perms.Discord.GetUser {
+	if !v.perms.Discord.Users {
 		l.RaiseError("permission denied: discord.get_user")
 		return 0
 	}
@@ -94,7 +94,7 @@ func (v *VM) luaDiscordGetUser(l *lua.LState) int {
 }
 
 func (v *VM) luaDiscordGetMember(l *lua.LState) int {
-	if !v.perms.Discord.GetMember {
+	if !v.perms.Discord.Members {
 		l.RaiseError("permission denied: discord.get_member")
 		return 0
 	}
@@ -118,7 +118,7 @@ func (v *VM) luaDiscordGetMember(l *lua.LState) int {
 }
 
 func (v *VM) luaDiscordGetGuild(l *lua.LState) int {
-	if !v.perms.Discord.GetGuild {
+	if !v.perms.Discord.Guilds {
 		l.RaiseError("permission denied: discord.get_guild")
 		return 0
 	}
@@ -141,7 +141,7 @@ func (v *VM) luaDiscordGetGuild(l *lua.LState) int {
 }
 
 func (v *VM) luaDiscordGetRole(l *lua.LState) int {
-	if !v.perms.Discord.GetRole {
+	if !v.perms.Discord.Roles {
 		l.RaiseError("permission denied: discord.get_role")
 		return 0
 	}
@@ -165,7 +165,7 @@ func (v *VM) luaDiscordGetRole(l *lua.LState) int {
 }
 
 func (v *VM) luaDiscordGetChannel(l *lua.LState) int {
-	if !v.perms.Discord.GetChannel {
+	if !v.perms.Discord.Channels {
 		l.RaiseError("permission denied: discord.get_channel")
 		return 0
 	}

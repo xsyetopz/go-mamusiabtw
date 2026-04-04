@@ -20,6 +20,18 @@ func (v *VM) luaPlugin(l *lua.LState) int {
 }
 
 func (v *VM) luaCommand(l *lua.LState) int {
+	return v.luaTypedCommand(l, "slash")
+}
+
+func (v *VM) luaUserCommand(l *lua.LState) int {
+	return v.luaTypedCommand(l, "user")
+}
+
+func (v *VM) luaMessageCommand(l *lua.LState) int {
+	return v.luaTypedCommand(l, "message")
+}
+
+func (v *VM) luaTypedCommand(l *lua.LState, kind string) int {
 	name := strings.TrimSpace(l.CheckString(1))
 	spec := copyLuaTable(l, l.CheckTable(2))
 	if name == "" {
@@ -27,6 +39,7 @@ func (v *VM) luaCommand(l *lua.LState) int {
 		return 0
 	}
 	spec.RawSetString("name", lua.LString(name))
+	spec.RawSetString("type", lua.LString(kind))
 	l.Push(spec)
 	return 1
 }
@@ -178,6 +191,24 @@ func (v *VM) luaStringSelectOption(l *lua.LState) int {
 	return 1
 }
 
+func (v *VM) luaChoice(l *lua.LState) int {
+	name := strings.TrimSpace(l.CheckString(1))
+	if name == "" {
+		l.RaiseError("choice name is required")
+		return 0
+	}
+	out := l.NewTable()
+	out.RawSetString("name", lua.LString(name))
+	out.RawSetString("value", l.CheckAny(2))
+	l.Push(out)
+	return 1
+}
+
+func (v *VM) luaChoices(l *lua.LState) int {
+	l.Push(copyLuaTable(l, l.CheckTable(1)))
+	return 1
+}
+
 func (v *VM) luaStringSelect(l *lua.LState) int {
 	id := strings.TrimSpace(l.CheckString(1))
 	spec := copyLuaTable(l, l.CheckTable(2))
@@ -299,7 +330,7 @@ func (v *VM) luaEffectTimeoutMember(l *lua.LState) int {
 }
 
 func (v *VM) luaDiscordSendDM(l *lua.LState) int {
-	if !v.perms.Discord.SendDM {
+	if !v.perms.Discord.Messages {
 		l.RaiseError("permission denied: discord.send_dm")
 		return 0
 	}
@@ -334,7 +365,7 @@ func (v *VM) luaDiscordSendDM(l *lua.LState) int {
 }
 
 func (v *VM) luaDiscordSendChannel(l *lua.LState) int {
-	if !v.perms.Discord.SendChannel {
+	if !v.perms.Discord.Messages {
 		l.RaiseError("permission denied: discord.send_channel")
 		return 0
 	}
@@ -369,7 +400,7 @@ func (v *VM) luaDiscordSendChannel(l *lua.LState) int {
 }
 
 func (v *VM) luaDiscordTimeoutMember(l *lua.LState) int {
-	if !v.perms.Discord.TimeoutMember {
+	if !v.perms.Discord.Members {
 		l.RaiseError("permission denied: discord.timeout_member")
 		return 0
 	}

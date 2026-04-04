@@ -30,10 +30,23 @@
 
 ---@class MamusiaBtwCommandContext
 ---@field name string
+---@field kind 'slash'|'user'|'message'
 ---@field group string
 ---@field subcommand string
 ---@field args table<string, any>
 ---@field resolved table<string, table>
+
+---@class MamusiaBtwAutocompleteContext
+---@field command string
+---@field group string
+---@field subcommand string
+---@field option string
+---@field value any
+
+---@class MamusiaBtwTargetContext
+---@field user? MamusiaBtwUser
+---@field member? MamusiaBtwMember
+---@field message? MamusiaBtwMessageInfo
 
 ---@class MamusiaBtwComponentContext
 ---@field id string
@@ -67,6 +80,8 @@
 ---@field modal MamusiaBtwModalContext|nil
 ---@field event MamusiaBtwEventContext|nil
 ---@field job MamusiaBtwJobContext|nil
+---@field target MamusiaBtwTargetContext|nil
+---@field autocomplete MamusiaBtwAutocompleteContext|nil
 ---@field bot MamusiaBtwAPI
 
 ---@class MamusiaBtwPresent
@@ -187,6 +202,7 @@
 ---@field description string
 ---@field description_id? string
 ---@field required? boolean
+---@field autocomplete? string
 ---@field choices? MamusiaBtwCommandChoice[]
 ---@field min_value? number
 ---@field max_value? number
@@ -208,6 +224,7 @@
 ---@field subcommands MamusiaBtwSubcommand[]
 
 ---@class MamusiaBtwCommandRoute
+---@field type? 'slash'
 ---@field name string
 ---@field description string
 ---@field description_id? string
@@ -218,6 +235,18 @@
 ---@field groups? MamusiaBtwCommandGroup[]
 ---@field run fun(ctx: MamusiaBtwRouteContext): MamusiaBtwResponse|nil
 
+---@class MamusiaBtwUserCommandRoute
+---@field type 'user'
+---@field name string
+---@field default_member_permissions? string[]
+---@field run fun(ctx: MamusiaBtwRouteContext): MamusiaBtwResponse|nil
+
+---@class MamusiaBtwMessageCommandRoute
+---@field type 'message'
+---@field name string
+---@field default_member_permissions? string[]
+---@field run fun(ctx: MamusiaBtwRouteContext): MamusiaBtwResponse|nil
+
 ---@class MamusiaBtwJobRoute
 ---@field id string
 ---@field schedule string
@@ -225,6 +254,9 @@
 
 ---@class MamusiaBtwPluginDefinition
 ---@field commands? MamusiaBtwCommandRoute[]
+---@field user_commands? MamusiaBtwUserCommandRoute[]
+---@field message_commands? MamusiaBtwMessageCommandRoute[]
+---@field autocompletes? table<string, fun(ctx: MamusiaBtwRouteContext): MamusiaBtwCommandChoice[]|{ choices: MamusiaBtwCommandChoice[] }|nil>
 ---@field components? table<string, fun(ctx: MamusiaBtwRouteContext): MamusiaBtwResponse|nil>
 ---@field modals? table<string, fun(ctx: MamusiaBtwRouteContext): MamusiaBtwResponse|nil>
 ---@field events? table<string, fun(ctx: MamusiaBtwRouteContext): table|nil>
@@ -261,6 +293,8 @@
 ---@field modal fun(id: string, spec: table): MamusiaBtwModalResponse
 ---@field present fun(spec: table): MamusiaBtwMessageResponse
 ---@field button fun(id: string, spec: table): MamusiaBtwButton
+---@field choice fun(name: string, value: string|number|boolean): MamusiaBtwCommandChoice
+---@field choices fun(list: MamusiaBtwCommandChoice[]): MamusiaBtwCommandChoice[]
 ---@field string_option fun(label: string, value: string, spec?: table): MamusiaBtwStringSelectOption
 ---@field string_select fun(id: string, spec: table): MamusiaBtwStringSelect
 ---@field text_input fun(id: string, spec: table): MamusiaBtwModalField
@@ -337,6 +371,26 @@
 ---@field author_id string|integer
 ---@field content string
 ---@field created_at integer
+---@field edited_at? integer
+---@field pinned? boolean
+
+---@class MamusiaBtwDiscordMessagesAPI
+---@field get fun(spec: { channel_id?: string|integer, message_id: string|integer }): (MamusiaBtwMessageInfo|nil, string|nil)
+---@field list fun(spec: { channel_id?: string|integer, around_message_id?: string|integer, before_message_id?: string|integer, after_message_id?: string|integer, limit: integer }): (MamusiaBtwMessageInfo[]|nil, string|nil)
+---@field delete fun(spec: { channel_id?: string|integer, message_id: string|integer }): (boolean, string|nil)
+---@field bulk_delete fun(spec: { channel_id?: string|integer, message_ids: (string|integer)[] }): ({ deleted_count: integer }|nil, string|nil)
+---@field purge fun(spec: { channel_id?: string|integer, mode: "all"|"before"|"after"|"around", anchor_message_id?: string|integer, count: integer }): ({ deleted_count: integer }|nil, string|nil)
+---@field crosspost fun(spec: { channel_id?: string|integer, message_id: string|integer }): (MamusiaBtwMessageInfo|nil, string|nil)
+---@field pin fun(spec: { channel_id?: string|integer, message_id: string|integer }): (boolean, string|nil)
+---@field unpin fun(spec: { channel_id?: string|integer, message_id: string|integer }): (boolean, string|nil)
+
+---@class MamusiaBtwDiscordReactionsAPI
+---@field list fun(spec: { channel_id?: string|integer, message_id: string|integer, emoji: string, after_user_id?: string|integer, limit?: integer }): (MamusiaBtwUser[]|nil, string|nil)
+---@field add fun(spec: { channel_id?: string|integer, message_id: string|integer, emoji: string }): (boolean, string|nil)
+---@field remove_own fun(spec: { channel_id?: string|integer, message_id: string|integer, emoji: string }): (boolean, string|nil)
+---@field remove_user fun(spec: { channel_id?: string|integer, message_id: string|integer, user_id?: string|integer, emoji: string }): (boolean, string|nil)
+---@field clear fun(spec: { channel_id?: string|integer, message_id: string|integer }): (boolean, string|nil)
+---@field clear_for_emoji fun(spec: { channel_id?: string|integer, message_id: string|integer, emoji: string }): (boolean, string|nil)
 
 ---@class MamusiaBtwEmoji
 ---@field id string|integer
@@ -346,6 +400,105 @@
 ---@field id string|integer
 ---@field name string
 
+---@class MamusiaBtwDiscordUsersAPI
+---@field self fun(): (MamusiaBtwUser|nil, string|nil)
+---@field get fun(spec?: { user_id?: string|integer }): (MamusiaBtwUser|nil, string|nil)
+
+---@class MamusiaBtwDiscordGuildsAPI
+---@field get fun(spec?: { guild_id?: string|integer }): (MamusiaBtwGuild|nil, string|nil)
+---@field list_invites fun(spec: { guild_id?: string|integer }): (MamusiaBtwInvite[]|nil, string|nil)
+
+---@class MamusiaBtwDiscordChannelsAPI
+---@field get fun(spec?: { channel_id?: string|integer }): (MamusiaBtwChannel|nil, string|nil)
+---@field create fun(spec: { guild_id?: string|integer, name: string, type?: string, topic?: string, parent_id?: string|integer, nsfw?: boolean, slowmode?: integer, position?: integer, bitrate?: integer, user_limit?: integer }): (MamusiaBtwChannel|nil, string|nil)
+---@field edit fun(spec: { channel_id?: string|integer, name?: string, topic?: string, parent_id?: string|integer, nsfw?: boolean, slowmode?: integer, position?: integer, bitrate?: integer, user_limit?: integer }): (MamusiaBtwChannel|nil, string|nil)
+---@field delete fun(spec: { channel_id?: string|integer }): (boolean, string|nil)
+---@field set_slowmode fun(spec: { channel_id?: string|integer, seconds: integer }): (boolean, string|nil)
+---@field set_overwrite fun(spec: { channel_id?: string|integer, target_id: string|integer, target_type: 'role'|'member'|'user', allow?: integer, deny?: integer }): (boolean, string|nil)
+---@field delete_overwrite fun(spec: { channel_id?: string|integer, target_id: string|integer }): (boolean, string|nil)
+---@field list_invites fun(spec: { channel_id?: string|integer }): (MamusiaBtwInvite[]|nil, string|nil)
+---@field list_webhooks fun(spec: { channel_id?: string|integer }): (MamusiaBtwWebhook[]|nil, string|nil)
+
+---@class MamusiaBtwDiscordMembersAPI
+---@field get fun(spec?: { guild_id?: string|integer, user_id?: string|integer }): (MamusiaBtwMember|nil, string|nil)
+---@field timeout fun(spec: { guild_id?: string, user_id?: string, until_unix: integer }): (boolean, string|nil)
+---@field set_nickname fun(spec: { guild_id?: string|integer, user_id?: string|integer, nickname?: string }): (boolean, string|nil)
+
+---@class MamusiaBtwDiscordRolesAPI
+---@field get fun(spec: { guild_id?: string|integer, role_id: string|integer }): (MamusiaBtwRole|nil, string|nil)
+---@field create fun(spec: { guild_id?: string|integer, name: string, color?: integer, hoist?: boolean, mentionable?: boolean }): (MamusiaBtwRole|nil, string|nil)
+---@field edit fun(spec: { guild_id?: string|integer, role_id: string|integer, name?: string, color?: integer, hoist?: boolean, mentionable?: boolean }): (MamusiaBtwRole|nil, string|nil)
+---@field delete fun(spec: { guild_id?: string|integer, role_id: string|integer }): (boolean, string|nil)
+---@field add_to_member fun(spec: { guild_id?: string|integer, user_id?: string|integer, role_id: string|integer }): (boolean, string|nil)
+---@field remove_from_member fun(spec: { guild_id?: string|integer, user_id?: string|integer, role_id: string|integer }): (boolean, string|nil)
+
+---@class MamusiaBtwThread
+---@field id string|integer
+---@field guild_id string|integer
+---@field parent_id string|integer
+---@field name string
+---@field mention string
+---@field type string
+---@field archived boolean
+---@field locked boolean
+---@field auto_archive_duration integer
+---@field created_at integer
+
+---@class MamusiaBtwDiscordThreadsAPI
+---@field create_from_message fun(spec: { channel_id?: string|integer, message_id: string|integer, name: string, auto_archive_duration?: integer, slowmode?: integer }): (MamusiaBtwThread|nil, string|nil)
+---@field create_in_channel fun(spec: { channel_id?: string|integer, name: string, type?: string, auto_archive_duration?: integer, invitable?: boolean }): (MamusiaBtwThread|nil, string|nil)
+---@field join fun(spec: { thread_id?: string|integer }): (boolean, string|nil)
+---@field leave fun(spec: { thread_id?: string|integer }): (boolean, string|nil)
+---@field add_member fun(spec: { thread_id?: string|integer, user_id?: string|integer }): (boolean, string|nil)
+---@field remove_member fun(spec: { thread_id?: string|integer, user_id?: string|integer }): (boolean, string|nil)
+---@field update fun(spec: { thread_id?: string|integer, name?: string, archived?: boolean, locked?: boolean, invitable?: boolean, auto_archive_duration?: integer, slowmode?: integer }): (MamusiaBtwThread|nil, string|nil)
+
+---@class MamusiaBtwInvite
+---@field code string
+---@field url string
+---@field guild_id string|integer
+---@field channel_id string|integer
+---@field inviter_id string|integer
+---@field max_age integer
+---@field max_uses integer
+---@field uses integer
+---@field temporary boolean
+---@field created_at integer
+
+---@class MamusiaBtwDiscordInvitesAPI
+---@field create fun(spec: { channel_id?: string|integer, max_age?: integer, max_uses?: integer, temporary?: boolean, unique?: boolean }): (MamusiaBtwInvite|nil, string|nil)
+---@field get fun(spec: { code: string }): (MamusiaBtwInvite|nil, string|nil)
+---@field delete fun(spec: { code: string }): (boolean, string|nil)
+---@field list_channel fun(spec: { channel_id?: string|integer }): (MamusiaBtwInvite[]|nil, string|nil)
+---@field list_guild fun(spec: { guild_id?: string|integer }): (MamusiaBtwInvite[]|nil, string|nil)
+
+---@class MamusiaBtwWebhook
+---@field id string|integer
+---@field guild_id string|integer
+---@field channel_id string|integer
+---@field application_id string|integer
+---@field name string
+---@field token string
+---@field url string
+
+---@class MamusiaBtwDiscordWebhooksAPI
+---@field create fun(spec: { channel_id?: string|integer, name: string }): (MamusiaBtwWebhook|nil, string|nil)
+---@field get fun(spec: { webhook_id: string|integer }): (MamusiaBtwWebhook|nil, string|nil)
+---@field list_channel fun(spec: { channel_id?: string|integer }): (MamusiaBtwWebhook[]|nil, string|nil)
+---@field edit fun(spec: { webhook_id: string|integer, name?: string, channel_id?: string|integer }): (MamusiaBtwWebhook|nil, string|nil)
+---@field delete fun(spec: { webhook_id: string|integer }): (boolean, string|nil)
+---@field execute fun(spec: { webhook_id: string|integer, token: string }, message: MamusiaBtwResponse|string): (MamusiaBtwDiscordSendResult|nil, string|nil)
+
+---@class MamusiaBtwDiscordEmojisAPI
+---@field create fun(spec: { guild_id?: string|integer, name: string, file: MamusiaBtwAttachmentRef }): (MamusiaBtwEmoji|nil, string|nil)
+---@field edit fun(spec: { guild_id?: string|integer, emoji: string, name: string }): (MamusiaBtwEmoji|nil, string|nil)
+---@field delete fun(spec: { guild_id?: string|integer, emoji: string }): (boolean, string|nil)
+
+---@class MamusiaBtwDiscordStickersAPI
+---@field create fun(spec: { guild_id?: string|integer, name: string, description?: string, emoji_tag: string, file: MamusiaBtwAttachmentRef }): (MamusiaBtwSticker|nil, string|nil)
+---@field edit fun(spec: { guild_id?: string|integer, id: string, name: string, description?: string }): (MamusiaBtwSticker|nil, string|nil)
+---@field delete fun(spec: { guild_id?: string|integer, id: string }): (boolean, string|nil)
+
 ---@class MamusiaBtwDiscordAPI
 ---@field self_user fun(): (MamusiaBtwUser|nil, string|nil)
 ---@field get_user fun(spec?: { user_id?: string|integer }): (MamusiaBtwUser|nil, string|nil)
@@ -353,6 +506,7 @@
 ---@field get_guild fun(spec?: { guild_id?: string|integer }): (MamusiaBtwGuild|nil, string|nil)
 ---@field get_role fun(spec: { guild_id?: string|integer, role_id: string|integer }): (MamusiaBtwRole|nil, string|nil)
 ---@field get_channel fun(spec?: { channel_id?: string|integer }): (MamusiaBtwChannel|nil, string|nil)
+---@field get_message fun(spec: { channel_id?: string|integer, message_id: string|integer }): (MamusiaBtwMessageInfo|nil, string|nil)
 ---@field send_dm fun(spec: { user_id?: string, message: MamusiaBtwResponse|string }): (MamusiaBtwDiscordSendResult|nil, string|nil)
 ---@field send_channel fun(spec: { channel_id?: string, message: MamusiaBtwResponse|string }): (MamusiaBtwDiscordSendResult|nil, string|nil)
 ---@field timeout_member fun(spec: { guild_id?: string, user_id?: string, until_unix: integer }): (boolean, string|nil)
@@ -367,6 +521,27 @@
 ---@field delete_message fun(spec: { channel_id?: string|integer, message_id: string|integer }): (boolean, string|nil)
 ---@field bulk_delete_messages fun(spec: { channel_id?: string|integer, message_ids: (string|integer)[] }): ({ deleted_count: integer }|nil, string|nil)
 ---@field purge_messages fun(spec: { channel_id?: string|integer, mode: "all"|"before"|"after"|"around", anchor_message_id?: string|integer, count: integer }): ({ deleted_count: integer }|nil, string|nil)
+---@field crosspost_message fun(spec: { channel_id?: string|integer, message_id: string|integer }): (MamusiaBtwMessageInfo|nil, string|nil)
+---@field pin_message fun(spec: { channel_id?: string|integer, message_id: string|integer }): (boolean, string|nil)
+---@field unpin_message fun(spec: { channel_id?: string|integer, message_id: string|integer }): (boolean, string|nil)
+---@field get_reactions fun(spec: { channel_id?: string|integer, message_id: string|integer, emoji: string, after_user_id?: string|integer, limit?: integer }): (MamusiaBtwUser[]|nil, string|nil)
+---@field add_reaction fun(spec: { channel_id?: string|integer, message_id: string|integer, emoji: string }): (boolean, string|nil)
+---@field remove_own_reaction fun(spec: { channel_id?: string|integer, message_id: string|integer, emoji: string }): (boolean, string|nil)
+---@field remove_user_reaction fun(spec: { channel_id?: string|integer, message_id: string|integer, user_id?: string|integer, emoji: string }): (boolean, string|nil)
+---@field clear_reactions fun(spec: { channel_id?: string|integer, message_id: string|integer }): (boolean, string|nil)
+---@field clear_reactions_for_emoji fun(spec: { channel_id?: string|integer, message_id: string|integer, emoji: string }): (boolean, string|nil)
+---@field messages MamusiaBtwDiscordMessagesAPI
+---@field reactions MamusiaBtwDiscordReactionsAPI
+---@field users MamusiaBtwDiscordUsersAPI
+---@field guilds MamusiaBtwDiscordGuildsAPI
+---@field channels MamusiaBtwDiscordChannelsAPI
+---@field members MamusiaBtwDiscordMembersAPI
+---@field roles MamusiaBtwDiscordRolesAPI
+---@field threads MamusiaBtwDiscordThreadsAPI
+---@field invites MamusiaBtwDiscordInvitesAPI
+---@field webhooks MamusiaBtwDiscordWebhooksAPI
+---@field emojis MamusiaBtwDiscordEmojisAPI
+---@field stickers MamusiaBtwDiscordStickersAPI
 ---@field create_emoji fun(spec: { guild_id?: string|integer, name: string, file: MamusiaBtwAttachmentRef }): (MamusiaBtwEmoji|nil, string|nil)
 ---@field edit_emoji fun(spec: { guild_id?: string|integer, emoji: string, name: string }): (MamusiaBtwEmoji|nil, string|nil)
 ---@field delete_emoji fun(spec: { guild_id?: string|integer, emoji: string }): (boolean, string|nil)
@@ -478,6 +653,8 @@
 ---@field http MamusiaBtwHTTPAPI
 ---@field plugin fun(spec: MamusiaBtwPluginDefinition): MamusiaBtwPluginDefinition
 ---@field command fun(name: string, spec: table): MamusiaBtwCommandRoute
+---@field user_command fun(name: string, spec: table): MamusiaBtwUserCommandRoute
+---@field message_command fun(name: string, spec: table): MamusiaBtwMessageCommandRoute
 ---@field job fun(id: string, spec: table): MamusiaBtwJobRoute
 ---@field require fun(path: string): any
 ---@field include fun(path: string): boolean

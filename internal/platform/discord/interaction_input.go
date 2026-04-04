@@ -129,6 +129,127 @@ func pluginOptions(data discord.SlashCommandInteractionData) map[string]any {
 	return opts
 }
 
+func pluginAutocompleteOptions(data discord.AutocompleteInteractionData) map[string]any {
+	opts := map[string]any{}
+
+	if data.SubCommandGroupName != nil {
+		name := strings.TrimSpace(*data.SubCommandGroupName)
+		if name != "" {
+			opts["__group"] = name
+		}
+	}
+	if data.SubCommandName != nil {
+		name := strings.TrimSpace(*data.SubCommandName)
+		if name != "" {
+			opts["__subcommand"] = name
+		}
+	}
+	opts["__command"] = strings.TrimSpace(data.CommandName)
+
+	for _, opt := range data.All() {
+		name := strings.TrimSpace(opt.Name)
+		if name == "" {
+			continue
+		}
+
+		value := autocompleteOptionValue(opt)
+		opts[name] = value
+		if opt.Focused {
+			opts["__option"] = name
+			opts["__value"] = value
+		}
+	}
+
+	return opts
+}
+
+func autocompleteOptionValue(opt discord.AutocompleteOption) any {
+	switch opt.Type {
+	case discord.ApplicationCommandOptionTypeString:
+		return opt.String()
+	case discord.ApplicationCommandOptionTypeInt:
+		return opt.Int()
+	case discord.ApplicationCommandOptionTypeFloat:
+		return opt.Float()
+	case discord.ApplicationCommandOptionTypeBool:
+		return opt.Bool()
+	case discord.ApplicationCommandOptionTypeUser,
+		discord.ApplicationCommandOptionTypeChannel,
+		discord.ApplicationCommandOptionTypeRole,
+		discord.ApplicationCommandOptionTypeMentionable:
+		return opt.Snowflake().String()
+	default:
+		return nil
+	}
+}
+
+func pluginUserContextOptions(data discord.UserCommandInteractionData) map[string]any {
+	opts := map[string]any{}
+
+	user := data.TargetUser()
+	if user.ID != 0 {
+		opts["__target_user"] = map[string]any{
+			"id":           user.ID.String(),
+			"username":     strings.TrimSpace(user.Username),
+			"display_name": strings.TrimSpace(user.EffectiveName()),
+			"mention":      user.Mention(),
+			"bot":          user.Bot,
+			"system":       user.System,
+			"created_at":   user.CreatedAt().UTC().Unix(),
+		}
+	}
+
+	member := data.TargetMember()
+	if member.User.ID != 0 {
+		roleIDs := make([]any, 0, len(member.RoleIDs))
+		for _, roleID := range member.RoleIDs {
+			roleIDs = append(roleIDs, roleID.String())
+		}
+		target := map[string]any{
+			"user_id":  member.User.ID.String(),
+			"guild_id": snowflakePtrToString(data.GuildID()),
+			"role_ids": roleIDs,
+		}
+		if member.JoinedAt != nil && !member.JoinedAt.IsZero() {
+			target["joined_at"] = member.JoinedAt.UTC().Unix()
+		}
+		if avatar := strings.TrimSpace(member.EffectiveAvatarURL()); avatar != "" {
+			target["avatar_url"] = avatar
+		}
+		if banner := strings.TrimSpace(member.EffectiveBannerURL()); banner != "" {
+			target["banner_url"] = banner
+		}
+		opts["__target_member"] = target
+	}
+
+	return opts
+}
+
+func pluginMessageContextOptions(data discord.MessageCommandInteractionData) map[string]any {
+	opts := map[string]any{}
+
+	message := data.TargetMessage()
+	if message.ID != 0 {
+		target := map[string]any{
+			"id":         message.ID.String(),
+			"channel_id": message.ChannelID.String(),
+			"author_id":  message.Author.ID.String(),
+			"content":    message.Content,
+			"created_at": message.CreatedAt.UTC().Unix(),
+			"pinned":     message.Pinned,
+		}
+		if message.GuildID != nil {
+			target["guild_id"] = message.GuildID.String()
+		}
+		if message.EditedTimestamp != nil && !message.EditedTimestamp.IsZero() {
+			target["edited_at"] = message.EditedTimestamp.UTC().Unix()
+		}
+		opts["__target_message"] = target
+	}
+
+	return opts
+}
+
 func componentOptions(e *events.ComponentInteractionCreate) map[string]any {
 	opts := map[string]any{}
 

@@ -9,8 +9,8 @@
       "audit": true
     },
     "discord": {
-      "send_dm": true,
-      "timeout_member": true
+      "messages": true,
+      "members": true
     }
   }
 }

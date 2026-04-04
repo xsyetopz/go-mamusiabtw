@@ -5,10 +5,11 @@
   "version": "0.1.0",
   "permissions": {
     "discord": {
-      "get_self_user": true,
-      "get_user": true,
-      "get_member": true,
-      "get_guild": true
+      "users": true,
+      "members": true,
+      "guilds": true,
+      "channels": true,
+      "roles": true
     }
   }
 }

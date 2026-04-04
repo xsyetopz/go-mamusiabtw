@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/xsyetopz/go-mamusiabtw/internal/permissions"
 )
@@ -26,9 +27,16 @@ type Manifest struct {
 	Jobs []Job `json:"jobs,omitempty"`
 }
 
+const (
+	CommandTypeSlash   = "slash"
+	CommandTypeUser    = "user"
+	CommandTypeMessage = "message"
+)
+
 type Command struct {
+	Type        string `json:"type,omitempty"`
 	Name        string `json:"name"`
-	Description string `json:"description"`
+	Description string `json:"description,omitempty"`
 	// DescriptionID is an optional i18n key used for command description localization.
 	DescriptionID            string   `json:"description_id,omitempty"`
 	Ephemeral                bool     `json:"ephemeral"`
@@ -47,6 +55,7 @@ type CommandOption struct {
 	// DescriptionID is an optional i18n key used for option description localization.
 	DescriptionID string `json:"description_id,omitempty"`
 	Required      bool   `json:"required"`
+	Autocomplete  string `json:"autocomplete,omitempty"`
 
 	Choices []OptionChoice `json:"choices,omitempty"`
 
@@ -101,6 +110,22 @@ func ReadManifest(path string) (Manifest, error) {
 	if m.ID == "" {
 		return Manifest{}, errors.New("manifest missing id")
 	}
+	for i := range m.Commands {
+		m.Commands[i].Type = NormalizeCommandType(m.Commands[i].Type)
+	}
 
 	return m, nil
+}
+
+func NormalizeCommandType(raw string) string {
+	switch strings.ToLower(strings.TrimSpace(raw)) {
+	case "", CommandTypeSlash:
+		return CommandTypeSlash
+	case CommandTypeUser:
+		return CommandTypeUser
+	case CommandTypeMessage:
+		return CommandTypeMessage
+	default:
+		return strings.ToLower(strings.TrimSpace(raw))
+	}
 }

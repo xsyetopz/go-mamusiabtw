@@ -166,6 +166,28 @@ func (e pluginDiscordExecutor) GetChannel(ctx context.Context, channelID uint64)
 	return result, nil
 }
 
+func (e pluginDiscordExecutor) GetMessage(
+	ctx context.Context,
+	spec pluginhostlua.MessageGetSpec,
+) (pluginhostlua.MessageInfo, error) {
+	if e.bot == nil || e.bot.client == nil {
+		return pluginhostlua.MessageInfo{}, errors.New("discord client unavailable")
+	}
+	if spec.ChannelID == 0 || spec.MessageID == 0 {
+		return pluginhostlua.MessageInfo{}, errors.New("invalid message")
+	}
+
+	message, err := e.bot.client.Rest.GetMessage(
+		snowflake.ID(spec.ChannelID),
+		snowflake.ID(spec.MessageID),
+		rest.WithCtx(ctx),
+	)
+	if err != nil || message == nil {
+		return pluginhostlua.MessageInfo{}, errors.New("get_message_error")
+	}
+	return messageInfo(*message), nil
+}
+
 func userResult(user discord.User) pluginhostlua.UserResult {
 	result := pluginhostlua.UserResult{
 		ID:          uint64(user.ID),
@@ -209,6 +231,21 @@ func memberResult(guildID uint64, member discord.Member) pluginhostlua.MemberRes
 		result.BannerURL = strings.TrimSpace(banner)
 	}
 	return result
+}
+
+func messageInfo(message discord.Message) pluginhostlua.MessageInfo {
+	info := pluginhostlua.MessageInfo{
+		ID:        uint64(message.ID),
+		ChannelID: uint64(message.ChannelID),
+		AuthorID:  uint64(message.Author.ID),
+		Content:   message.Content,
+		CreatedAt: message.CreatedAt.UTC().Unix(),
+		Pinned:    message.Pinned,
+	}
+	if message.EditedTimestamp != nil && !message.EditedTimestamp.IsZero() {
+		info.EditedAt = message.EditedTimestamp.UTC().Unix()
+	}
+	return info
 }
 
 func pluginChannelTypeName(t discord.ChannelType) string {

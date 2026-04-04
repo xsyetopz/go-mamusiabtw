@@ -40,7 +40,7 @@ func TestEffective(t *testing.T) {
 	}
 
 	req = permissions.Permissions{
-		Discord: permissions.DiscordPermissions{SendChannel: true, SendDM: true},
+		Discord: permissions.DiscordPermissions{Messages: true},
 		Network: permissions.NetworkPermissions{HTTP: true},
 		Automation: permissions.AutomationPermissions{
 			Jobs: true,
@@ -51,7 +51,7 @@ func TestEffective(t *testing.T) {
 		},
 	}
 	grant = permissions.Permissions{
-		Discord: permissions.DiscordPermissions{SendChannel: true, SendDM: false},
+		Discord: permissions.DiscordPermissions{Messages: true},
 		Network: permissions.NetworkPermissions{HTTP: false},
 		Automation: permissions.AutomationPermissions{
 			Jobs: false,
@@ -62,11 +62,8 @@ func TestEffective(t *testing.T) {
 		},
 	}
 	eff = permissions.Effective(req, grant)
-	if !eff.Discord.SendChannel {
-		t.Fatalf("expected send_channel allowed")
-	}
-	if eff.Discord.SendDM {
-		t.Fatalf("expected send_dm denied")
+	if !eff.Discord.Messages {
+		t.Fatalf("expected messages allowed")
 	}
 	if eff.Network.HTTP {
 		t.Fatalf("expected http denied")
@@ -89,9 +86,9 @@ func TestPolicyGranted(t *testing.T) {
 	p := filepath.Join(dir, "permissions.json")
 
 	if err := os.WriteFile(p, []byte(`{
-  "defaults": { "storage": { "kv": false, "user_settings": false }, "discord": { "send_channel": false } },
+  "defaults": { "storage": { "kv": false, "user_settings": false }, "discord": { "messages": false } },
   "plugins": {
-    "a": { "storage": { "kv": true, "user_settings": true, "checkins": true, "reminders": true }, "discord": { "send_channel": true }, "network": { "http": true } }
+    "a": { "storage": { "kv": true, "user_settings": true, "checkins": true, "reminders": true }, "discord": { "messages": true }, "network": { "http": true } }
   }
 }`), 0o600); err != nil {
 		t.Fatalf("write file: %v", err)
@@ -117,8 +114,8 @@ func TestPolicyGranted(t *testing.T) {
 	if !pol.Granted("a").Storage.Reminders {
 		t.Fatalf("expected plugin override reminders allowed")
 	}
-	if !pol.Granted("a").Discord.SendChannel {
-		t.Fatalf("expected plugin override send_channel allowed")
+	if !pol.Granted("a").Discord.Messages {
+		t.Fatalf("expected plugin override messages allowed")
 	}
 	if !pol.Granted("a").Network.HTTP {
 		t.Fatalf("expected plugin override http allowed")

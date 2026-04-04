@@ -85,6 +85,8 @@ type Bot struct {
 
 	pluginHost     *pluginhost.Host
 	pluginCommands map[string]pluginCommandRoute
+	pluginUserCommands map[string]pluginCommandRoute
+	pluginMessageCommands map[string]pluginCommandRoute
 	pluginRoutes   map[string]pluginRoute
 	pluginAuto     *pluginAutomation
 }
@@ -128,6 +130,8 @@ func New(deps Dependencies) (*Bot, error) {
 		moduleSeed:               moduleSeed,
 		modules:                  map[string]commandapi.ModuleInfo{},
 		pluginCommands:           map[string]pluginCommandRoute{},
+		pluginUserCommands:       map[string]pluginCommandRoute{},
+		pluginMessageCommands:    map[string]pluginCommandRoute{},
 		pluginRoutes:             map[string]pluginRoute{},
 	}
 	b.slashCooldown = deps.SlashCooldown
@@ -333,6 +337,7 @@ func (b *Bot) newClient(token string) (*bot.Client, error) {
 			gateway.IntentDirectMessages,
 		)),
 		bot.WithEventListenerFunc(b.onCommand),
+		bot.WithEventListenerFunc(b.onAutocomplete),
 		bot.WithEventListenerFunc(b.onComponent),
 		bot.WithEventListenerFunc(b.onModal),
 		bot.WithEventListenerFunc(b.onGuildJoin),

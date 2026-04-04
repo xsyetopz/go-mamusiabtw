@@ -199,13 +199,7 @@ func (e pluginDiscordExecutor) ListMessages(
 
 	out := make([]pluginhostlua.MessageInfo, 0, len(messages))
 	for _, message := range messages {
-		out = append(out, pluginhostlua.MessageInfo{
-			ID:        uint64(message.ID),
-			ChannelID: uint64(message.ChannelID),
-			AuthorID:  uint64(message.Author.ID),
-			Content:   message.Content,
-			CreatedAt: message.CreatedAt.UTC().Unix(),
-		})
+		out = append(out, messageInfo(message))
 	}
 	return out, nil
 }
@@ -282,6 +276,165 @@ func (e pluginDiscordExecutor) PurgeMessages(ctx context.Context, spec pluginhos
 		ids = append(ids, message.ID)
 	}
 	return deleteMessagesBestEffort(e.bot.client.Rest, snowflake.ID(spec.ChannelID), ids, time.Now()), nil
+}
+
+func (e pluginDiscordExecutor) CrosspostMessage(
+	ctx context.Context,
+	spec pluginhostlua.MessageGetSpec,
+) (pluginhostlua.MessageInfo, error) {
+	if e.bot == nil || e.bot.client == nil {
+		return pluginhostlua.MessageInfo{}, errors.New("discord client unavailable")
+	}
+	if spec.ChannelID == 0 || spec.MessageID == 0 {
+		return pluginhostlua.MessageInfo{}, errors.New("invalid crosspost_message spec")
+	}
+
+	message, err := e.bot.client.Rest.CrosspostMessage(
+		snowflake.ID(spec.ChannelID),
+		snowflake.ID(spec.MessageID),
+		rest.WithCtx(ctx),
+	)
+	if err != nil || message == nil {
+		return pluginhostlua.MessageInfo{}, errors.New("crosspost_message_error")
+	}
+	return messageInfo(*message), nil
+}
+
+func (e pluginDiscordExecutor) PinMessage(ctx context.Context, spec pluginhostlua.MessageGetSpec) error {
+	if e.bot == nil || e.bot.client == nil {
+		return errors.New("discord client unavailable")
+	}
+	if spec.ChannelID == 0 || spec.MessageID == 0 {
+		return errors.New("invalid pin_message spec")
+	}
+	return e.bot.client.Rest.PinMessage(
+		snowflake.ID(spec.ChannelID),
+		snowflake.ID(spec.MessageID),
+		rest.WithCtx(ctx),
+	)
+}
+
+func (e pluginDiscordExecutor) UnpinMessage(ctx context.Context, spec pluginhostlua.MessageGetSpec) error {
+	if e.bot == nil || e.bot.client == nil {
+		return errors.New("discord client unavailable")
+	}
+	if spec.ChannelID == 0 || spec.MessageID == 0 {
+		return errors.New("invalid unpin_message spec")
+	}
+	return e.bot.client.Rest.UnpinMessage(
+		snowflake.ID(spec.ChannelID),
+		snowflake.ID(spec.MessageID),
+		rest.WithCtx(ctx),
+	)
+}
+
+func (e pluginDiscordExecutor) GetReactions(
+	ctx context.Context,
+	spec pluginhostlua.ReactionListSpec,
+) ([]pluginhostlua.UserResult, error) {
+	if e.bot == nil || e.bot.client == nil {
+		return nil, errors.New("discord client unavailable")
+	}
+	if spec.ChannelID == 0 || spec.MessageID == 0 || strings.TrimSpace(spec.Emoji) == "" || spec.Limit <= 0 {
+		return nil, errors.New("invalid get_reactions spec")
+	}
+
+	users, err := e.bot.client.Rest.GetReactions(
+		snowflake.ID(spec.ChannelID),
+		snowflake.ID(spec.MessageID),
+		strings.TrimSpace(spec.Emoji),
+		discord.MessageReactionTypeNormal,
+		int(spec.AfterID),
+		spec.Limit,
+		rest.WithCtx(ctx),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	out := make([]pluginhostlua.UserResult, 0, len(users))
+	for _, user := range users {
+		out = append(out, userResult(user))
+	}
+	return out, nil
+}
+
+func (e pluginDiscordExecutor) AddReaction(ctx context.Context, spec pluginhostlua.ReactionSpec) error {
+	return e.runReactionMutation(ctx, spec, "invalid add_reaction spec", func() error {
+		return e.bot.client.Rest.AddReaction(
+			snowflake.ID(spec.ChannelID),
+			snowflake.ID(spec.MessageID),
+			strings.TrimSpace(spec.Emoji),
+			rest.WithCtx(ctx),
+		)
+	})
+}
+
+func (e pluginDiscordExecutor) RemoveOwnReaction(ctx context.Context, spec pluginhostlua.ReactionSpec) error {
+	return e.runReactionMutation(ctx, spec, "invalid remove_own_reaction spec", func() error {
+		return e.bot.client.Rest.RemoveOwnReaction(
+			snowflake.ID(spec.ChannelID),
+			snowflake.ID(spec.MessageID),
+			strings.TrimSpace(spec.Emoji),
+			rest.WithCtx(ctx),
+		)
+	})
+}
+
+func (e pluginDiscordExecutor) RemoveUserReaction(ctx context.Context, spec pluginhostlua.ReactionUserSpec) error {
+	if e.bot == nil || e.bot.client == nil {
+		return errors.New("discord client unavailable")
+	}
+	if spec.ChannelID == 0 || spec.MessageID == 0 || spec.UserID == 0 || strings.TrimSpace(spec.Emoji) == "" {
+		return errors.New("invalid remove_user_reaction spec")
+	}
+	return e.bot.client.Rest.RemoveUserReaction(
+		snowflake.ID(spec.ChannelID),
+		snowflake.ID(spec.MessageID),
+		strings.TrimSpace(spec.Emoji),
+		snowflake.ID(spec.UserID),
+		rest.WithCtx(ctx),
+	)
+}
+
+func (e pluginDiscordExecutor) ClearReactions(ctx context.Context, spec pluginhostlua.MessageGetSpec) error {
+	if e.bot == nil || e.bot.client == nil {
+		return errors.New("discord client unavailable")
+	}
+	if spec.ChannelID == 0 || spec.MessageID == 0 {
+		return errors.New("invalid clear_reactions spec")
+	}
+	return e.bot.client.Rest.RemoveAllReactions(
+		snowflake.ID(spec.ChannelID),
+		snowflake.ID(spec.MessageID),
+		rest.WithCtx(ctx),
+	)
+}
+
+func (e pluginDiscordExecutor) ClearReactionsForEmoji(ctx context.Context, spec pluginhostlua.ReactionSpec) error {
+	return e.runReactionMutation(ctx, spec, "invalid clear_reactions_for_emoji spec", func() error {
+		return e.bot.client.Rest.RemoveAllReactionsForEmoji(
+			snowflake.ID(spec.ChannelID),
+			snowflake.ID(spec.MessageID),
+			strings.TrimSpace(spec.Emoji),
+			rest.WithCtx(ctx),
+		)
+	})
+}
+
+func (e pluginDiscordExecutor) runReactionMutation(
+	ctx context.Context,
+	spec pluginhostlua.ReactionSpec,
+	invalidMessage string,
+	run func() error,
+) error {
+	if e.bot == nil || e.bot.client == nil {
+		return errors.New("discord client unavailable")
+	}
+	if spec.ChannelID == 0 || spec.MessageID == 0 || strings.TrimSpace(spec.Emoji) == "" {
+		return errors.New(invalidMessage)
+	}
+	return run()
 }
 
 func (e pluginDiscordExecutor) CreateEmoji(

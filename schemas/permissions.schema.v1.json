@@ -59,82 +59,40 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "get_self_user": {
+            "users": {
               "type": "boolean"
             },
-            "get_user": {
+            "guilds": {
               "type": "boolean"
             },
-            "get_member": {
+            "channels": {
               "type": "boolean"
             },
-            "get_guild": {
+            "messages": {
               "type": "boolean"
             },
-            "get_role": {
+            "reactions": {
               "type": "boolean"
             },
-            "get_channel": {
+            "members": {
               "type": "boolean"
             },
-            "send_channel": {
+            "roles": {
               "type": "boolean"
             },
-            "send_dm": {
+            "threads": {
               "type": "boolean"
             },
-            "timeout_member": {
+            "invites": {
               "type": "boolean"
             },
-            "set_slowmode": {
+            "webhooks": {
               "type": "boolean"
             },
-            "set_nickname": {
+            "emojis": {
               "type": "boolean"
             },
-            "create_role": {
-              "type": "boolean"
-            },
-            "edit_role": {
-              "type": "boolean"
-            },
-            "delete_role": {
-              "type": "boolean"
-            },
-            "add_role": {
-              "type": "boolean"
-            },
-            "remove_role": {
-              "type": "boolean"
-            },
-            "list_messages": {
-              "type": "boolean"
-            },
-            "delete_message": {
-              "type": "boolean"
-            },
-            "bulk_delete_messages": {
-              "type": "boolean"
-            },
-            "purge_messages": {
-              "type": "boolean"
-            },
-            "create_emoji": {
-              "type": "boolean"
-            },
-            "edit_emoji": {
-              "type": "boolean"
-            },
-            "delete_emoji": {
-              "type": "boolean"
-            },
-            "create_sticker": {
-              "type": "boolean"
-            },
-            "edit_sticker": {
-              "type": "boolean"
-            },
-            "delete_sticker": {
+            "stickers": {
               "type": "boolean"
             }
           }

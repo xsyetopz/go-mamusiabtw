@@ -20,8 +20,7 @@ func (b *Bot) onCommand(e *events.ApplicationCommandInteractionCreate) {
 
 	locale := e.Locale()
 	t := commandapi.Translator{Registry: b.i18n, Locale: locale, UserID: uint64(e.User().ID)}
-
-	data := e.SlashCommandInteractionData()
+	data := e.Data
 	cmdName := data.CommandName()
 
 	if !b.preflightSlash(ctx, e, t) {
@@ -52,7 +51,14 @@ func (b *Bot) onCommand(e *events.ApplicationCommandInteractionCreate) {
 		return
 	}
 
-	b.handlePluginSlash(ctx, e, t, locale, cmdName, data)
+	switch data.Type() {
+	case discord.ApplicationCommandTypeUser:
+		b.handlePluginUserCommand(ctx, e, t, locale, cmdName, e.UserCommandInteractionData())
+	case discord.ApplicationCommandTypeMessage:
+		b.handlePluginMessageCommand(ctx, e, t, locale, cmdName, e.MessageCommandInteractionData())
+	default:
+		b.handlePluginSlash(ctx, e, t, locale, cmdName, e.SlashCommandInteractionData())
+	}
 }
 
 func (b *Bot) preflightSlash(
@@ -95,6 +101,16 @@ func slashCooldownKey(e *events.ApplicationCommandInteractionCreate, cmdName str
 	key := strings.ToLower(strings.TrimSpace(cmdName))
 	if key == "" || e == nil {
 		return key
+	}
+	if e.Data.Type() != discord.ApplicationCommandTypeSlash {
+		switch e.Data.Type() {
+		case discord.ApplicationCommandTypeUser:
+			return "user:" + key
+		case discord.ApplicationCommandTypeMessage:
+			return "message:" + key
+		default:
+			return key
+		}
 	}
 	data := e.SlashCommandInteractionData()
 
@@ -199,6 +215,124 @@ func (b *Bot) handlePluginSlash(
 	}
 
 	b.executePluginActionFromSlash(e, t, action)
+}
+
+func (b *Bot) handlePluginUserCommand(
+	ctx context.Context,
+	e *events.ApplicationCommandInteractionCreate,
+	t commandapi.Translator,
+	locale discord.Locale,
+	cmdName string,
+	data discord.UserCommandInteractionData,
+) {
+	route, ok := b.pluginUserCommands[cmdName]
+	if !ok {
+		_ = e.CreateMessage(interactions.NoticeMessage(present.KindError, "", t.S("err.generic", nil), true))
+		return
+	}
+
+	interaction := &pluginSlashInteraction{event: e}
+	res, defaultEphemeral, pluginID, err := route.host.HandleUserCommand(ctx, cmdName, pluginhost.Payload{
+		GuildID:     snowflakePtrToString(e.GuildID()),
+		ChannelID:   e.Channel().ID().String(),
+		UserID:      e.User().ID.String(),
+		Locale:      locale.Code(),
+		Options:     pluginUserContextOptions(data),
+		Interaction: interaction,
+	})
+	if err != nil {
+		b.logger.ErrorContext(ctx, "plugin user command failed", slog.String("cmd", cmdName), slog.String("err", err.Error()))
+		b.respondPluginSlashError(e, t, interaction)
+		return
+	}
+
+	action, err := parsePluginAction(pluginID, res, defaultEphemeral, pluginResponseSlash)
+	if err != nil {
+		b.logger.ErrorContext(ctx, "plugin user command response parse failed", slog.String("cmd", cmdName), slog.String("err", err.Error()))
+		b.respondPluginSlashError(e, t, interaction)
+		return
+	}
+
+	b.executePluginActionFromSlash(e, t, action)
+}
+
+func (b *Bot) handlePluginMessageCommand(
+	ctx context.Context,
+	e *events.ApplicationCommandInteractionCreate,
+	t commandapi.Translator,
+	locale discord.Locale,
+	cmdName string,
+	data discord.MessageCommandInteractionData,
+) {
+	route, ok := b.pluginMessageCommands[cmdName]
+	if !ok {
+		_ = e.CreateMessage(interactions.NoticeMessage(present.KindError, "", t.S("err.generic", nil), true))
+		return
+	}
+
+	interaction := &pluginSlashInteraction{event: e}
+	res, defaultEphemeral, pluginID, err := route.host.HandleMessageCommand(ctx, cmdName, pluginhost.Payload{
+		GuildID:     snowflakePtrToString(e.GuildID()),
+		ChannelID:   e.Channel().ID().String(),
+		UserID:      e.User().ID.String(),
+		Locale:      locale.Code(),
+		Options:     pluginMessageContextOptions(data),
+		Interaction: interaction,
+	})
+	if err != nil {
+		b.logger.ErrorContext(ctx, "plugin message command failed", slog.String("cmd", cmdName), slog.String("err", err.Error()))
+		b.respondPluginSlashError(e, t, interaction)
+		return
+	}
+
+	action, err := parsePluginAction(pluginID, res, defaultEphemeral, pluginResponseSlash)
+	if err != nil {
+		b.logger.ErrorContext(ctx, "plugin message command response parse failed", slog.String("cmd", cmdName), slog.String("err", err.Error()))
+		b.respondPluginSlashError(e, t, interaction)
+		return
+	}
+
+	b.executePluginActionFromSlash(e, t, action)
+}
+
+func (b *Bot) onAutocomplete(e *events.AutocompleteInteractionCreate) {
+	ctx := context.Background()
+
+	data := e.Data
+	cmdName := data.CommandName
+	route, ok := b.pluginCommands[cmdName]
+	if !ok {
+		_ = e.AutocompleteResult(nil)
+		return
+	}
+
+	res, pluginID, err := route.host.HandleAutocomplete(ctx, cmdName, optionalString(data.SubCommandGroupName), optionalString(data.SubCommandName), strings.TrimSpace(data.Focused().Name), pluginhost.Payload{
+		GuildID:   snowflakePtrToString(e.GuildID()),
+		ChannelID: e.Channel().ID().String(),
+		UserID:    e.User().ID.String(),
+		Locale:    e.Locale().Code(),
+		Options:   pluginAutocompleteOptions(data),
+	})
+	if err != nil {
+		b.logger.ErrorContext(ctx, "plugin autocomplete failed", slog.String("cmd", cmdName), slog.String("err", err.Error()))
+		_ = e.AutocompleteResult(nil)
+		return
+	}
+
+	choices, parseErr := parsePluginAutocompleteChoices(pluginID, res)
+	if parseErr != nil {
+		b.logger.ErrorContext(ctx, "plugin autocomplete parse failed", slog.String("cmd", cmdName), slog.String("err", parseErr.Error()))
+		_ = e.AutocompleteResult(nil)
+		return
+	}
+	_ = e.AutocompleteResult(choices)
+}
+
+func optionalString(value *string) string {
+	if value == nil {
+		return ""
+	}
+	return strings.TrimSpace(*value)
 }
 
 func (b *Bot) respondPluginSlashError(

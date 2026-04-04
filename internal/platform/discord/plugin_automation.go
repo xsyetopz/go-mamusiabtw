@@ -403,7 +403,7 @@ func (p *pluginAutomation) executeTimeoutMember(
 	trigger pluginhost.Payload,
 	a automationAction,
 ) {
-	if !perms.Discord.TimeoutMember {
+	if !perms.Discord.Members {
 		p.logger.WarnContext(ctx, "plugin timeout_member denied", slog.String("plugin", pluginID))
 		return
 	}
@@ -448,7 +448,7 @@ func (p *pluginAutomation) executeSendChannel(
 	trigger pluginhost.Payload,
 	a automationAction,
 ) {
-	if !perms.Discord.SendChannel {
+	if !perms.Discord.Messages {
 		p.logger.WarnContext(ctx, "plugin send_channel denied", slog.String("plugin", pluginID))
 		return
 	}
@@ -496,7 +496,7 @@ func (p *pluginAutomation) executeSendDM(
 	trigger pluginhost.Payload,
 	a automationAction,
 ) {
-	if !perms.Discord.SendDM {
+	if !perms.Discord.Messages {
 		p.logger.WarnContext(ctx, "plugin send_dm denied", slog.String("plugin", pluginID))
 		return
 	}

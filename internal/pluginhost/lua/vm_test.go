@@ -42,17 +42,30 @@ func (f *fakeInteraction) Defer(ephemeral bool) error {
 }
 
 type fakeDiscordExecutor struct {
-	sendDMErr        error
-	sendChannelErr   error
-	timeoutErr       error
-	sendDMCalls      int
-	sendChannelCalls int
-	timeoutCalls     int
-	lastChannel      uint64
-	lastGuild        uint64
-	lastUser         uint64
-	lastUntil        time.Time
-	lastMessage      any
+	sendDMErr         error
+	sendChannelErr    error
+	timeoutErr        error
+	getMessageErr     error
+	sendDMCalls       int
+	sendChannelCalls  int
+	timeoutCalls      int
+	getMessageCalls   int
+	crosspostCalls    int
+	pinCalls          int
+	unpinCalls        int
+	addReactionCalls  int
+	removeOwnCalls    int
+	removeUserCalls   int
+	clearCalls        int
+	clearEmojiCalls   int
+	getReactionsCalls int
+	lastChannel       uint64
+	lastGuild         uint64
+	lastUser          uint64
+	lastMessageID     uint64
+	lastEmoji         string
+	lastUntil         time.Time
+	lastMessage       any
 }
 
 func (f *fakeDiscordExecutor) SelfUser(context.Context) (luaplugin.UserResult, error) {
@@ -133,6 +146,39 @@ func (f *fakeDiscordExecutor) GetChannel(_ context.Context, channelID uint64) (l
 	}, nil
 }
 
+func (f *fakeDiscordExecutor) CreateChannel(context.Context, luaplugin.ChannelCreateSpec) (luaplugin.ChannelResult, error) {
+	return luaplugin.ChannelResult{}, nil
+}
+
+func (f *fakeDiscordExecutor) EditChannel(context.Context, luaplugin.ChannelEditSpec) (luaplugin.ChannelResult, error) {
+	return luaplugin.ChannelResult{}, nil
+}
+
+func (f *fakeDiscordExecutor) DeleteChannel(context.Context, uint64) error { return nil }
+
+func (f *fakeDiscordExecutor) SetChannelOverwrite(context.Context, luaplugin.PermissionOverwriteSpec) error {
+	return nil
+}
+
+func (f *fakeDiscordExecutor) DeleteChannelOverwrite(context.Context, uint64, uint64) error { return nil }
+
+func (f *fakeDiscordExecutor) GetMessage(_ context.Context, spec luaplugin.MessageGetSpec) (luaplugin.MessageInfo, error) {
+	f.getMessageCalls++
+	f.lastChannel = spec.ChannelID
+	f.lastMessageID = spec.MessageID
+	if f.getMessageErr != nil {
+		return luaplugin.MessageInfo{}, f.getMessageErr
+	}
+	return luaplugin.MessageInfo{
+		ID:        spec.MessageID,
+		ChannelID: spec.ChannelID,
+		AuthorID:  4242,
+		Content:   "message-" + strconv.FormatUint(spec.MessageID, 10),
+		CreatedAt: time.Unix(1_700_000_800, 0).Unix(),
+		Pinned:    true,
+	}, nil
+}
+
 func (f *fakeDiscordExecutor) TimeoutMember(_ context.Context, guildID, userID uint64, until time.Time) error {
 	f.timeoutCalls++
 	f.lastGuild = guildID
@@ -200,6 +246,152 @@ func (f *fakeDiscordExecutor) BulkDeleteMessages(context.Context, uint64, []uint
 
 func (f *fakeDiscordExecutor) PurgeMessages(context.Context, luaplugin.PurgeSpec) (int, error) {
 	return 0, nil
+}
+
+func (f *fakeDiscordExecutor) CrosspostMessage(_ context.Context, spec luaplugin.MessageGetSpec) (luaplugin.MessageInfo, error) {
+	f.crosspostCalls++
+	f.lastChannel = spec.ChannelID
+	f.lastMessageID = spec.MessageID
+	return luaplugin.MessageInfo{
+		ID:        spec.MessageID,
+		ChannelID: spec.ChannelID,
+		AuthorID:  4242,
+		Content:   "crossposted",
+		CreatedAt: time.Unix(1_700_000_801, 0).Unix(),
+	}, nil
+}
+
+func (f *fakeDiscordExecutor) PinMessage(_ context.Context, spec luaplugin.MessageGetSpec) error {
+	f.pinCalls++
+	f.lastChannel = spec.ChannelID
+	f.lastMessageID = spec.MessageID
+	return nil
+}
+
+func (f *fakeDiscordExecutor) UnpinMessage(_ context.Context, spec luaplugin.MessageGetSpec) error {
+	f.unpinCalls++
+	f.lastChannel = spec.ChannelID
+	f.lastMessageID = spec.MessageID
+	return nil
+}
+
+func (f *fakeDiscordExecutor) GetReactions(
+	_ context.Context,
+	spec luaplugin.ReactionListSpec,
+) ([]luaplugin.UserResult, error) {
+	f.getReactionsCalls++
+	f.lastChannel = spec.ChannelID
+	f.lastMessageID = spec.MessageID
+	f.lastEmoji = spec.Emoji
+	return []luaplugin.UserResult{
+		{
+			ID:          88,
+			Username:    "reactor",
+			DisplayName: "Re Actor",
+			Mention:     "<@88>",
+			CreatedAt:   time.Unix(1_700_000_802, 0).Unix(),
+		},
+	}, nil
+}
+
+func (f *fakeDiscordExecutor) AddReaction(_ context.Context, spec luaplugin.ReactionSpec) error {
+	f.addReactionCalls++
+	f.lastChannel = spec.ChannelID
+	f.lastMessageID = spec.MessageID
+	f.lastEmoji = spec.Emoji
+	return nil
+}
+
+func (f *fakeDiscordExecutor) RemoveOwnReaction(_ context.Context, spec luaplugin.ReactionSpec) error {
+	f.removeOwnCalls++
+	f.lastChannel = spec.ChannelID
+	f.lastMessageID = spec.MessageID
+	f.lastEmoji = spec.Emoji
+	return nil
+}
+
+func (f *fakeDiscordExecutor) RemoveUserReaction(_ context.Context, spec luaplugin.ReactionUserSpec) error {
+	f.removeUserCalls++
+	f.lastChannel = spec.ChannelID
+	f.lastMessageID = spec.MessageID
+	f.lastUser = spec.UserID
+	f.lastEmoji = spec.Emoji
+	return nil
+}
+
+func (f *fakeDiscordExecutor) ClearReactions(_ context.Context, spec luaplugin.MessageGetSpec) error {
+	f.clearCalls++
+	f.lastChannel = spec.ChannelID
+	f.lastMessageID = spec.MessageID
+	return nil
+}
+
+func (f *fakeDiscordExecutor) ClearReactionsForEmoji(_ context.Context, spec luaplugin.ReactionSpec) error {
+	f.clearEmojiCalls++
+	f.lastChannel = spec.ChannelID
+	f.lastMessageID = spec.MessageID
+	f.lastEmoji = spec.Emoji
+	return nil
+}
+
+func (f *fakeDiscordExecutor) CreateThreadFromMessage(context.Context, luaplugin.ThreadCreateFromMessageSpec) (luaplugin.ThreadResult, error) {
+	return luaplugin.ThreadResult{}, nil
+}
+
+func (f *fakeDiscordExecutor) CreateThreadInChannel(context.Context, luaplugin.ThreadCreateSpec) (luaplugin.ThreadResult, error) {
+	return luaplugin.ThreadResult{}, nil
+}
+
+func (f *fakeDiscordExecutor) JoinThread(context.Context, uint64) error { return nil }
+
+func (f *fakeDiscordExecutor) LeaveThread(context.Context, uint64) error { return nil }
+
+func (f *fakeDiscordExecutor) AddThreadMember(context.Context, uint64, uint64) error { return nil }
+
+func (f *fakeDiscordExecutor) RemoveThreadMember(context.Context, uint64, uint64) error { return nil }
+
+func (f *fakeDiscordExecutor) UpdateThread(context.Context, luaplugin.ThreadUpdateSpec) (luaplugin.ThreadResult, error) {
+	return luaplugin.ThreadResult{}, nil
+}
+
+func (f *fakeDiscordExecutor) CreateInvite(context.Context, luaplugin.InviteCreateSpec) (luaplugin.InviteResult, error) {
+	return luaplugin.InviteResult{}, nil
+}
+
+func (f *fakeDiscordExecutor) GetInvite(context.Context, string) (luaplugin.InviteResult, error) {
+	return luaplugin.InviteResult{}, nil
+}
+
+func (f *fakeDiscordExecutor) DeleteInvite(context.Context, string) error { return nil }
+
+func (f *fakeDiscordExecutor) ListChannelInvites(context.Context, uint64) ([]luaplugin.InviteResult, error) {
+	return nil, nil
+}
+
+func (f *fakeDiscordExecutor) ListGuildInvites(context.Context, uint64) ([]luaplugin.InviteResult, error) {
+	return nil, nil
+}
+
+func (f *fakeDiscordExecutor) CreateWebhook(context.Context, luaplugin.WebhookCreateSpec) (luaplugin.WebhookResult, error) {
+	return luaplugin.WebhookResult{}, nil
+}
+
+func (f *fakeDiscordExecutor) GetWebhook(context.Context, uint64) (luaplugin.WebhookResult, error) {
+	return luaplugin.WebhookResult{}, nil
+}
+
+func (f *fakeDiscordExecutor) ListChannelWebhooks(context.Context, uint64) ([]luaplugin.WebhookResult, error) {
+	return nil, nil
+}
+
+func (f *fakeDiscordExecutor) EditWebhook(context.Context, luaplugin.WebhookEditSpec) (luaplugin.WebhookResult, error) {
+	return luaplugin.WebhookResult{}, nil
+}
+
+func (f *fakeDiscordExecutor) DeleteWebhook(context.Context, uint64) error { return nil }
+
+func (f *fakeDiscordExecutor) ExecuteWebhook(context.Context, string, luaplugin.WebhookExecuteSpec) (luaplugin.MessageResult, error) {
+	return luaplugin.MessageResult{}, nil
 }
 
 func (f *fakeDiscordExecutor) CreateEmoji(context.Context, luaplugin.EmojiCreateSpec) (luaplugin.EmojiResult, error) {
@@ -695,10 +887,9 @@ func TestInfoPluginRoutes(t *testing.T) {
 		PluginDir: filepath.Dir(script),
 		Permissions: permissions.Permissions{
 			Discord: permissions.DiscordPermissions{
-				GetSelfUser: true,
-				GetUser:     true,
-				GetMember:   true,
-				GetGuild:    true,
+				Users:   true,
+				Members: true,
+				Guilds:  true,
 			},
 		},
 		Discord: executor,
@@ -874,8 +1065,8 @@ func TestModerationPluginRoutes(t *testing.T) {
 				Audit:    true,
 			},
 			Discord: permissions.DiscordPermissions{
-				SendDM:        true,
-				TimeoutMember: true,
+				Messages: true,
+				Members:  true,
 			},
 		},
 		Discord: discordExecutor,
@@ -1050,8 +1241,8 @@ func TestModerationPluginWarnTimeoutFailure(t *testing.T) {
 				Audit:    true,
 			},
 			Discord: permissions.DiscordPermissions{
-				SendDM:        true,
-				TimeoutMember: true,
+				Messages: true,
+				Members:  true,
 			},
 		},
 		Discord: discordExecutor,
@@ -1168,8 +1359,7 @@ return bot.plugin({
 		PluginDir: dir,
 		Permissions: permissions.Permissions{
 			Discord: permissions.DiscordPermissions{
-				SendDM:      true,
-				SendChannel: true,
+				Messages: true,
 			},
 		},
 		Discord: discordExecutor,
@@ -1206,6 +1396,170 @@ return bot.plugin({
 	}
 }
 
+func TestDiscordMessageAndReactionAPIs(t *testing.T) {
+	t.Parallel()
+
+	var logs bytes.Buffer
+	logger := slog.New(slog.NewTextHandler(&logs, &slog.HandlerOptions{}))
+	discordExecutor := &fakeDiscordExecutor{}
+
+	dir := t.TempDir()
+	script := filepath.Join(dir, "plugin.lua")
+	if err := os.WriteFile(script, []byte(`
+return bot.plugin({
+  commands = {
+    bot.command("discordapi", {
+      description = "Exercise message and reaction APIs.",
+      run = function(ctx)
+        local message, message_err = bot.discord.messages.get({
+          message_id = "9001",
+        })
+        if message == nil or message_err ~= nil or message.pinned ~= true then
+          error("message get failed")
+        end
+
+        local crossposted, crosspost_err = bot.discord.messages.crosspost({
+          message_id = "9001",
+        })
+        if crossposted == nil or crosspost_err ~= nil then
+          error("message crosspost failed")
+        end
+
+        local pin_ok, pin_err = bot.discord.messages.pin({
+          message_id = "9001",
+        })
+        if pin_ok ~= true or pin_err ~= nil then
+          error("message pin failed")
+        end
+
+        local unpin_ok, unpin_err = bot.discord.unpin_message({
+          message_id = "9001",
+        })
+        if unpin_ok ~= true or unpin_err ~= nil then
+          error("message unpin failed")
+        end
+
+        local users, users_err = bot.discord.reactions.list({
+          message_id = "9001",
+          emoji = "🙂",
+        })
+        if users == nil or users_err ~= nil or #users ~= 1 then
+          error("reaction list failed")
+        end
+
+        local add_ok, add_err = bot.discord.reactions.add({
+          message_id = "9001",
+          emoji = "🙂",
+        })
+        if add_ok ~= true or add_err ~= nil then
+          error("reaction add failed")
+        end
+
+        local remove_own_ok, remove_own_err = bot.discord.remove_own_reaction({
+          message_id = "9001",
+          emoji = "🙂",
+        })
+        if remove_own_ok ~= true or remove_own_err ~= nil then
+          error("reaction remove_own failed")
+        end
+
+        local remove_user_ok, remove_user_err = bot.discord.reactions.remove_user({
+          message_id = "9001",
+          user_id = "88",
+          emoji = "🙂",
+        })
+        if remove_user_ok ~= true or remove_user_err ~= nil then
+          error("reaction remove_user failed")
+        end
+
+        local clear_ok, clear_err = bot.discord.reactions.clear({
+          message_id = "9001",
+        })
+        if clear_ok ~= true or clear_err ~= nil then
+          error("reaction clear failed")
+        end
+
+        local clear_emoji_ok, clear_emoji_err = bot.discord.clear_reactions_for_emoji({
+          message_id = "9001",
+          emoji = "🙂",
+        })
+        if clear_emoji_ok ~= true or clear_emoji_err ~= nil then
+          error("reaction clear_for_emoji failed")
+        end
+
+        return bot.ui.reply({
+          content = message.id .. ":" .. users[1].id .. ":" .. crossposted.content,
+          ephemeral = true,
+        })
+      end,
+    }),
+  },
+})
+`), 0o644); err != nil {
+		t.Fatalf("write plugin: %v", err)
+	}
+
+	vm, err := luaplugin.NewFromFile(script, luaplugin.Options{
+		Logger:    logger,
+		PluginID:  "discordapi",
+		PluginDir: dir,
+		Permissions: permissions.Permissions{
+			Discord: permissions.DiscordPermissions{
+				Messages:  true,
+				Reactions: true,
+			},
+		},
+		Discord: discordExecutor,
+	})
+	if err != nil {
+		t.Fatalf("NewFromFile(discordapi): %v", err)
+	}
+	t.Cleanup(vm.Close)
+
+	got, hasValue, err := vm.CallRoute(context.Background(), luaplugin.RouteCommand, "discordapi", luaplugin.Payload{
+		ChannelID: "77",
+		UserID:    "42",
+		Locale:    "en-US",
+	})
+	if err != nil {
+		t.Fatalf("CallRoute(discordapi): %v", err)
+	}
+	if !hasValue {
+		t.Fatalf("expected discordapi value")
+	}
+
+	gotMap, ok := got.(map[string]any)
+	if !ok {
+		t.Fatalf("expected object, got %T", got)
+	}
+	if gotMap["content"] != "9001:88:crossposted" {
+		t.Fatalf("unexpected content: %#v", gotMap)
+	}
+	if discordExecutor.getMessageCalls != 1 || discordExecutor.crosspostCalls != 1 {
+		t.Fatalf("unexpected message calls: get=%d crosspost=%d", discordExecutor.getMessageCalls, discordExecutor.crosspostCalls)
+	}
+	if discordExecutor.pinCalls != 1 || discordExecutor.unpinCalls != 1 {
+		t.Fatalf("unexpected pin calls: pin=%d unpin=%d", discordExecutor.pinCalls, discordExecutor.unpinCalls)
+	}
+	if discordExecutor.getReactionsCalls != 1 || discordExecutor.addReactionCalls != 1 {
+		t.Fatalf("unexpected reaction calls: list=%d add=%d", discordExecutor.getReactionsCalls, discordExecutor.addReactionCalls)
+	}
+	if discordExecutor.removeOwnCalls != 1 || discordExecutor.removeUserCalls != 1 {
+		t.Fatalf("unexpected remove calls: own=%d user=%d", discordExecutor.removeOwnCalls, discordExecutor.removeUserCalls)
+	}
+	if discordExecutor.clearCalls != 1 || discordExecutor.clearEmojiCalls != 1 {
+		t.Fatalf("unexpected clear calls: clear=%d clear_for_emoji=%d", discordExecutor.clearCalls, discordExecutor.clearEmojiCalls)
+	}
+	if discordExecutor.lastChannel != 77 || discordExecutor.lastMessageID != 9001 || discordExecutor.lastEmoji != "🙂" {
+		t.Fatalf(
+			"unexpected last reaction target: channel=%d message=%d emoji=%q",
+			discordExecutor.lastChannel,
+			discordExecutor.lastMessageID,
+			discordExecutor.lastEmoji,
+		)
+	}
+}
+
 func TestManagerPluginRoutes(t *testing.T) {
 	t.Parallel()
 
@@ -1228,20 +1582,12 @@ func TestManagerPluginRoutes(t *testing.T) {
 		PluginDir: filepath.Dir(script),
 		Permissions: permissions.Permissions{
 			Discord: permissions.DiscordPermissions{
-				SetSlowmode:   true,
-				SetNickname:   true,
-				CreateRole:    true,
-				EditRole:      true,
-				DeleteRole:    true,
-				AddRole:       true,
-				RemoveRole:    true,
-				PurgeMessages: true,
-				CreateEmoji:   true,
-				EditEmoji:     true,
-				DeleteEmoji:   true,
-				CreateSticker: true,
-				EditSticker:   true,
-				DeleteSticker: true,
+				Channels: true,
+				Messages: true,
+				Members:  true,
+				Roles:    true,
+				Emojis:   true,
+				Stickers: true,
 			},
 		},
 		Discord: discordExecutor,

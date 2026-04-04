@@ -12,22 +12,29 @@ import (
 type RouteKind string
 
 const (
-	RouteCommand   RouteKind = "command"
-	RouteComponent RouteKind = "component"
-	RouteModal     RouteKind = "modal"
-	RouteEvent     RouteKind = "event"
-	RouteJob       RouteKind = "job"
+	RouteCommand        RouteKind = "command"
+	RouteUserCommand    RouteKind = "user_command"
+	RouteMessageCommand RouteKind = "message_command"
+	RouteAutocomplete   RouteKind = "autocomplete"
+	RouteComponent      RouteKind = "component"
+	RouteModal          RouteKind = "modal"
+	RouteEvent          RouteKind = "event"
+	RouteJob            RouteKind = "job"
 )
 
 type Definition struct {
-	Commands   []CommandSpec
-	Components []string
-	Modals     []string
-	Events     []string
-	Jobs       []JobSpec
+	Commands        []CommandSpec
+	UserCommands    []CommandSpec
+	MessageCommands []CommandSpec
+	Autocompletes   []string
+	Components      []string
+	Modals          []string
+	Events          []string
+	Jobs            []JobSpec
 }
 
 type CommandSpec struct {
+	Type                     string
 	Name                     string
 	Description              string
 	DescriptionID            string
@@ -44,6 +51,7 @@ type CommandOptionSpec struct {
 	Description   string
 	DescriptionID string
 	Required      bool
+	Autocomplete  string
 	Choices       []OptionChoiceSpec
 	MinValue      *float64
 	MaxValue      *float64
@@ -78,12 +86,15 @@ type JobSpec struct {
 }
 
 type pluginDefinition struct {
-	meta       Definition
-	commands   map[string]*lua.LFunction
-	components map[string]*lua.LFunction
-	modals     map[string]*lua.LFunction
-	events     map[string]*lua.LFunction
-	jobs       map[string]*lua.LFunction
+	meta            Definition
+	commands        map[string]*lua.LFunction
+	userCommands    map[string]*lua.LFunction
+	messageCommands map[string]*lua.LFunction
+	autocompletes   map[string]*lua.LFunction
+	components      map[string]*lua.LFunction
+	modals          map[string]*lua.LFunction
+	events          map[string]*lua.LFunction
+	jobs            map[string]*lua.LFunction
 }
 
 func (d *pluginDefinition) lookup(kind RouteKind, routeID string) (*lua.LFunction, bool) {
@@ -99,6 +110,15 @@ func (d *pluginDefinition) lookup(kind RouteKind, routeID string) (*lua.LFunctio
 	switch kind {
 	case RouteCommand:
 		fn, ok := d.commands[routeID]
+		return fn, ok
+	case RouteUserCommand:
+		fn, ok := d.userCommands[routeID]
+		return fn, ok
+	case RouteMessageCommand:
+		fn, ok := d.messageCommands[routeID]
+		return fn, ok
+	case RouteAutocomplete:
+		fn, ok := d.autocompletes[routeID]
 		return fn, ok
 	case RouteComponent:
 		fn, ok := d.components[routeID]
@@ -123,11 +143,14 @@ func (d *pluginDefinition) definition() Definition {
 	}
 
 	return Definition{
-		Commands:   append([]CommandSpec(nil), d.meta.Commands...),
-		Components: append([]string(nil), d.meta.Components...),
-		Modals:     append([]string(nil), d.meta.Modals...),
-		Events:     append([]string(nil), d.meta.Events...),
-		Jobs:       append([]JobSpec(nil), d.meta.Jobs...),
+		Commands:        append([]CommandSpec(nil), d.meta.Commands...),
+		UserCommands:    append([]CommandSpec(nil), d.meta.UserCommands...),
+		MessageCommands: append([]CommandSpec(nil), d.meta.MessageCommands...),
+		Autocompletes:   append([]string(nil), d.meta.Autocompletes...),
+		Components:      append([]string(nil), d.meta.Components...),
+		Modals:          append([]string(nil), d.meta.Modals...),
+		Events:          append([]string(nil), d.meta.Events...),
+		Jobs:            append([]JobSpec(nil), d.meta.Jobs...),
 	}
 }
 
@@ -141,9 +164,21 @@ func parsePluginDefinition(raw lua.LValue) (*pluginDefinition, error) {
 		return nil, errors.New("plugin entrypoint must return a table")
 	}
 
-	commands, commandHandlers, err := parseCommandEntries(root.RawGetString("commands"))
+	commands, commandHandlers, err := parseCommandEntries(root.RawGetString("commands"), "slash")
 	if err != nil {
 		return nil, fmt.Errorf("commands: %w", err)
+	}
+	userCommands, userCommandHandlers, err := parseCommandEntries(root.RawGetString("user_commands"), "user")
+	if err != nil {
+		return nil, fmt.Errorf("user_commands: %w", err)
+	}
+	messageCommands, messageCommandHandlers, err := parseCommandEntries(root.RawGetString("message_commands"), "message")
+	if err != nil {
+		return nil, fmt.Errorf("message_commands: %w", err)
+	}
+	autocompletes, autocompleteHandlers, err := parseNamedRoutes(root.RawGetString("autocompletes"))
+	if err != nil {
+		return nil, fmt.Errorf("autocompletes: %w", err)
 	}
 	components, componentHandlers, err := parseNamedRoutes(root.RawGetString("components"))
 	if err != nil {
@@ -164,21 +199,27 @@ func parsePluginDefinition(raw lua.LValue) (*pluginDefinition, error) {
 
 	return &pluginDefinition{
 		meta: Definition{
-			Commands:   commands,
-			Components: components,
-			Modals:     modals,
-			Events:     events,
-			Jobs:       jobs,
+			Commands:        commands,
+			UserCommands:    userCommands,
+			MessageCommands: messageCommands,
+			Autocompletes:   autocompletes,
+			Components:      components,
+			Modals:          modals,
+			Events:          events,
+			Jobs:            jobs,
 		},
-		commands:   commandHandlers,
-		components: componentHandlers,
-		modals:     modalHandlers,
-		events:     eventHandlers,
-		jobs:       jobHandlers,
+		commands:        commandHandlers,
+		userCommands:    userCommandHandlers,
+		messageCommands: messageCommandHandlers,
+		autocompletes:   autocompleteHandlers,
+		components:      componentHandlers,
+		modals:          modalHandlers,
+		events:          eventHandlers,
+		jobs:            jobHandlers,
 	}, nil
 }
 
-func parseCommandEntries(raw lua.LValue) ([]CommandSpec, map[string]*lua.LFunction, error) {
+func parseCommandEntries(raw lua.LValue, defaultType string) ([]CommandSpec, map[string]*lua.LFunction, error) {
 	if raw == lua.LNil {
 		return nil, nil, nil
 	}
@@ -209,7 +250,7 @@ func parseCommandEntries(raw lua.LValue) ([]CommandSpec, map[string]*lua.LFuncti
 			return nil, nil, fmt.Errorf("command %q: %w", name, err)
 		}
 
-		spec, err := parseCommandTable(table)
+		spec, err := parseCommandTable(table, defaultType)
 		if err != nil {
 			return nil, nil, fmt.Errorf("command %q: %w", name, err)
 		}
@@ -221,15 +262,16 @@ func parseCommandEntries(raw lua.LValue) ([]CommandSpec, map[string]*lua.LFuncti
 	return out, handlers, nil
 }
 
-func parseCommandTable(table *lua.LTable) (CommandSpec, error) {
+func parseCommandTable(table *lua.LTable, defaultType string) (CommandSpec, error) {
 	spec := CommandSpec{
+		Type:                     commandKind(tableString(table, "type"), defaultType),
 		Name:                     tableString(table, "name"),
 		Description:              tableString(table, "description"),
 		DescriptionID:            tableString(table, "description_id"),
 		Ephemeral:                tableBool(table, "ephemeral"),
 		DefaultMemberPermissions: tableStringSlice(table, "default_member_permissions"),
 	}
-	if spec.Description == "" {
+	if spec.Type == "slash" && spec.Description == "" {
 		return CommandSpec{}, errors.New("missing description")
 	}
 
@@ -252,6 +294,23 @@ func parseCommandTable(table *lua.LTable) (CommandSpec, error) {
 	spec.Groups = groups
 
 	return spec, nil
+}
+
+func commandKind(raw string, fallback string) string {
+	kind := strings.ToLower(strings.TrimSpace(raw))
+	if kind == "" {
+		kind = strings.ToLower(strings.TrimSpace(fallback))
+	}
+	switch kind {
+	case "", "slash":
+		return "slash"
+	case "user":
+		return "user"
+	case "message":
+		return "message"
+	default:
+		return kind
+	}
 }
 
 func parseSubcommandsField(raw lua.LValue) ([]SubcommandSpec, error) {
@@ -358,6 +417,7 @@ func parseOptionsField(raw lua.LValue) ([]CommandOptionSpec, error) {
 			Description:   tableString(table, "description"),
 			DescriptionID: tableString(table, "description_id"),
 			Required:      tableBool(table, "required"),
+			Autocomplete:  tableString(table, "autocomplete"),
 			MinValue:      tableOptionalFloat(table, "min_value"),
 			MaxValue:      tableOptionalFloat(table, "max_value"),
 			MinLength:     tableOptionalInt(table, "min_length"),

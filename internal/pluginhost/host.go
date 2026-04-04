@@ -63,6 +63,12 @@ type Discord interface {
 	GetGuild(ctx context.Context, guildID uint64) (luaplugin.GuildResult, error)
 	GetRole(ctx context.Context, guildID, roleID uint64) (luaplugin.RoleResult, error)
 	GetChannel(ctx context.Context, channelID uint64) (luaplugin.ChannelResult, error)
+	CreateChannel(ctx context.Context, spec luaplugin.ChannelCreateSpec) (luaplugin.ChannelResult, error)
+	EditChannel(ctx context.Context, spec luaplugin.ChannelEditSpec) (luaplugin.ChannelResult, error)
+	DeleteChannel(ctx context.Context, channelID uint64) error
+	SetChannelOverwrite(ctx context.Context, spec luaplugin.PermissionOverwriteSpec) error
+	DeleteChannelOverwrite(ctx context.Context, channelID, overwriteID uint64) error
+	GetMessage(ctx context.Context, spec luaplugin.MessageGetSpec) (luaplugin.MessageInfo, error)
 	SendDM(ctx context.Context, pluginID string, userID uint64, message any) (luaplugin.MessageResult, error)
 	SendChannel(ctx context.Context, pluginID string, channelID uint64, message any) (luaplugin.MessageResult, error)
 	TimeoutMember(ctx context.Context, guildID, userID uint64, until time.Time) error
@@ -77,6 +83,33 @@ type Discord interface {
 	DeleteMessage(ctx context.Context, spec luaplugin.MessageDeleteSpec) error
 	BulkDeleteMessages(ctx context.Context, channelID uint64, messageIDs []uint64) (int, error)
 	PurgeMessages(ctx context.Context, spec luaplugin.PurgeSpec) (int, error)
+	CrosspostMessage(ctx context.Context, spec luaplugin.MessageGetSpec) (luaplugin.MessageInfo, error)
+	PinMessage(ctx context.Context, spec luaplugin.MessageGetSpec) error
+	UnpinMessage(ctx context.Context, spec luaplugin.MessageGetSpec) error
+	GetReactions(ctx context.Context, spec luaplugin.ReactionListSpec) ([]luaplugin.UserResult, error)
+	AddReaction(ctx context.Context, spec luaplugin.ReactionSpec) error
+	RemoveOwnReaction(ctx context.Context, spec luaplugin.ReactionSpec) error
+	RemoveUserReaction(ctx context.Context, spec luaplugin.ReactionUserSpec) error
+	ClearReactions(ctx context.Context, spec luaplugin.MessageGetSpec) error
+	ClearReactionsForEmoji(ctx context.Context, spec luaplugin.ReactionSpec) error
+	CreateThreadFromMessage(ctx context.Context, spec luaplugin.ThreadCreateFromMessageSpec) (luaplugin.ThreadResult, error)
+	CreateThreadInChannel(ctx context.Context, spec luaplugin.ThreadCreateSpec) (luaplugin.ThreadResult, error)
+	JoinThread(ctx context.Context, threadID uint64) error
+	LeaveThread(ctx context.Context, threadID uint64) error
+	AddThreadMember(ctx context.Context, threadID, userID uint64) error
+	RemoveThreadMember(ctx context.Context, threadID, userID uint64) error
+	UpdateThread(ctx context.Context, spec luaplugin.ThreadUpdateSpec) (luaplugin.ThreadResult, error)
+	CreateInvite(ctx context.Context, spec luaplugin.InviteCreateSpec) (luaplugin.InviteResult, error)
+	GetInvite(ctx context.Context, code string) (luaplugin.InviteResult, error)
+	DeleteInvite(ctx context.Context, code string) error
+	ListChannelInvites(ctx context.Context, channelID uint64) ([]luaplugin.InviteResult, error)
+	ListGuildInvites(ctx context.Context, guildID uint64) ([]luaplugin.InviteResult, error)
+	CreateWebhook(ctx context.Context, spec luaplugin.WebhookCreateSpec) (luaplugin.WebhookResult, error)
+	GetWebhook(ctx context.Context, webhookID uint64) (luaplugin.WebhookResult, error)
+	ListChannelWebhooks(ctx context.Context, channelID uint64) ([]luaplugin.WebhookResult, error)
+	EditWebhook(ctx context.Context, spec luaplugin.WebhookEditSpec) (luaplugin.WebhookResult, error)
+	DeleteWebhook(ctx context.Context, webhookID uint64) error
+	ExecuteWebhook(ctx context.Context, pluginID string, spec luaplugin.WebhookExecuteSpec) (luaplugin.MessageResult, error)
 	CreateEmoji(ctx context.Context, spec luaplugin.EmojiCreateSpec) (luaplugin.EmojiResult, error)
 	EditEmoji(ctx context.Context, spec luaplugin.EmojiEditSpec) (luaplugin.EmojiResult, error)
 	DeleteEmoji(ctx context.Context, spec luaplugin.EmojiDeleteSpec) error
@@ -305,17 +338,23 @@ func addCommands(
 		if cmd.Command.Name == "" {
 			continue
 		}
-		if _, exists := nextCommands[cmd.Command.Name]; exists {
+		key := commandLookupKey(cmd.Command.Type, cmd.Command.Name)
+		if _, exists := nextCommands[key]; exists {
 			logger.WarnContext(
 				ctx,
 				"duplicate command name, skipping",
 				slog.String("command", cmd.Command.Name),
+				slog.String("type", NormalizeCommandType(cmd.Command.Type)),
 				slog.String("plugin", pluginID),
 			)
 			continue
 		}
-		nextCommands[cmd.Command.Name] = cmd
+		nextCommands[key] = cmd
 	}
+}
+
+func commandLookupKey(kind, name string) string {
+	return NormalizeCommandType(kind) + ":" + strings.ToLower(strings.TrimSpace(name))
 }
 
 func (m *Host) swapState(
@@ -389,6 +428,9 @@ func buildSubscriptions(pls map[string]*Plugin) (map[string][]string, []PluginJo
 }
 
 func defaultEphemeralForCommand(cmd Command, opts map[string]any) bool {
+	if NormalizeCommandType(cmd.Type) != CommandTypeSlash {
+		return cmd.Ephemeral
+	}
 	if opts == nil {
 		return cmd.Ephemeral
 	}
@@ -443,6 +485,47 @@ func defaultEphemeralFromSubcommands(subs []Subcommand, sub string, fallback boo
 		return fallback
 	}
 	return fallback
+}
+
+func autocompleteRouteID(cmd Command, group, subcommand, option string) string {
+	group = strings.TrimSpace(group)
+	subcommand = strings.TrimSpace(subcommand)
+	option = strings.TrimSpace(option)
+	if option == "" {
+		return ""
+	}
+
+	if group != "" {
+		for _, cmdGroup := range cmd.Groups {
+			if strings.TrimSpace(cmdGroup.Name) != group {
+				continue
+			}
+			return autocompleteRouteIDFromOptions(subcommandOptions(cmdGroup.Subcommands, subcommand), option)
+		}
+		return ""
+	}
+	if subcommand != "" {
+		return autocompleteRouteIDFromOptions(subcommandOptions(cmd.Subcommands, subcommand), option)
+	}
+	return autocompleteRouteIDFromOptions(cmd.Options, option)
+}
+
+func subcommandOptions(subcommands []Subcommand, name string) []CommandOption {
+	for _, subcommand := range subcommands {
+		if strings.TrimSpace(subcommand.Name) == name {
+			return subcommand.Options
+		}
+	}
+	return nil
+}
+
+func autocompleteRouteIDFromOptions(options []CommandOption, option string) string {
+	for _, opt := range options {
+		if strings.TrimSpace(opt.Name) == option {
+			return strings.TrimSpace(opt.Autocomplete)
+		}
+	}
+	return ""
 }
 
 func (m *Host) Commands() map[string]PluginCommand {
@@ -521,24 +604,36 @@ func (m *Host) CommandCreatesFiltered(
 	sort.Strings(names)
 
 	out := make([]discord.ApplicationCommandCreate, 0, len(names))
-	for _, name := range names {
-		cmd := m.commands[name]
+	for _, key := range names {
+		cmd := m.commands[key]
 		if len(allowedPluginIDs) != 0 {
 			if _, ok := allowedPluginIDs[cmd.PluginID]; !ok {
 				continue
 			}
 		}
-		out = append(out, commandToCreate(name, cmd.PluginID, cmd.Command, locales, localize))
+		out = append(out, commandToCreate(cmd.PluginID, cmd.Command, locales, localize))
 	}
 	return out
 }
 
 func (m *Host) HandleSlash(ctx context.Context, cmdName string, payload Payload) (any, bool, string, error) {
+	return m.handleCommand(ctx, CommandTypeSlash, cmdName, payload)
+}
+
+func (m *Host) HandleUserCommand(ctx context.Context, cmdName string, payload Payload) (any, bool, string, error) {
+	return m.handleCommand(ctx, CommandTypeUser, cmdName, payload)
+}
+
+func (m *Host) HandleMessageCommand(ctx context.Context, cmdName string, payload Payload) (any, bool, string, error) {
+	return m.handleCommand(ctx, CommandTypeMessage, cmdName, payload)
+}
+
+func (m *Host) handleCommand(ctx context.Context, kind, cmdName string, payload Payload) (any, bool, string, error) {
 	m.mu.RLock()
-	cmd, ok := m.commands[cmdName]
+	cmd, ok := m.commands[commandLookupKey(kind, cmdName)]
 	if !ok {
 		m.mu.RUnlock()
-		return nil, false, "", fmt.Errorf("unknown plugin command %q", cmdName)
+		return nil, false, "", fmt.Errorf("unknown plugin %s command %q", NormalizeCommandType(kind), cmdName)
 	}
 
 	pl, ok := m.plugins[cmd.PluginID]
@@ -554,7 +649,7 @@ func (m *Host) HandleSlash(ctx context.Context, cmdName string, payload Payload)
 		err      error
 	)
 	if pl.VM.HasDefinition() {
-		res, hasValue, err = pl.VM.CallRoute(ctx, luaplugin.RouteCommand, cmdName, luaplugin.Payload{
+		res, hasValue, err = pl.VM.CallRoute(ctx, routeKindForCommandType(kind), cmdName, luaplugin.Payload{
 			GuildID:     payload.GuildID,
 			ChannelID:   payload.ChannelID,
 			UserID:      payload.UserID,
@@ -580,6 +675,59 @@ func (m *Host) HandleSlash(ctx context.Context, cmdName string, payload Payload)
 		return nil, defaultEphemeral, pl.ID, nil
 	}
 	return res, defaultEphemeral, pl.ID, nil
+}
+
+func routeKindForCommandType(kind string) luaplugin.RouteKind {
+	switch NormalizeCommandType(kind) {
+	case CommandTypeUser:
+		return luaplugin.RouteUserCommand
+	case CommandTypeMessage:
+		return luaplugin.RouteMessageCommand
+	default:
+		return luaplugin.RouteCommand
+	}
+}
+
+func (m *Host) HandleAutocomplete(
+	ctx context.Context,
+	cmdName string,
+	group string,
+	subcommand string,
+	option string,
+	payload Payload,
+) (any, string, error) {
+	m.mu.RLock()
+	cmd, ok := m.commands[commandLookupKey(CommandTypeSlash, cmdName)]
+	if !ok {
+		m.mu.RUnlock()
+		return nil, "", fmt.Errorf("unknown plugin slash command %q", cmdName)
+	}
+
+	pl, ok := m.plugins[cmd.PluginID]
+	if !ok || pl.VM == nil {
+		m.mu.RUnlock()
+		return nil, "", fmt.Errorf("plugin %q not loaded", cmd.PluginID)
+	}
+	m.mu.RUnlock()
+
+	if !pl.VM.HasDefinition() {
+		return nil, pl.ID, fmt.Errorf("plugin %q does not support autocomplete", pl.ID)
+	}
+
+	routeID := autocompleteRouteID(cmd.Command, group, subcommand, option)
+	if routeID == "" {
+		return nil, pl.ID, fmt.Errorf("plugin command %q has no autocomplete route for option %q", cmdName, option)
+	}
+
+	res, _, err := pl.VM.CallRoute(ctx, luaplugin.RouteAutocomplete, routeID, luaplugin.Payload{
+		GuildID:     payload.GuildID,
+		ChannelID:   payload.ChannelID,
+		UserID:      payload.UserID,
+		Locale:      payload.Locale,
+		Options:     payload.Options,
+		Interaction: payload.Interaction,
+	})
+	return res, pl.ID, err
 }
 
 func (m *Host) HandleComponent(ctx context.Context, pluginID, localID string, payload Payload) (any, bool, error) {
@@ -835,35 +983,51 @@ func (m *Host) loadOne(
 }
 
 func commandToCreate(
-	name string,
 	pluginID string,
 	cmd Command,
 	locales []string,
 	localize CommandLocalizer,
 ) discord.ApplicationCommandCreate {
+	name := cmd.Name
+	if NormalizeCommandType(cmd.Type) != CommandTypeSlash {
+		name = strings.TrimSpace(cmd.Name)
+	}
 	var options []discord.ApplicationCommandOption
-	if len(cmd.Subcommands) > 0 || len(cmd.Groups) > 0 {
+	if NormalizeCommandType(cmd.Type) == CommandTypeSlash && (len(cmd.Subcommands) > 0 || len(cmd.Groups) > 0) {
 		options = append(options, buildSubcommands(pluginID, cmd.Subcommands, locales, localize)...)
 		options = append(options, buildGroups(pluginID, cmd.Groups, locales, localize)...)
-	} else {
+	} else if NormalizeCommandType(cmd.Type) == CommandTypeSlash {
 		options = append(options, buildOptions(pluginID, cmd.Options, locales, localize)...)
 	}
 
-	create := discord.SlashCommandCreate{
-		Name:        name,
-		Description: cmd.Description,
-		Options:     options,
+	perms, hasPerms := commandPermissions(cmd.DefaultMemberPermissions)
+	switch NormalizeCommandType(cmd.Type) {
+	case CommandTypeUser:
+		create := discord.UserCommandCreate{Name: name}
+		if hasPerms {
+			create.DefaultMemberPermissions = omit.NewPtr(perms)
+		}
+		return create
+	case CommandTypeMessage:
+		create := discord.MessageCommandCreate{Name: name}
+		if hasPerms {
+			create.DefaultMemberPermissions = omit.NewPtr(perms)
+		}
+		return create
+	default:
+		create := discord.SlashCommandCreate{
+			Name:        name,
+			Description: cmd.Description,
+			Options:     options,
+		}
+		if hasPerms {
+			create.DefaultMemberPermissions = omit.NewPtr(perms)
+		}
+		if locs := descriptionLocalizations(pluginID, cmd.DescriptionID, locales, localize); len(locs) != 0 {
+			create.DescriptionLocalizations = locs
+		}
+		return create
 	}
-
-	if perms, ok := commandPermissions(cmd.DefaultMemberPermissions); ok {
-		create.DefaultMemberPermissions = omit.NewPtr(perms)
-	}
-
-	if locs := descriptionLocalizations(pluginID, cmd.DescriptionID, locales, localize); len(locs) != 0 {
-		create.DescriptionLocalizations = locs
-	}
-
-	return create
 }
 
 func commandPermissions(names []string) (discord.Permissions, bool) {
@@ -1046,13 +1210,18 @@ func buildStringOption(
 	opt CommandOption,
 	descLocs map[discord.Locale]string,
 ) discord.ApplicationCommandOptionString {
+	choices := buildStringChoices(opt.Choices)
+	if strings.TrimSpace(opt.Autocomplete) != "" {
+		choices = nil
+	}
 	o := discord.ApplicationCommandOptionString{
 		Name:        opt.Name,
 		Description: opt.Description,
 		Required:    opt.Required,
 		MinLength:   opt.MinLength,
 		MaxLength:   opt.MaxLength,
-		Choices:     buildStringChoices(opt.Choices),
+		Choices:     choices,
+		Autocomplete: strings.TrimSpace(opt.Autocomplete) != "",
 	}
 	if len(descLocs) != 0 {
 		o.DescriptionLocalizations = descLocs
@@ -1079,11 +1248,16 @@ func buildIntOption(
 	opt CommandOption,
 	descLocs map[discord.Locale]string,
 ) discord.ApplicationCommandOptionInt {
+	choices := buildIntChoices(opt.Choices)
+	if strings.TrimSpace(opt.Autocomplete) != "" {
+		choices = nil
+	}
 	o := discord.ApplicationCommandOptionInt{
 		Name:        opt.Name,
 		Description: opt.Description,
 		Required:    opt.Required,
-		Choices:     buildIntChoices(opt.Choices),
+		Choices:     choices,
+		Autocomplete: strings.TrimSpace(opt.Autocomplete) != "",
 		MinValue:    floatToIntPtr(opt.MinValue),
 		MaxValue:    floatToIntPtr(opt.MaxValue),
 	}
@@ -1097,11 +1271,16 @@ func buildFloatOption(
 	opt CommandOption,
 	descLocs map[discord.Locale]string,
 ) discord.ApplicationCommandOptionFloat {
+	choices := buildFloatChoices(opt.Choices)
+	if strings.TrimSpace(opt.Autocomplete) != "" {
+		choices = nil
+	}
 	o := discord.ApplicationCommandOptionFloat{
 		Name:        opt.Name,
 		Description: opt.Description,
 		Required:    opt.Required,
-		Choices:     buildFloatChoices(opt.Choices),
+		Choices:     choices,
+		Autocomplete: strings.TrimSpace(opt.Autocomplete) != "",
 		MinValue:    opt.MinValue,
 		MaxValue:    opt.MaxValue,
 	}
