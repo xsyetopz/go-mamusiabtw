@@ -1,4 +1,4 @@
-package discordplatform
+package plugin
 
 import (
 	"errors"
@@ -14,12 +14,12 @@ import (
 	"github.com/xsyetopz/go-mamusiabtw/internal/present"
 )
 
-type pluginResponseMode int
+type ResponseMode int
 
 const (
-	pluginResponseSlash pluginResponseMode = iota
-	pluginResponseComponent
-	pluginResponseModalSubmit
+	ResponseSlash ResponseMode = iota
+	ResponseComponent
+	ResponseModalSubmit
 )
 
 const discordMaxMessageContentLen = 2000
@@ -54,32 +54,72 @@ const (
 	discordMaxSelectOptionDescriptionLen = 100
 )
 
-type pluginActionKind int
+type ActionKind int
 
 const (
-	pluginActionNone pluginActionKind = iota
-	pluginActionMessage
-	pluginActionUpdate
-	pluginActionModal
+	ActionNone ActionKind = iota
+	ActionMessage
+	ActionUpdate
+	ActionModal
 )
 
-type pluginAction struct {
-	Kind   pluginActionKind
+type Action struct {
+	Kind   ActionKind
 	Create discord.MessageCreate
 	Update discord.MessageUpdate
 	Modal  discord.ModalCreate
 }
 
-func parsePluginAction(pluginID string, raw any, defaultEphemeral bool, mode pluginResponseMode) (pluginAction, error) {
+func ParseAction(pluginID string, raw any, defaultEphemeral bool, mode ResponseMode) (Action, error) {
 	switch v := raw.(type) {
 	case nil:
-		return pluginAction{Kind: pluginActionNone}, nil
+		return Action{Kind: ActionNone}, nil
 	case string:
 		return pluginActionFromString(pluginID, v, defaultEphemeral, mode)
 	case map[string]any:
 		return pluginActionFromMap(pluginID, v, defaultEphemeral, mode)
 	default:
-		return pluginAction{}, fmt.Errorf("unsupported plugin response type %T", raw)
+		return Action{}, fmt.Errorf("unsupported plugin response type %T", raw)
+	}
+}
+
+func ParseAutomationMessage(pluginID string, raw any) (discord.MessageCreate, error) {
+	switch v := raw.(type) {
+	case nil:
+		return discord.MessageCreate{}, errors.New("missing message")
+	case string:
+		act, err := pluginActionFromString(pluginID, v, false, ResponseSlash)
+		if err != nil {
+			return discord.MessageCreate{}, err
+		}
+		if act.Kind != ActionMessage {
+			return discord.MessageCreate{}, errors.New("unsupported message type")
+		}
+		if emptyMessageCreate(act.Create) {
+			return discord.MessageCreate{}, errors.New("message is empty")
+		}
+		return act.Create, nil
+	case map[string]any:
+		act, err := pluginActionFromMap(pluginID, v, false, ResponseSlash)
+		if err == nil {
+			if act.Kind != ActionMessage {
+				return discord.MessageCreate{}, errors.New("unsupported message type")
+			}
+			if emptyMessageCreate(act.Create) {
+				return discord.MessageCreate{}, errors.New("message is empty")
+			}
+			return act.Create, nil
+		}
+		msg, err := parseMessageCreate(pluginID, v)
+		if err != nil {
+			return discord.MessageCreate{}, err
+		}
+		if emptyMessageCreate(msg) {
+			return discord.MessageCreate{}, errors.New("message is empty")
+		}
+		return msg, nil
+	default:
+		return discord.MessageCreate{}, fmt.Errorf("unsupported message type %T", raw)
 	}
 }
 
@@ -87,22 +127,22 @@ func pluginActionFromString(
 	_ string,
 	content string,
 	defaultEphemeral bool,
-	mode pluginResponseMode,
-) (pluginAction, error) {
+	mode ResponseMode,
+) (Action, error) {
 	content = strings.TrimSpace(content)
 	if utf8.RuneCountInString(content) > discordMaxMessageContentLen {
-		return pluginAction{}, errors.New("content too long")
+		return Action{}, errors.New("content too long")
 	}
 
 	switch mode {
-	case pluginResponseComponent:
-		return pluginAction{
-			Kind:   pluginActionUpdate,
+	case ResponseComponent:
+		return Action{
+			Kind:   ActionUpdate,
 			Update: discord.MessageUpdate{Content: &content, AllowedMentions: &discord.AllowedMentions{}},
 		}, nil
-	case pluginResponseModalSubmit:
+	case ResponseModalSubmit:
 		fallthrough
-	case pluginResponseSlash:
+	case ResponseSlash:
 		mc := discord.MessageCreate{
 			Content:         content,
 			AllowedMentions: &discord.AllowedMentions{},
@@ -110,9 +150,9 @@ func pluginActionFromString(
 		if defaultEphemeral {
 			mc.Flags = discord.MessageFlagEphemeral
 		}
-		return pluginAction{Kind: pluginActionMessage, Create: mc}, nil
+		return Action{Kind: ActionMessage, Create: mc}, nil
 	default:
-		return pluginAction{}, errors.New("unknown response mode")
+		return Action{}, errors.New("unknown response mode")
 	}
 }
 
@@ -120,25 +160,25 @@ func pluginActionFromMap(
 	pluginID string,
 	m map[string]any,
 	defaultEphemeral bool,
-	mode pluginResponseMode,
-) (pluginAction, error) {
+	mode ResponseMode,
+) (Action, error) {
 	if _, ok := m["actions"]; ok {
-		return pluginAction{}, errors.New("actions are automation-only")
+		return Action{}, errors.New("actions are automation-only")
 	}
 	if presentRaw, ok := m["present"]; ok {
 		msg, err := parsePresent(pluginID, presentRaw)
 		if err != nil {
-			return pluginAction{}, err
+			return Action{}, err
 		}
 		msg.Flags = messageFlagsFromEphemeral(m, defaultEphemeral)
 		if compsRaw, hasComponents := m["components"]; hasComponents {
 			comps, compsErr := parseMessageComponents(pluginID, compsRaw)
 			if compsErr != nil {
-				return pluginAction{}, compsErr
+				return Action{}, compsErr
 			}
 			msg.Components = comps
 		}
-		return pluginAction{Kind: pluginActionMessage, Create: msg}, nil
+		return Action{Kind: ActionMessage, Create: msg}, nil
 	}
 
 	typ := strings.ToLower(strings.TrimSpace(asStringDefault(m, "type", "")))
@@ -150,31 +190,31 @@ func pluginActionFromMap(
 	case "message":
 		msg, err := parseMessageCreate(pluginID, m)
 		if err != nil {
-			return pluginAction{}, err
+			return Action{}, err
 		}
 		msg.Flags = messageFlagsFromEphemeral(m, defaultEphemeral)
-		return pluginAction{Kind: pluginActionMessage, Create: msg}, nil
+		return Action{Kind: ActionMessage, Create: msg}, nil
 	case "update":
-		if mode == pluginResponseSlash && !isDeferredPluginResponse(m) {
-			return pluginAction{}, errors.New("update not supported for slash commands")
+		if mode == ResponseSlash && !isDeferredPluginResponse(m) {
+			return Action{}, errors.New("update not supported for slash commands")
 		}
 		// On modal submit, Update is only valid if the modal was triggered from a button; disgo/discord will reject if not.
 		upd, err := parseMessageUpdate(pluginID, m)
 		if err != nil {
-			return pluginAction{}, err
+			return Action{}, err
 		}
-		return pluginAction{Kind: pluginActionUpdate, Update: upd}, nil
+		return Action{Kind: ActionUpdate, Update: upd}, nil
 	case "modal":
-		if mode == pluginResponseModalSubmit {
-			return pluginAction{}, errors.New("modal not supported from modal submit")
+		if mode == ResponseModalSubmit {
+			return Action{}, errors.New("modal not supported from modal submit")
 		}
 		modal, err := parseModalCreate(pluginID, m)
 		if err != nil {
-			return pluginAction{}, err
+			return Action{}, err
 		}
-		return pluginAction{Kind: pluginActionModal, Modal: modal}, nil
+		return Action{Kind: ActionModal, Modal: modal}, nil
 	default:
-		return pluginAction{}, fmt.Errorf("unknown response type %q", typ)
+		return Action{}, fmt.Errorf("unknown response type %q", typ)
 	}
 }
 
@@ -183,11 +223,11 @@ func isDeferredPluginResponse(m map[string]any) bool {
 	return ok && b
 }
 
-func defaultPluginResponseType(mode pluginResponseMode) string {
+func defaultPluginResponseType(mode ResponseMode) string {
 	switch mode {
-	case pluginResponseComponent:
+	case ResponseComponent:
 		return "update"
-	case pluginResponseSlash, pluginResponseModalSubmit:
+	case ResponseSlash, ResponseModalSubmit:
 		return "message"
 	default:
 		return ""
@@ -1036,6 +1076,10 @@ func asInt64(m map[string]any, key string) (int64, bool) {
 	default:
 		return 0, false
 	}
+}
+
+func emptyMessageCreate(msg discord.MessageCreate) bool {
+	return strings.TrimSpace(msg.Content) == "" && len(msg.Embeds) == 0 && len(msg.Components) == 0
 }
 
 func isHTTPSURL(raw string) bool {

@@ -14,7 +14,21 @@ RUN go mod download
 COPY . .
 
 ENV CGO_ENABLED=1
-RUN go build -trimpath -ldflags="-s -w" -o /out/mamusiabtw ./cmd/mamusiabtw
+ARG BUILD_VERSION=dev
+ARG BUILD_REPOSITORY=https://github.com/xsyetopz/go-mamusiabtw
+ARG BUILD_DESCRIPTION="A nurturing and protective Discord app."
+ARG BUILD_DEVELOPER_URL=
+ARG BUILD_SUPPORT_SERVER_URL=
+ARG BUILD_MASCOT_IMAGE_URL=
+RUN go build -trimpath \
+  -ldflags="-s -w \
+    -X github.com/xsyetopz/go-mamusiabtw/internal/buildinfo.Version=${BUILD_VERSION} \
+    -X github.com/xsyetopz/go-mamusiabtw/internal/buildinfo.Repository=${BUILD_REPOSITORY} \
+    -X github.com/xsyetopz/go-mamusiabtw/internal/buildinfo.Description=${BUILD_DESCRIPTION} \
+    -X github.com/xsyetopz/go-mamusiabtw/internal/buildinfo.DeveloperURL=${BUILD_DEVELOPER_URL} \
+    -X github.com/xsyetopz/go-mamusiabtw/internal/buildinfo.SupportServerURL=${BUILD_SUPPORT_SERVER_URL} \
+    -X github.com/xsyetopz/go-mamusiabtw/internal/buildinfo.MascotImageURL=${BUILD_MASCOT_IMAGE_URL}" \
+  -o /out/mamusiabtw ./cmd/mamusiabtw
 
 
 FROM debian:bookworm-slim

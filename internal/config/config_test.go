@@ -33,6 +33,9 @@ func TestLoadFromEnv_Defaults(t *testing.T) {
 	if cfg.MigrationBackups != "./data/migration_backups" {
 		t.Fatalf("unexpected migration backup dir: %q", cfg.MigrationBackups)
 	}
+	if cfg.OpsAddr != "" {
+		t.Fatalf("unexpected ops addr: %q", cfg.OpsAddr)
+	}
 	if cfg.LocalesDir != "./locales" {
 		t.Fatalf("unexpected locales dir: %q", cfg.LocalesDir)
 	}
@@ -78,7 +81,8 @@ func TestLoadFromEnv_ParsesOverrides(t *testing.T) {
 	t.Setenv("MAMUSIABTW_COMMAND_REGISTRATION_MODE", "hybrid")
 	t.Setenv("MAMUSIABTW_COMMAND_GUILD_IDS", "44,55")
 	t.Setenv("MAMUSIABTW_COMMAND_REGISTER_ALL_GUILDS", "1")
-	t.Setenv("MAMUSIABTW_PROD_MODE", "1")
+	t.Setenv("MAMUSIABTW_OPS_ADDR", ":8080")
+	t.Setenv("MAMUSIABTW_PROD_MODE", "0")
 	t.Setenv("MAMUSIABTW_ALLOW_UNSIGNED_PLUGINS", "1")
 	t.Setenv("MAMUSIABTW_SLASH_COOLDOWN_MS", "9000")
 	t.Setenv("MAMUSIABTW_COMPONENT_COOLDOWN_MS", "250")
@@ -106,11 +110,14 @@ func TestLoadFromEnv_ParsesOverrides(t *testing.T) {
 	if !cfg.CommandRegisterAllGuilds {
 		t.Fatalf("expected register-all-guilds to be enabled")
 	}
-	if !cfg.ProdMode {
-		t.Fatalf("expected prod mode to be enabled")
+	if cfg.ProdMode {
+		t.Fatalf("expected prod mode to be disabled")
 	}
 	if !cfg.AllowUnsignedPlugins {
 		t.Fatalf("expected unsigned plugins flag to be enabled")
+	}
+	if cfg.OpsAddr != ":8080" {
+		t.Fatalf("unexpected ops addr: %q", cfg.OpsAddr)
 	}
 	if cfg.SlashCooldown != 9*time.Second {
 		t.Fatalf("unexpected slash cooldown: %s", cfg.SlashCooldown)
@@ -166,6 +173,7 @@ func TestLoadFromEnv_RejectsInvalidInputs(t *testing.T) {
 			t.Fatalf("expected invalid owner ids error")
 		}
 	})
+
 }
 
 func TestShippedSchemaURLs(t *testing.T) {
@@ -182,10 +190,15 @@ func TestShippedSchemaURLs(t *testing.T) {
 		{path: "config/modules.json", key: "$schema", want: schemaBaseURL + "modules.schema.v1.json"},
 		{path: "examples/plugins/example/plugin.json", key: "$schema", want: schemaBaseURL + "plugin.schema.v1.json"},
 		{path: "plugins/fun/plugin.json", key: "$schema", want: schemaBaseURL + "plugin.schema.v1.json"},
+		{path: "plugins/fun/signature.json", key: "$schema", want: schemaBaseURL + "signature.schema.v1.json"},
 		{path: "plugins/info/plugin.json", key: "$schema", want: schemaBaseURL + "plugin.schema.v1.json"},
+		{path: "plugins/info/signature.json", key: "$schema", want: schemaBaseURL + "signature.schema.v1.json"},
 		{path: "plugins/manager/plugin.json", key: "$schema", want: schemaBaseURL + "plugin.schema.v1.json"},
+		{path: "plugins/manager/signature.json", key: "$schema", want: schemaBaseURL + "signature.schema.v1.json"},
 		{path: "plugins/moderation/plugin.json", key: "$schema", want: schemaBaseURL + "plugin.schema.v1.json"},
+		{path: "plugins/moderation/signature.json", key: "$schema", want: schemaBaseURL + "signature.schema.v1.json"},
 		{path: "plugins/wellness/plugin.json", key: "$schema", want: schemaBaseURL + "plugin.schema.v1.json"},
+		{path: "plugins/wellness/signature.json", key: "$schema", want: schemaBaseURL + "signature.schema.v1.json"},
 		{path: "schemas/messages.schema.v1.json", key: "$id", want: schemaBaseURL + "messages.schema.v1.json"},
 		{path: "schemas/modules.schema.v1.json", key: "$id", want: schemaBaseURL + "modules.schema.v1.json"},
 		{path: "schemas/permissions.schema.v1.json", key: "$id", want: schemaBaseURL + "permissions.schema.v1.json"},
@@ -420,6 +433,7 @@ func resetConfigEnv(t *testing.T) {
 		"SQLITE_PATH",
 		"MIGRATIONS_DIR",
 		"MAMUSIABTW_MIGRATION_BACKUPS_DIR",
+		"MAMUSIABTW_OPS_ADDR",
 		"LOCALES_DIR",
 		"PLUGINS_DIR",
 		"MAMUSIABTW_PERMISSIONS_FILE",

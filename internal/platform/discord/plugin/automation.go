@@ -1,14 +1,13 @@
-package discordplatform
+package plugin
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"log/slog"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/disgoorg/disgo/bot"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/omit"
 	"github.com/disgoorg/snowflake/v2"
@@ -33,30 +32,61 @@ const (
 	pluginCronStopTimeout = 3 * time.Second
 )
 
-type pluginAutomation struct {
+type automationDeps struct {
+	client                        *bot.Client
+	enabledPluginJobs             func() []pluginhost.PluginJob
+	enabledPluginEventSubscribers func(string) []Target
+	pluginRoute                   func(string) (Target, bool)
+	moduleEnabled                 func(string) bool
+	incAutomationFailure          func()
+	incPluginFailure              func()
+	ensureDMChannel               func(context.Context, uint64) (uint64, error)
+}
+
+type Automation struct {
 	mu sync.Mutex
 
 	logger *slog.Logger
-	bot    *Bot
+	bot    *automationDeps
 
 	cron *cron.Cron
 
 	limiter *tokenBucketLimiter
 }
 
-func newPluginAutomation(b *Bot) *pluginAutomation {
-	if b == nil {
-		return nil
+func NewAutomation(
+	logger *slog.Logger,
+	client *bot.Client,
+	enabledPluginJobs func() []pluginhost.PluginJob,
+	enabledPluginEventSubscribers func(string) []Target,
+	pluginRoute func(string) (Target, bool),
+	moduleEnabled func(string) bool,
+	incAutomationFailure func(),
+	incPluginFailure func(),
+	ensureDMChannel func(context.Context, uint64) (uint64, error),
+) *Automation {
+	componentLogger := slog.Default()
+	if logger != nil {
+		componentLogger = logger.With(slog.String("component", "plugin_automation"))
 	}
 
-	return &pluginAutomation{
-		logger:  b.logger.With(slog.String("component", "plugin_automation")),
-		bot:     b,
+	return &Automation{
+		logger: componentLogger,
+		bot: &automationDeps{
+			client:                        client,
+			enabledPluginJobs:             enabledPluginJobs,
+			enabledPluginEventSubscribers: enabledPluginEventSubscribers,
+			pluginRoute:                   pluginRoute,
+			moduleEnabled:                 moduleEnabled,
+			incAutomationFailure:          incAutomationFailure,
+			incPluginFailure:              incPluginFailure,
+			ensureDMChannel:               ensureDMChannel,
+		},
 		limiter: newTokenBucketLimiter(defaultPluginAutomationRatePerSec, defaultPluginAutomationBurst),
 	}
 }
 
-func (p *pluginAutomation) Start(ctx context.Context) {
+func (p *Automation) Start(ctx context.Context) {
 	if p == nil {
 		return
 	}
@@ -64,7 +94,7 @@ func (p *pluginAutomation) Start(ctx context.Context) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	if p.bot == nil || p.bot.client == nil {
+	if p.bot == nil || p.bot.client == nil || p.bot.enabledPluginJobs == nil {
 		return
 	}
 	if p.cron != nil {
@@ -109,7 +139,7 @@ func (p *pluginAutomation) Start(ctx context.Context) {
 	}()
 }
 
-func (p *pluginAutomation) Stop() {
+func (p *Automation) Stop() {
 	if p == nil {
 		return
 	}
@@ -129,12 +159,12 @@ func (p *pluginAutomation) Stop() {
 	p.cron = nil
 }
 
-func (p *pluginAutomation) Restart(ctx context.Context) {
+func (p *Automation) Restart(ctx context.Context) {
 	p.Stop()
 	p.Start(ctx)
 }
 
-func (p *pluginAutomation) FireEvent(eventName string, payload pluginhost.Payload) {
+func (p *Automation) FireEvent(eventName string, payload pluginhost.Payload) {
 	eventName = strings.ToLower(strings.TrimSpace(eventName))
 	if eventName == "" {
 		return
@@ -144,6 +174,9 @@ func (p *pluginAutomation) FireEvent(eventName string, payload pluginhost.Payloa
 		return
 	}
 
+	if p.bot.enabledPluginEventSubscribers == nil {
+		return
+	}
 	targets := p.bot.enabledPluginEventSubscribers(eventName)
 	if len(targets) == 0 {
 		return
@@ -152,25 +185,25 @@ func (p *pluginAutomation) FireEvent(eventName string, payload pluginhost.Payloa
 	go p.fireEvent(context.Background(), targets, eventName, payload)
 }
 
-func (p *pluginAutomation) fireEvent(
+func (p *Automation) fireEvent(
 	ctx context.Context,
-	targets []pluginCommandRoute,
+	targets []Target,
 	eventName string,
 	payload pluginhost.Payload,
 ) {
 	for _, target := range targets {
-		if strings.TrimSpace(target.pluginID) == "" {
+		if strings.TrimSpace(target.PluginID) == "" {
 			continue
 		}
 		p.runEventOne(ctx, target, eventName, payload)
 	}
 }
 
-func (p *pluginAutomation) runEventOne(ctx context.Context, target pluginCommandRoute, eventName string, payload pluginhost.Payload) {
+func (p *Automation) runEventOne(ctx context.Context, target Target, eventName string, payload pluginhost.Payload) {
 	callCtx, cancel := context.WithTimeout(ctx, defaultPluginAutomationTimeout)
 	defer cancel()
 
-	perms, ok := target.host.EffectivePermissions(target.pluginID)
+	perms, ok := target.Host.EffectivePermissions(target.PluginID)
 	if !ok {
 		return
 	}
@@ -179,18 +212,20 @@ func (p *pluginAutomation) runEventOne(ctx context.Context, target pluginCommand
 		p.logger.WarnContext(
 			callCtx,
 			"plugin event denied by permissions",
-			slog.String("plugin", target.pluginID),
+			slog.String("plugin", target.PluginID),
 			slog.String("event", eventName),
 		)
 		return
 	}
 
-	res, hasValue, err := target.host.HandleEvent(callCtx, target.pluginID, eventName, payload)
+	res, hasValue, err := target.Host.HandleEvent(callCtx, target.PluginID, eventName, payload)
 	if err != nil {
+		p.incAutomationFailure()
+		p.incPluginFailure()
 		p.logger.WarnContext(
 			callCtx,
 			"plugin event failed",
-			slog.String("plugin", target.pluginID),
+			slog.String("plugin", target.PluginID),
 			slog.String("event", eventName),
 			slog.String("err", err.Error()),
 		)
@@ -200,31 +235,33 @@ func (p *pluginAutomation) runEventOne(ctx context.Context, target pluginCommand
 		return
 	}
 
-	actions, parseErr := parseAutomationActions(res)
+	actions, parseErr := ParseAutomationActions(res)
 	if parseErr != nil {
+		p.incAutomationFailure()
+		p.incPluginFailure()
 		p.logger.WarnContext(
 			callCtx,
 			"plugin event response invalid",
-			slog.String("plugin", target.pluginID),
+			slog.String("plugin", target.PluginID),
 			slog.String("event", eventName),
 			slog.String("err", parseErr.Error()),
 		)
 		return
 	}
-	p.executeAutomationActions(callCtx, target.pluginID, perms, payload, actions)
+	p.executeAutomationActions(callCtx, target.PluginID, perms, payload, actions)
 }
 
-func (p *pluginAutomation) runJob(ctx context.Context, job pluginhost.PluginJob) {
-	if p == nil || p.bot == nil || p.bot.client == nil {
+func (p *Automation) runJob(ctx context.Context, job pluginhost.PluginJob) {
+	if p == nil || p.bot == nil || p.bot.client == nil || p.bot.pluginRoute == nil || p.bot.moduleEnabled == nil {
 		return
 	}
 
-	route, ok := p.bot.pluginRoutes[job.PluginID]
+	route, ok := p.bot.pluginRoute(job.PluginID)
 	if !ok || !p.bot.moduleEnabled(job.PluginID) {
 		return
 	}
 
-	perms, ok := route.host.EffectivePermissions(job.PluginID)
+	perms, ok := route.Host.EffectivePermissions(job.PluginID)
 	if !ok || !perms.Automation.Jobs {
 		return
 	}
@@ -241,7 +278,7 @@ func (p *pluginAutomation) runJob(ctx context.Context, job pluginhost.PluginJob)
 		}
 
 		callCtx, cancel := context.WithTimeout(ctx, defaultPluginAutomationTimeout)
-		res, hasValue, err := route.host.HandleJob(callCtx, job.PluginID, job.JobID, pluginhost.Payload{
+		res, hasValue, err := route.Host.HandleJob(callCtx, job.PluginID, job.JobID, pluginhost.Payload{
 			GuildID:   snowflake.ID(guildID).String(),
 			ChannelID: "",
 			UserID:    "",
@@ -255,8 +292,10 @@ func (p *pluginAutomation) runJob(ctx context.Context, job pluginhost.PluginJob)
 			continue
 		}
 
-		actions, parseErr := parseAutomationActions(res)
+		actions, parseErr := ParseAutomationActions(res)
 		if parseErr != nil {
+			p.incAutomationFailure()
+			p.incPluginFailure()
 			p.logger.WarnContext(
 				ctx,
 				"plugin job response invalid",
@@ -285,65 +324,12 @@ func eventAllowed(perms permissions.Permissions, eventName string) bool {
 	}
 }
 
-type automationAction struct {
-	Type      string
-	ChannelID string
-	GuildID   string
-	UserID    string
-	UntilUnix int64
-	Message   any
-}
-
-func parseAutomationActions(raw any) ([]automationAction, error) {
-	m, ok := raw.(map[string]any)
-	if !ok {
-		return nil, errors.New("automation response must be an object")
-	}
-	actionsRaw, ok := m["actions"]
-	if !ok {
-		return nil, errors.New("automation response missing actions")
-	}
-	list, ok := actionsRaw.([]any)
-	if !ok {
-		return nil, errors.New("actions must be an array")
-	}
-	if len(list) == 0 {
-		return nil, nil
-	}
-
-	out := make([]automationAction, 0, len(list))
-	for _, item := range list {
-		im, isMap := item.(map[string]any)
-		if !isMap {
-			return nil, errors.New("action must be an object")
-		}
-		typ, _ := im["type"].(string)
-		typ = strings.ToLower(strings.TrimSpace(typ))
-		if typ == "" {
-			return nil, errors.New("action missing type")
-		}
-		ch, _ := im["channel_id"].(string)
-		guildID, _ := im["guild_id"].(string)
-		uid, _ := im["user_id"].(string)
-		untilUnix, _ := asInt64(im, "until_unix")
-		out = append(out, automationAction{
-			Type:      typ,
-			ChannelID: strings.TrimSpace(ch),
-			GuildID:   strings.TrimSpace(guildID),
-			UserID:    strings.TrimSpace(uid),
-			UntilUnix: untilUnix,
-			Message:   im["message"],
-		})
-	}
-	return out, nil
-}
-
-func (p *pluginAutomation) executeAutomationActions(
+func (p *Automation) executeAutomationActions(
 	ctx context.Context,
 	pluginID string,
 	perms permissions.Permissions,
 	trigger pluginhost.Payload,
-	actions []automationAction,
+	actions []AutomationAction,
 ) {
 	if p == nil || p.bot == nil || p.bot.client == nil {
 		return
@@ -364,7 +350,7 @@ func (p *pluginAutomation) executeAutomationActions(
 	}
 }
 
-func (p *pluginAutomation) allowAutomation(pluginID string, trigger pluginhost.Payload, a automationAction) bool {
+func (p *Automation) allowAutomation(pluginID string, trigger pluginhost.Payload, a AutomationAction) bool {
 	if p == nil || p.limiter == nil {
 		return false
 	}
@@ -372,12 +358,12 @@ func (p *pluginAutomation) allowAutomation(pluginID string, trigger pluginhost.P
 	return p.limiter.Allow(key, time.Now())
 }
 
-func (p *pluginAutomation) executeAutomationAction(
+func (p *Automation) executeAutomationAction(
 	ctx context.Context,
 	pluginID string,
 	perms permissions.Permissions,
 	trigger pluginhost.Payload,
-	a automationAction,
+	a AutomationAction,
 ) {
 	switch a.Type {
 	case "send_channel":
@@ -396,12 +382,12 @@ func (p *pluginAutomation) executeAutomationAction(
 	}
 }
 
-func (p *pluginAutomation) executeTimeoutMember(
+func (p *Automation) executeTimeoutMember(
 	ctx context.Context,
 	pluginID string,
 	perms permissions.Permissions,
 	trigger pluginhost.Payload,
-	a automationAction,
+	a AutomationAction,
 ) {
 	if !perms.Discord.Members {
 		p.logger.WarnContext(ctx, "plugin timeout_member denied", slog.String("plugin", pluginID))
@@ -441,12 +427,12 @@ func (p *pluginAutomation) executeTimeoutMember(
 	}
 }
 
-func (p *pluginAutomation) executeSendChannel(
+func (p *Automation) executeSendChannel(
 	ctx context.Context,
 	pluginID string,
 	perms permissions.Permissions,
 	trigger pluginhost.Payload,
-	a automationAction,
+	a AutomationAction,
 ) {
 	if !perms.Discord.Messages {
 		p.logger.WarnContext(ctx, "plugin send_channel denied", slog.String("plugin", pluginID))
@@ -468,7 +454,7 @@ func (p *pluginAutomation) executeSendChannel(
 		return
 	}
 
-	msg, err := parseAutomationMessage(pluginID, a.Message)
+	msg, err := ParseAutomationMessage(pluginID, a.Message)
 	if err != nil {
 		p.logger.WarnContext(
 			ctx,
@@ -489,12 +475,12 @@ func (p *pluginAutomation) executeSendChannel(
 	}
 }
 
-func (p *pluginAutomation) executeSendDM(
+func (p *Automation) executeSendDM(
 	ctx context.Context,
 	pluginID string,
 	perms permissions.Permissions,
 	trigger pluginhost.Payload,
-	a automationAction,
+	a AutomationAction,
 ) {
 	if !perms.Discord.Messages {
 		p.logger.WarnContext(ctx, "plugin send_dm denied", slog.String("plugin", pluginID))
@@ -516,7 +502,7 @@ func (p *pluginAutomation) executeSendDM(
 		return
 	}
 
-	msg, err := parseAutomationMessage(pluginID, a.Message)
+	msg, err := ParseAutomationMessage(pluginID, a.Message)
 	if err != nil {
 		p.logger.WarnContext(
 			ctx,
@@ -527,6 +513,10 @@ func (p *pluginAutomation) executeSendDM(
 		return
 	}
 
+	if p.bot.ensureDMChannel == nil {
+		p.logger.WarnContext(ctx, "plugin send_dm missing dm helper", slog.String("plugin", pluginID))
+		return
+	}
 	dmID, dmErr := p.bot.ensureDMChannel(ctx, uint64(uid))
 	if dmErr != nil {
 		p.logger.WarnContext(
@@ -546,50 +536,6 @@ func (p *pluginAutomation) executeSendDM(
 			slog.String("err", sendErr.Error()),
 		)
 	}
-}
-
-func parseAutomationMessage(pluginID string, raw any) (discord.MessageCreate, error) {
-	switch v := raw.(type) {
-	case nil:
-		return discord.MessageCreate{}, errors.New("missing message")
-	case string:
-		act, err := pluginActionFromString(pluginID, v, false, pluginResponseSlash)
-		if err != nil {
-			return discord.MessageCreate{}, err
-		}
-		if act.Kind != pluginActionMessage {
-			return discord.MessageCreate{}, errors.New("unsupported message type")
-		}
-		if emptyMessageCreate(act.Create) {
-			return discord.MessageCreate{}, errors.New("message is empty")
-		}
-		return act.Create, nil
-	case map[string]any:
-		act, err := pluginActionFromMap(pluginID, v, false, pluginResponseSlash)
-		if err == nil {
-			if act.Kind != pluginActionMessage {
-				return discord.MessageCreate{}, errors.New("unsupported message type")
-			}
-			if emptyMessageCreate(act.Create) {
-				return discord.MessageCreate{}, errors.New("message is empty")
-			}
-			return act.Create, nil
-		}
-		msg, err := parseMessageCreate(pluginID, v)
-		if err != nil {
-			return discord.MessageCreate{}, err
-		}
-		if emptyMessageCreate(msg) {
-			return discord.MessageCreate{}, errors.New("message is empty")
-		}
-		return msg, nil
-	default:
-		return discord.MessageCreate{}, fmt.Errorf("unsupported message type %T", raw)
-	}
-}
-
-func emptyMessageCreate(msg discord.MessageCreate) bool {
-	return strings.TrimSpace(msg.Content) == "" && len(msg.Embeds) == 0 && len(msg.Components) == 0
 }
 
 type tokenBucketLimiter struct {
@@ -658,4 +604,16 @@ func minFloat(a, b float64) float64 {
 		return a
 	}
 	return b
+}
+
+func (p *Automation) incAutomationFailure() {
+	if p != nil && p.bot != nil && p.bot.incAutomationFailure != nil {
+		p.bot.incAutomationFailure()
+	}
+}
+
+func (p *Automation) incPluginFailure() {
+	if p != nil && p.bot != nil && p.bot.incPluginFailure != nil {
+		p.bot.incPluginFailure()
+	}
 }

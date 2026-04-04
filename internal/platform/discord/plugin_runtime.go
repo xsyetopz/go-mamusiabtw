@@ -1,0 +1,57 @@
+package discordplatform
+
+import (
+	"strings"
+
+	discordplugin "github.com/xsyetopz/go-mamusiabtw/internal/platform/discord/plugin"
+	"github.com/xsyetopz/go-mamusiabtw/internal/pluginhost"
+)
+
+func (b *Bot) enabledPluginIDsForHost(host *pluginhost.Host) map[string]struct{} {
+	if host == nil {
+		return nil
+	}
+
+	out := map[string]struct{}{}
+	for moduleID, route := range b.pluginRoutes {
+		if route.Host != host {
+			continue
+		}
+		info, ok := b.modules[moduleID]
+		if !ok || !info.Enabled {
+			continue
+		}
+		out[moduleID] = struct{}{}
+	}
+	return out
+}
+
+func (b *Bot) pluginRoute(pluginID string) (discordplugin.Route, bool) {
+	route, ok := b.pluginRoutes[strings.TrimSpace(pluginID)]
+	return route, ok
+}
+
+func (b *Bot) enabledPluginJobs() []pluginhost.PluginJob {
+	out := []pluginhost.PluginJob{}
+	if b.pluginHost != nil {
+		for _, job := range b.pluginHost.Jobs() {
+			if b.moduleEnabled(job.PluginID) {
+				out = append(out, job)
+			}
+		}
+	}
+	return out
+}
+
+func (b *Bot) enabledPluginEventSubscribers(eventName string) []discordplugin.Route {
+	out := []discordplugin.Route{}
+	if b.pluginHost != nil {
+		for _, pluginID := range b.pluginHost.EventSubscribers(eventName) {
+			if !b.moduleEnabled(pluginID) {
+				continue
+			}
+			out = append(out, discordplugin.Route{Host: b.pluginHost, PluginID: pluginID})
+		}
+	}
+	return out
+}

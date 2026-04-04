@@ -1,11 +1,11 @@
-package discordplatform
+package plugin
 
 import "testing"
 
-func TestParsePluginActionRejectsActionsForInteractions(t *testing.T) {
+func TestParseActionRejectsActionsForInteractions(t *testing.T) {
 	t.Parallel()
 
-	_, err := parsePluginAction("moderation", map[string]any{
+	_, err := ParseAction("moderation", map[string]any{
 		"actions": []any{
 			map[string]any{
 				"type": "send_dm",
@@ -14,7 +14,7 @@ func TestParsePluginActionRejectsActionsForInteractions(t *testing.T) {
 				},
 			},
 		},
-	}, false, pluginResponseSlash)
+	}, false, ResponseSlash)
 	if err == nil {
 		t.Fatal("expected actions to be rejected for interaction responses")
 	}
@@ -23,10 +23,10 @@ func TestParsePluginActionRejectsActionsForInteractions(t *testing.T) {
 	}
 }
 
-func TestParsePluginActionAllowsDeferredSlashUpdate(t *testing.T) {
+func TestParseActionAllowsDeferredSlashUpdate(t *testing.T) {
 	t.Parallel()
 
-	action, err := parsePluginAction("info", map[string]any{
+	action, err := ParseAction("info", map[string]any{
 		"type":       "update",
 		"__deferred": true,
 		"embeds": []any{
@@ -50,11 +50,11 @@ func TestParsePluginActionAllowsDeferredSlashUpdate(t *testing.T) {
 				},
 			},
 		},
-	}, true, pluginResponseSlash)
+	}, true, ResponseSlash)
 	if err != nil {
-		t.Fatalf("parsePluginAction(update): %v", err)
+		t.Fatalf("ParseAction(update): %v", err)
 	}
-	if action.Kind != pluginActionUpdate {
+	if action.Kind != ActionUpdate {
 		t.Fatalf("unexpected action kind: %#v", action)
 	}
 	if action.Update.Embeds == nil || len(*action.Update.Embeds) != 1 {

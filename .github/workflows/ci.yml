@@ -21,4 +21,9 @@ jobs:
         run: go test ./...
 
       - name: Build bot
-        run: go build ./cmd/mamusiabtw
+        run: |
+          go build -trimpath \
+            -ldflags="-s -w \
+              -X github.com/xsyetopz/go-mamusiabtw/internal/buildinfo.Version=${GITHUB_SHA} \
+              -X github.com/xsyetopz/go-mamusiabtw/internal/buildinfo.Repository=https://github.com/${GITHUB_REPOSITORY}" \
+            ./cmd/mamusiabtw

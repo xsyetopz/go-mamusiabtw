@@ -15,6 +15,7 @@ type Config struct {
 	SQLitePath       string
 	Migrations       string
 	MigrationBackups string
+	OpsAddr          string
 	LocalesDir       string
 	PluginsDir       string
 	PermissionsFile  string
@@ -42,6 +43,7 @@ const (
 	defaultSQLitePath        = "./data/mamusiabtw.sqlite"
 	defaultMigrationsDir     = "./migrations/sqlite"
 	defaultMigrationBackups  = "./data/migration_backups"
+	defaultOpsAddr           = ""
 	defaultLocalesDir        = "./locales"
 	defaultPluginsDir        = "./plugins"
 	defaultPermissionsFile   = "./config/permissions.json"
@@ -77,6 +79,7 @@ func loadFromEnv(requireDiscordToken bool) (Config, error) {
 	sqlitePath := envDefault("SQLITE_PATH", defaultSQLitePath)
 	migrations := envDefault("MIGRATIONS_DIR", defaultMigrationsDir)
 	migrationBackups := envDefault("MAMUSIABTW_MIGRATION_BACKUPS_DIR", defaultMigrationBackups)
+	opsAddr := envDefault("MAMUSIABTW_OPS_ADDR", defaultOpsAddr)
 	localesDir := envDefault("LOCALES_DIR", defaultLocalesDir)
 	pluginsDir := envDefault("PLUGINS_DIR", defaultPluginsDir)
 	permissionsFile := envDefault("MAMUSIABTW_PERMISSIONS_FILE", defaultPermissionsFile)
@@ -142,6 +145,7 @@ func loadFromEnv(requireDiscordToken bool) (Config, error) {
 		SQLitePath:       sqlitePath,
 		Migrations:       migrations,
 		MigrationBackups: migrationBackups,
+		OpsAddr:          opsAddr,
 		LocalesDir:       localesDir,
 		PluginsDir:       pluginsDir,
 		PermissionsFile:  permissionsFile,

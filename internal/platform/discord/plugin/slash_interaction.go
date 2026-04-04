@@ -1,13 +1,17 @@
-package discordplatform
+package plugin
 
 import "github.com/disgoorg/disgo/events"
 
-type pluginSlashInteraction struct {
+type SlashInteraction struct {
 	event    *events.ApplicationCommandInteractionCreate
 	deferred bool
 }
 
-func (i *pluginSlashInteraction) Defer(ephemeral bool) error {
+func NewSlashInteraction(event *events.ApplicationCommandInteractionCreate) *SlashInteraction {
+	return &SlashInteraction{event: event}
+}
+
+func (i *SlashInteraction) Defer(ephemeral bool) error {
 	if i.event == nil {
 		return nil
 	}
@@ -18,6 +22,6 @@ func (i *pluginSlashInteraction) Defer(ephemeral bool) error {
 	return nil
 }
 
-func (i *pluginSlashInteraction) Deferred() bool {
+func (i *SlashInteraction) Deferred() bool {
 	return i != nil && i.deferred
 }

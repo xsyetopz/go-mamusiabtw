@@ -1,0 +1,7 @@
+{
+  "$schema": "https://raw.githubusercontent.com/xsyetopz/go-mamusiabtw/refs/heads/main/schemas/signature.schema.v1.json",
+  "algorithm": "ed25519-sha256",
+  "hash_b64": "InXfPk6STgFGBCBIrLLGOve1syGndk+00bj7/Ju/Y9Q=",
+  "key_id": "official-release-2026-04",
+  "signature_b64": "o333bMMc7egNDF0ISroGdu24CI2FNrEUKGwP5yt6jR3aLOJYvp/j8RimT4NRgb9hACcahqDqzecAUK9f9kE/Cg=="
+}

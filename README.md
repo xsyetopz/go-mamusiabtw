@@ -17,6 +17,10 @@ Important: the repo’s stable internal name is `mamusiabtw` (env vars, IDs, and
 
 mamusiabtw creates or opens the SQLite database at `SQLITE_PATH` and applies pending `up` migrations automatically on startup.
 
+For runtime build metadata, use:
+
+- `go run ./cmd/mamusiabtw version`
+
 For explicit migration control, use:
 
 - `go run ./cmd/mamusiabtw migrate status`
@@ -27,6 +31,27 @@ For explicit migration control, use:
 
 `migrate backup` writes a SQLite snapshot into `MAMUSIABTW_MIGRATION_BACKUPS_DIR`.
 Old local DB files from the legacy pre-plugin project are not supported for upgrade and should be recreated.
+
+If `MAMUSIABTW_OPS_ADDR` is set, mamusiabtw also starts a small HTTP ops server with:
+
+- `/healthz`
+- `/readyz`
+- `/metrics`
+
+## Release Builds
+
+Use `./scripts/build-release.sh` to build a binary with injected `buildinfo` metadata.
+
+Supported env overrides:
+
+- `VERSION`
+- `REPOSITORY`
+- `DESCRIPTION`
+- `DEVELOPER_URL`
+- `SUPPORT_SERVER_URL`
+- `MASCOT_IMAGE_URL`
+
+The Docker build accepts the same values as `BUILD_*` args.
 
 The direct-binary flow and the Docker flow use the same env vars and the same `config/`, `plugins/`, `locales/`, and `migrations/` folders.
 
@@ -174,8 +199,10 @@ Use `/modules reload` to rebuild the full module catalog and command registratio
 
 ### Signing (prod)
 
-When `MAMUSIABTW_PROD_MODE=1` and `MAMUSIABTW_ALLOW_UNSIGNED_PLUGINS=0`, plugins must include `signature.json` and be signed by a trusted key.
+When `MAMUSIABTW_PROD_MODE=1`, plugins must include `signature.json` and be signed by a trusted key. mamusiabtw rejects `MAMUSIABTW_PROD_MODE=1` together with `MAMUSIABTW_ALLOW_UNSIGNED_PLUGINS=1`.
 
+- Sign a plugin directory with:
+  `go run ./cmd/mamusiabtw sign-plugin --dir ./plugins/<id> --key-id <key_id> --private-key-file <path>`
 - Seed keys via `MAMUSIABTW_TRUSTED_KEYS_FILE`
 - Additional trusted keys are stored in SQLite (`trusted_signers`)
 
@@ -210,6 +237,15 @@ To include developer/support links in the restricted message, build with:
 - `buildinfo.SupportServerURL`
 
 To include a mascot image in `/about`, build with `buildinfo.MascotImageURL`.
+
+The shipped Docker build supports these build args:
+
+- `BUILD_VERSION`
+- `BUILD_REPOSITORY`
+- `BUILD_DESCRIPTION`
+- `BUILD_DEVELOPER_URL`
+- `BUILD_SUPPORT_SERVER_URL`
+- `BUILD_MASCOT_IMAGE_URL`
 
 ## License
 

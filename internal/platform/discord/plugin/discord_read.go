@@ -1,4 +1,4 @@
-package discordplatform
+package plugin
 
 import (
 	"context"
@@ -13,11 +13,11 @@ import (
 	pluginhostlua "github.com/xsyetopz/go-mamusiabtw/internal/pluginhost/lua"
 )
 
-func (e pluginDiscordExecutor) SelfUser(ctx context.Context) (pluginhostlua.UserResult, error) {
-	if e.bot == nil || e.bot.client == nil {
+func (e Executor) SelfUser(ctx context.Context) (pluginhostlua.UserResult, error) {
+	if e.client() == nil {
 		return pluginhostlua.UserResult{}, errors.New("discord client unavailable")
 	}
-	self, ok := e.bot.client.Caches.SelfUser()
+	self, ok := e.client().Caches.SelfUser()
 	if !ok {
 		return pluginhostlua.UserResult{}, errors.New("self user unavailable")
 	}
@@ -36,53 +36,53 @@ func (e pluginDiscordExecutor) SelfUser(ctx context.Context) (pluginhostlua.User
 	return result, nil
 }
 
-func (e pluginDiscordExecutor) GetUser(ctx context.Context, userID uint64) (pluginhostlua.UserResult, error) {
-	if e.bot == nil || e.bot.client == nil {
+func (e Executor) GetUser(ctx context.Context, userID uint64) (pluginhostlua.UserResult, error) {
+	if e.client() == nil {
 		return pluginhostlua.UserResult{}, errors.New("discord client unavailable")
 	}
 	if userID == 0 {
 		return pluginhostlua.UserResult{}, errors.New("invalid user")
 	}
 
-	user, err := e.bot.client.Rest.GetUser(snowflake.ID(userID), rest.WithCtx(ctx))
+	user, err := e.client().Rest.GetUser(snowflake.ID(userID), rest.WithCtx(ctx))
 	if err != nil || user == nil {
 		return pluginhostlua.UserResult{}, errors.New("get_user_error")
 	}
 	return userResult(*user), nil
 }
 
-func (e pluginDiscordExecutor) GetMember(
+func (e Executor) GetMember(
 	ctx context.Context,
 	guildID, userID uint64,
 ) (pluginhostlua.MemberResult, error) {
-	if e.bot == nil || e.bot.client == nil {
+	if e.client() == nil {
 		return pluginhostlua.MemberResult{}, errors.New("discord client unavailable")
 	}
 	if guildID == 0 || userID == 0 {
 		return pluginhostlua.MemberResult{}, errors.New("invalid member")
 	}
 
-	member, err := e.bot.client.Rest.GetMember(snowflake.ID(guildID), snowflake.ID(userID), rest.WithCtx(ctx))
+	member, err := e.client().Rest.GetMember(snowflake.ID(guildID), snowflake.ID(userID), rest.WithCtx(ctx))
 	if err != nil || member == nil {
 		return pluginhostlua.MemberResult{}, errors.New("get_member_error")
 	}
 	return memberResult(uint64(guildID), *member), nil
 }
 
-func (e pluginDiscordExecutor) GetGuild(ctx context.Context, guildID uint64) (pluginhostlua.GuildResult, error) {
-	if e.bot == nil || e.bot.client == nil {
+func (e Executor) GetGuild(ctx context.Context, guildID uint64) (pluginhostlua.GuildResult, error) {
+	if e.client() == nil {
 		return pluginhostlua.GuildResult{}, errors.New("discord client unavailable")
 	}
 	if guildID == 0 {
 		return pluginhostlua.GuildResult{}, errors.New("invalid guild")
 	}
 
-	guild, err := e.bot.client.Rest.GetGuild(snowflake.ID(guildID), true, rest.WithCtx(ctx))
+	guild, err := e.client().Rest.GetGuild(snowflake.ID(guildID), true, rest.WithCtx(ctx))
 	if err != nil || guild == nil {
 		return pluginhostlua.GuildResult{}, errors.New("get_guild_error")
 	}
 
-	channels, err := e.bot.client.Rest.GetGuildChannels(snowflake.ID(guildID), rest.WithCtx(ctx))
+	channels, err := e.client().Rest.GetGuildChannels(snowflake.ID(guildID), rest.WithCtx(ctx))
 	if err != nil {
 		return pluginhostlua.GuildResult{}, errors.New("get_guild_error")
 	}
@@ -115,18 +115,18 @@ func (e pluginDiscordExecutor) GetGuild(ctx context.Context, guildID uint64) (pl
 	return result, nil
 }
 
-func (e pluginDiscordExecutor) GetRole(
+func (e Executor) GetRole(
 	ctx context.Context,
 	guildID, roleID uint64,
 ) (pluginhostlua.RoleResult, error) {
-	if e.bot == nil || e.bot.client == nil {
+	if e.client() == nil {
 		return pluginhostlua.RoleResult{}, errors.New("discord client unavailable")
 	}
 	if guildID == 0 || roleID == 0 {
 		return pluginhostlua.RoleResult{}, errors.New("invalid role")
 	}
 
-	guild, err := e.bot.client.Rest.GetGuild(snowflake.ID(guildID), false, rest.WithCtx(ctx))
+	guild, err := e.client().Rest.GetGuild(snowflake.ID(guildID), false, rest.WithCtx(ctx))
 	if err != nil || guild == nil {
 		return pluginhostlua.RoleResult{}, errors.New("get_role_error")
 	}
@@ -138,15 +138,15 @@ func (e pluginDiscordExecutor) GetRole(
 	return pluginhostlua.RoleResult{}, errors.New("get_role_error")
 }
 
-func (e pluginDiscordExecutor) GetChannel(ctx context.Context, channelID uint64) (pluginhostlua.ChannelResult, error) {
-	if e.bot == nil || e.bot.client == nil {
+func (e Executor) GetChannel(ctx context.Context, channelID uint64) (pluginhostlua.ChannelResult, error) {
+	if e.client() == nil {
 		return pluginhostlua.ChannelResult{}, errors.New("discord client unavailable")
 	}
 	if channelID == 0 {
 		return pluginhostlua.ChannelResult{}, errors.New("invalid channel")
 	}
 
-	channel, err := e.bot.client.Rest.GetChannel(snowflake.ID(channelID), rest.WithCtx(ctx))
+	channel, err := e.client().Rest.GetChannel(snowflake.ID(channelID), rest.WithCtx(ctx))
 	if err != nil || channel == nil {
 		return pluginhostlua.ChannelResult{}, errors.New("get_channel_error")
 	}
@@ -166,18 +166,18 @@ func (e pluginDiscordExecutor) GetChannel(ctx context.Context, channelID uint64)
 	return result, nil
 }
 
-func (e pluginDiscordExecutor) GetMessage(
+func (e Executor) GetMessage(
 	ctx context.Context,
 	spec pluginhostlua.MessageGetSpec,
 ) (pluginhostlua.MessageInfo, error) {
-	if e.bot == nil || e.bot.client == nil {
+	if e.client() == nil {
 		return pluginhostlua.MessageInfo{}, errors.New("discord client unavailable")
 	}
 	if spec.ChannelID == 0 || spec.MessageID == 0 {
 		return pluginhostlua.MessageInfo{}, errors.New("invalid message")
 	}
 
-	message, err := e.bot.client.Rest.GetMessage(
+	message, err := e.client().Rest.GetMessage(
 		snowflake.ID(spec.ChannelID),
 		snowflake.ID(spec.MessageID),
 		rest.WithCtx(ctx),

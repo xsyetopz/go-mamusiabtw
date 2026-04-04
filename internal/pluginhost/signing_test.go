@@ -131,6 +131,36 @@ func TestVerifyDirSignatureAndHashDir(t *testing.T) {
 	}
 }
 
+func TestSignDir(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	mustWriteFile(t, filepath.Join(dir, "plugin.lua"), []byte("return {}"))
+
+	_, privateKey, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		t.Fatalf("GenerateKey: %v", err)
+	}
+
+	sig, publicKey, err := pluginhost.SignDir(dir, "key-1", privateKey)
+	if err != nil {
+		t.Fatalf("SignDir: %v", err)
+	}
+
+	if sig.KeyID != "key-1" {
+		t.Fatalf("unexpected key id: %q", sig.KeyID)
+	}
+	if sig.Algorithm != "ed25519-sha256" {
+		t.Fatalf("unexpected algorithm: %q", sig.Algorithm)
+	}
+	if len(publicKey) != ed25519.PublicKeySize {
+		t.Fatalf("unexpected public key size: %d", len(publicKey))
+	}
+	if err := pluginhost.VerifyDirSignature(dir, sig, map[string]ed25519.PublicKey{"key-1": publicKey}); err != nil {
+		t.Fatalf("VerifyDirSignature: %v", err)
+	}
+}
+
 func mustWriteFile(t *testing.T, path string, bytes []byte) {
 	t.Helper()
 

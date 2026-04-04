@@ -1,4 +1,4 @@
-package discordplatform
+package router
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"github.com/disgoorg/disgo/discord"
 )
 
-func parsePluginAutocompleteChoices(_ string, raw any) ([]discord.AutocompleteChoice, error) {
+func ParsePluginAutocompleteChoices(_ string, raw any) ([]discord.AutocompleteChoice, error) {
 	switch value := raw.(type) {
 	case nil:
 		return nil, nil
@@ -57,4 +57,16 @@ func autocompleteChoicesFromList(list []any) ([]discord.AutocompleteChoice, erro
 		}
 	}
 	return out, nil
+}
+
+func asString(m map[string]any, key string) (string, bool) {
+	v, ok := m[key]
+	if !ok {
+		return "", false
+	}
+	s, ok := v.(string)
+	if !ok {
+		return "", false
+	}
+	return s, true
 }

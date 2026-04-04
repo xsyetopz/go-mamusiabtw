@@ -1,4 +1,4 @@
-package discordplatform
+package plugin
 
 import (
 	"strings"
@@ -10,8 +10,8 @@ import (
 	"github.com/xsyetopz/go-mamusiabtw/internal/present"
 )
 
-func (b *Bot) pluginResponseErrorMessage(t commandapi.Translator, err error) discord.MessageCreate {
-	if b.prodMode {
+func ErrorMessage(prodMode bool, t commandapi.Translator, err error) discord.MessageCreate {
+	if prodMode {
 		return interactions.NoticeMessage(present.KindError, "", t.S("err.generic", nil), true)
 	}
 

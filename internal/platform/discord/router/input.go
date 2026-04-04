@@ -1,4 +1,4 @@
-package discordplatform
+package router
 
 import (
 	"strings"
@@ -10,14 +10,14 @@ import (
 	"github.com/xsyetopz/go-mamusiabtw/internal/pluginhost"
 )
 
-func snowflakePtrToString(id *snowflake.ID) string {
+func SnowflakePtrToString(id *snowflake.ID) string {
 	if id == nil {
 		return ""
 	}
 	return id.String()
 }
 
-func pluginOptions(data discord.SlashCommandInteractionData) map[string]any {
+func PluginOptions(data discord.SlashCommandInteractionData) map[string]any {
 	opts := map[string]any{}
 
 	if data.SubCommandGroupName != nil {
@@ -76,7 +76,7 @@ func pluginOptions(data discord.SlashCommandInteractionData) map[string]any {
 				"id":          channel.ID.String(),
 				"name":        channel.Name,
 				"mention":     discord.ChannelMention(channel.ID),
-				"type":        pluginChannelTypeName(channel.Type),
+				"type":        channelTypeName(channel.Type),
 				"permissions": channel.Permissions.String(),
 				"created_at":  channel.ID.Time().UTC().Unix(),
 			}
@@ -129,7 +129,7 @@ func pluginOptions(data discord.SlashCommandInteractionData) map[string]any {
 	return opts
 }
 
-func pluginAutocompleteOptions(data discord.AutocompleteInteractionData) map[string]any {
+func PluginAutocompleteOptions(data discord.AutocompleteInteractionData) map[string]any {
 	opts := map[string]any{}
 
 	if data.SubCommandGroupName != nil {
@@ -183,7 +183,7 @@ func autocompleteOptionValue(opt discord.AutocompleteOption) any {
 	}
 }
 
-func pluginUserContextOptions(data discord.UserCommandInteractionData) map[string]any {
+func PluginUserContextOptions(data discord.UserCommandInteractionData) map[string]any {
 	opts := map[string]any{}
 
 	user := data.TargetUser()
@@ -207,7 +207,7 @@ func pluginUserContextOptions(data discord.UserCommandInteractionData) map[strin
 		}
 		target := map[string]any{
 			"user_id":  member.User.ID.String(),
-			"guild_id": snowflakePtrToString(data.GuildID()),
+			"guild_id": SnowflakePtrToString(data.GuildID()),
 			"role_ids": roleIDs,
 		}
 		if member.JoinedAt != nil && !member.JoinedAt.IsZero() {
@@ -225,7 +225,7 @@ func pluginUserContextOptions(data discord.UserCommandInteractionData) map[strin
 	return opts
 }
 
-func pluginMessageContextOptions(data discord.MessageCommandInteractionData) map[string]any {
+func PluginMessageContextOptions(data discord.MessageCommandInteractionData) map[string]any {
 	opts := map[string]any{}
 
 	message := data.TargetMessage()
@@ -250,7 +250,7 @@ func pluginMessageContextOptions(data discord.MessageCommandInteractionData) map
 	return opts
 }
 
-func componentOptions(e *events.ComponentInteractionCreate) map[string]any {
+func ComponentOptions(e *events.ComponentInteractionCreate) map[string]any {
 	opts := map[string]any{}
 
 	if e.Data.Type() == discord.ComponentTypeButton {
@@ -311,7 +311,7 @@ func componentOptions(e *events.ComponentInteractionCreate) map[string]any {
 	return opts
 }
 
-func modalOptions(e *events.ModalSubmitInteractionCreate, pluginID string) map[string]any {
+func ModalOptions(e *events.ModalSubmitInteractionCreate, pluginID string) map[string]any {
 	opts := map[string]any{}
 
 	fields := map[string]any{}
@@ -343,4 +343,44 @@ func modalOptions(e *events.ModalSubmitInteractionCreate, pluginID string) map[s
 	}
 	opts["fields"] = fields
 	return opts
+}
+
+func OptionalString(value *string) string {
+	if value == nil {
+		return ""
+	}
+	return strings.TrimSpace(*value)
+}
+
+func channelTypeName(t discord.ChannelType) string {
+	switch t {
+	case discord.ChannelTypeGuildText:
+		return "guild_text"
+	case discord.ChannelTypeDM:
+		return "dm"
+	case discord.ChannelTypeGuildVoice:
+		return "guild_voice"
+	case discord.ChannelTypeGroupDM:
+		return "group_dm"
+	case discord.ChannelTypeGuildCategory:
+		return "guild_category"
+	case discord.ChannelTypeGuildNews:
+		return "guild_news"
+	case discord.ChannelTypeGuildNewsThread:
+		return "guild_news_thread"
+	case discord.ChannelTypeGuildPublicThread:
+		return "guild_public_thread"
+	case discord.ChannelTypeGuildPrivateThread:
+		return "guild_private_thread"
+	case discord.ChannelTypeGuildStageVoice:
+		return "guild_stage_voice"
+	case discord.ChannelTypeGuildDirectory:
+		return "guild_directory"
+	case discord.ChannelTypeGuildForum:
+		return "guild_forum"
+	case discord.ChannelTypeGuildMedia:
+		return "guild_media"
+	default:
+		return "unknown"
+	}
 }

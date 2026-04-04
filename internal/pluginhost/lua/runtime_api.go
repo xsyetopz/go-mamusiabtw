@@ -1,20 +1,19 @@
 package luaplugin
 
 import (
-	"strings"
-
 	"github.com/xsyetopz/go-mamusiabtw/internal/buildinfo"
 	lua "github.com/yuin/gopher-lua"
 )
 
 func (v *VM) luaRuntimeBuildInfo(l *lua.LState) int {
+	current := buildinfo.Current()
 	info := map[string]any{
-		"version":            strings.TrimSpace(buildinfo.Version),
-		"description":        strings.TrimSpace(buildinfo.Description),
-		"repository":         strings.TrimSpace(buildinfo.Repository),
-		"mascot_image_url":   strings.TrimSpace(buildinfo.MascotImageURL),
-		"developer_url":      strings.TrimSpace(buildinfo.DeveloperURL),
-		"support_server_url": strings.TrimSpace(buildinfo.SupportServerURL),
+		"version":            current.Version,
+		"description":        current.Description,
+		"repository":         current.Repository,
+		"mascot_image_url":   current.MascotImageURL,
+		"developer_url":      current.DeveloperURL,
+		"support_server_url": current.SupportServerURL,
 	}
 
 	value, err := anyToLuaValue(l, info, 0)

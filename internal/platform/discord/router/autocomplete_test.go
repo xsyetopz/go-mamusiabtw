@@ -1,4 +1,4 @@
-package discordplatform
+package router
 
 import (
 	"testing"
@@ -9,7 +9,7 @@ import (
 func TestParsePluginAutocompleteChoices(t *testing.T) {
 	t.Parallel()
 
-	choices, err := parsePluginAutocompleteChoices("test", []any{
+	choices, err := ParsePluginAutocompleteChoices("test", []any{
 		map[string]any{"name": "alpha", "value": "a"},
 		map[string]any{"name": "beta", "value": float64(2)},
 		map[string]any{"name": "gamma", "value": 2.5},
@@ -31,10 +31,10 @@ func TestParsePluginAutocompleteChoices(t *testing.T) {
 	}
 }
 
-func TestParsePluginAutocompleteChoices_FromObject(t *testing.T) {
+func TestParsePluginAutocompleteChoicesFromObject(t *testing.T) {
 	t.Parallel()
 
-	choices, err := parsePluginAutocompleteChoices("test", map[string]any{
+	choices, err := ParsePluginAutocompleteChoices("test", map[string]any{
 		"choices": []any{
 			map[string]any{"name": "delta", "value": "d"},
 		},

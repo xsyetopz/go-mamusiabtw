@@ -1,4 +1,4 @@
-package discordplatform
+package plugin
 
 import (
 	"context"
@@ -13,11 +13,11 @@ import (
 	pluginhostlua "github.com/xsyetopz/go-mamusiabtw/internal/pluginhost/lua"
 )
 
-func (e pluginDiscordExecutor) CreateChannel(
+func (e Executor) CreateChannel(
 	ctx context.Context,
 	spec pluginhostlua.ChannelCreateSpec,
 ) (pluginhostlua.ChannelResult, error) {
-	if e.bot == nil || e.bot.client == nil {
+	if e.client() == nil {
 		return pluginhostlua.ChannelResult{}, errors.New("discord client unavailable")
 	}
 	if spec.GuildID == 0 || strings.TrimSpace(spec.Name) == "" {
@@ -98,25 +98,25 @@ func (e pluginDiscordExecutor) CreateChannel(
 		return pluginhostlua.ChannelResult{}, errors.New("unsupported_channel_type")
 	}
 
-	channel, err := e.bot.client.Rest.CreateGuildChannel(snowflake.ID(spec.GuildID), create, rest.WithCtx(ctx))
+	channel, err := e.client().Rest.CreateGuildChannel(snowflake.ID(spec.GuildID), create, rest.WithCtx(ctx))
 	if err != nil {
 		return pluginhostlua.ChannelResult{}, errors.New("create_channel_error")
 	}
 	return channelResult(channel), nil
 }
 
-func (e pluginDiscordExecutor) EditChannel(
+func (e Executor) EditChannel(
 	ctx context.Context,
 	spec pluginhostlua.ChannelEditSpec,
 ) (pluginhostlua.ChannelResult, error) {
-	if e.bot == nil || e.bot.client == nil {
+	if e.client() == nil {
 		return pluginhostlua.ChannelResult{}, errors.New("discord client unavailable")
 	}
 	if spec.ChannelID == 0 {
 		return pluginhostlua.ChannelResult{}, errors.New("invalid channel spec")
 	}
 
-	channel, err := e.bot.client.Rest.GetChannel(snowflake.ID(spec.ChannelID), rest.WithCtx(ctx))
+	channel, err := e.client().Rest.GetChannel(snowflake.ID(spec.ChannelID), rest.WithCtx(ctx))
 	if err != nil || channel == nil {
 		return pluginhostlua.ChannelResult{}, errors.New("edit_channel_error")
 	}
@@ -163,25 +163,25 @@ func (e pluginDiscordExecutor) EditChannel(
 		return pluginhostlua.ChannelResult{}, errors.New("unsupported_channel_type")
 	}
 
-	updated, err := e.bot.client.Rest.UpdateChannel(snowflake.ID(spec.ChannelID), update, rest.WithCtx(ctx))
+	updated, err := e.client().Rest.UpdateChannel(snowflake.ID(spec.ChannelID), update, rest.WithCtx(ctx))
 	if err != nil {
 		return pluginhostlua.ChannelResult{}, errors.New("edit_channel_error")
 	}
 	return channelResult(updated), nil
 }
 
-func (e pluginDiscordExecutor) DeleteChannel(ctx context.Context, channelID uint64) error {
-	if e.bot == nil || e.bot.client == nil {
+func (e Executor) DeleteChannel(ctx context.Context, channelID uint64) error {
+	if e.client() == nil {
 		return errors.New("discord client unavailable")
 	}
 	if channelID == 0 {
 		return errors.New("invalid channel spec")
 	}
-	return e.bot.client.Rest.DeleteChannel(snowflake.ID(channelID), rest.WithCtx(ctx))
+	return e.client().Rest.DeleteChannel(snowflake.ID(channelID), rest.WithCtx(ctx))
 }
 
-func (e pluginDiscordExecutor) SetChannelOverwrite(ctx context.Context, spec pluginhostlua.PermissionOverwriteSpec) error {
-	if e.bot == nil || e.bot.client == nil {
+func (e Executor) SetChannelOverwrite(ctx context.Context, spec pluginhostlua.PermissionOverwriteSpec) error {
+	if e.client() == nil {
 		return errors.New("discord client unavailable")
 	}
 	if spec.ChannelID == 0 || spec.OverwriteID == 0 {
@@ -206,7 +206,7 @@ func (e pluginDiscordExecutor) SetChannelOverwrite(ctx context.Context, spec plu
 		return errors.New("invalid overwrite spec")
 	}
 
-	return e.bot.client.Rest.UpdatePermissionOverwrite(
+	return e.client().Rest.UpdatePermissionOverwrite(
 		snowflake.ID(spec.ChannelID),
 		snowflake.ID(spec.OverwriteID),
 		update,
@@ -214,25 +214,25 @@ func (e pluginDiscordExecutor) SetChannelOverwrite(ctx context.Context, spec plu
 	)
 }
 
-func (e pluginDiscordExecutor) DeleteChannelOverwrite(ctx context.Context, channelID, overwriteID uint64) error {
-	if e.bot == nil || e.bot.client == nil {
+func (e Executor) DeleteChannelOverwrite(ctx context.Context, channelID, overwriteID uint64) error {
+	if e.client() == nil {
 		return errors.New("discord client unavailable")
 	}
 	if channelID == 0 || overwriteID == 0 {
 		return errors.New("invalid overwrite spec")
 	}
-	return e.bot.client.Rest.DeletePermissionOverwrite(
+	return e.client().Rest.DeletePermissionOverwrite(
 		snowflake.ID(channelID),
 		snowflake.ID(overwriteID),
 		rest.WithCtx(ctx),
 	)
 }
 
-func (e pluginDiscordExecutor) CreateThreadFromMessage(
+func (e Executor) CreateThreadFromMessage(
 	ctx context.Context,
 	spec pluginhostlua.ThreadCreateFromMessageSpec,
 ) (pluginhostlua.ThreadResult, error) {
-	if e.bot == nil || e.bot.client == nil {
+	if e.client() == nil {
 		return pluginhostlua.ThreadResult{}, errors.New("discord client unavailable")
 	}
 	if spec.ChannelID == 0 || spec.MessageID == 0 || strings.TrimSpace(spec.Name) == "" {
@@ -245,7 +245,7 @@ func (e pluginDiscordExecutor) CreateThreadFromMessage(
 	if spec.Slowmode > 0 {
 		input.RateLimitPerUser = spec.Slowmode
 	}
-	thread, err := e.bot.client.Rest.CreateThreadFromMessage(
+	thread, err := e.client().Rest.CreateThreadFromMessage(
 		snowflake.ID(spec.ChannelID),
 		snowflake.ID(spec.MessageID),
 		input,
@@ -257,11 +257,11 @@ func (e pluginDiscordExecutor) CreateThreadFromMessage(
 	return threadResult(*thread), nil
 }
 
-func (e pluginDiscordExecutor) CreateThreadInChannel(
+func (e Executor) CreateThreadInChannel(
 	ctx context.Context,
 	spec pluginhostlua.ThreadCreateSpec,
 ) (pluginhostlua.ThreadResult, error) {
-	if e.bot == nil || e.bot.client == nil {
+	if e.client() == nil {
 		return pluginhostlua.ThreadResult{}, errors.New("discord client unavailable")
 	}
 	if spec.ChannelID == 0 || strings.TrimSpace(spec.Name) == "" {
@@ -299,23 +299,23 @@ func (e pluginDiscordExecutor) CreateThreadInChannel(
 		return pluginhostlua.ThreadResult{}, errors.New("unsupported_thread_type")
 	}
 
-	thread, err := e.bot.client.Rest.CreateThread(snowflake.ID(spec.ChannelID), create, rest.WithCtx(ctx))
+	thread, err := e.client().Rest.CreateThread(snowflake.ID(spec.ChannelID), create, rest.WithCtx(ctx))
 	if err != nil || thread == nil {
 		return pluginhostlua.ThreadResult{}, errors.New("create_thread_error")
 	}
 	return threadResult(*thread), nil
 }
 
-func (e pluginDiscordExecutor) JoinThread(ctx context.Context, threadID uint64) error {
-	return e.threadAction(ctx, threadID, e.bot.client.Rest.JoinThread)
+func (e Executor) JoinThread(ctx context.Context, threadID uint64) error {
+	return e.threadAction(ctx, threadID, e.client().Rest.JoinThread)
 }
 
-func (e pluginDiscordExecutor) LeaveThread(ctx context.Context, threadID uint64) error {
-	return e.threadAction(ctx, threadID, e.bot.client.Rest.LeaveThread)
+func (e Executor) LeaveThread(ctx context.Context, threadID uint64) error {
+	return e.threadAction(ctx, threadID, e.client().Rest.LeaveThread)
 }
 
-func (e pluginDiscordExecutor) threadAction(ctx context.Context, threadID uint64, run func(snowflake.ID, ...rest.RequestOpt) error) error {
-	if e.bot == nil || e.bot.client == nil {
+func (e Executor) threadAction(ctx context.Context, threadID uint64, run func(snowflake.ID, ...rest.RequestOpt) error) error {
+	if e.client() == nil {
 		return errors.New("discord client unavailable")
 	}
 	if threadID == 0 {
@@ -324,48 +324,48 @@ func (e pluginDiscordExecutor) threadAction(ctx context.Context, threadID uint64
 	return run(snowflake.ID(threadID), rest.WithCtx(ctx))
 }
 
-func (e pluginDiscordExecutor) AddThreadMember(ctx context.Context, threadID, userID uint64) error {
-	if e.bot == nil || e.bot.client == nil {
+func (e Executor) AddThreadMember(ctx context.Context, threadID, userID uint64) error {
+	if e.client() == nil {
 		return errors.New("discord client unavailable")
 	}
 	if threadID == 0 || userID == 0 {
 		return errors.New("invalid thread member spec")
 	}
-	return e.bot.client.Rest.AddThreadMember(snowflake.ID(threadID), snowflake.ID(userID), rest.WithCtx(ctx))
+	return e.client().Rest.AddThreadMember(snowflake.ID(threadID), snowflake.ID(userID), rest.WithCtx(ctx))
 }
 
-func (e pluginDiscordExecutor) RemoveThreadMember(ctx context.Context, threadID, userID uint64) error {
-	if e.bot == nil || e.bot.client == nil {
+func (e Executor) RemoveThreadMember(ctx context.Context, threadID, userID uint64) error {
+	if e.client() == nil {
 		return errors.New("discord client unavailable")
 	}
 	if threadID == 0 || userID == 0 {
 		return errors.New("invalid thread member spec")
 	}
-	return e.bot.client.Rest.RemoveThreadMember(snowflake.ID(threadID), snowflake.ID(userID), rest.WithCtx(ctx))
+	return e.client().Rest.RemoveThreadMember(snowflake.ID(threadID), snowflake.ID(userID), rest.WithCtx(ctx))
 }
 
-func (e pluginDiscordExecutor) UpdateThread(
+func (e Executor) UpdateThread(
 	ctx context.Context,
 	spec pluginhostlua.ThreadUpdateSpec,
 ) (pluginhostlua.ThreadResult, error) {
-	if e.bot == nil || e.bot.client == nil {
+	if e.client() == nil {
 		return pluginhostlua.ThreadResult{}, errors.New("discord client unavailable")
 	}
 	if spec.ThreadID == 0 {
 		return pluginhostlua.ThreadResult{}, errors.New("invalid thread spec")
 	}
 	update := discord.GuildThreadUpdate{
-		Name:     spec.Name,
-		Archived: spec.Archived,
-		Locked:   spec.Locked,
-		Invitable: spec.Invitable,
+		Name:             spec.Name,
+		Archived:         spec.Archived,
+		Locked:           spec.Locked,
+		Invitable:        spec.Invitable,
 		RateLimitPerUser: spec.Slowmode,
 	}
 	if spec.AutoArchiveDuration != nil {
 		duration := discord.AutoArchiveDuration(*spec.AutoArchiveDuration)
 		update.AutoArchiveDuration = &duration
 	}
-	channel, err := e.bot.client.Rest.UpdateChannel(snowflake.ID(spec.ThreadID), update, rest.WithCtx(ctx))
+	channel, err := e.client().Rest.UpdateChannel(snowflake.ID(spec.ThreadID), update, rest.WithCtx(ctx))
 	if err != nil {
 		return pluginhostlua.ThreadResult{}, errors.New("update_thread_error")
 	}
@@ -375,11 +375,11 @@ func (e pluginDiscordExecutor) UpdateThread(
 	return pluginhostlua.ThreadResult{}, errors.New("update_thread_error")
 }
 
-func (e pluginDiscordExecutor) CreateInvite(
+func (e Executor) CreateInvite(
 	ctx context.Context,
 	spec pluginhostlua.InviteCreateSpec,
 ) (pluginhostlua.InviteResult, error) {
-	if e.bot == nil || e.bot.client == nil {
+	if e.client() == nil {
 		return pluginhostlua.InviteResult{}, errors.New("discord client unavailable")
 	}
 	if spec.ChannelID == 0 {
@@ -395,48 +395,48 @@ func (e pluginDiscordExecutor) CreateInvite(
 	if spec.MaxUses != nil {
 		input.MaxUses = spec.MaxUses
 	}
-	invite, err := e.bot.client.Rest.CreateInvite(snowflake.ID(spec.ChannelID), input, rest.WithCtx(ctx))
+	invite, err := e.client().Rest.CreateInvite(snowflake.ID(spec.ChannelID), input, rest.WithCtx(ctx))
 	if err != nil || invite == nil {
 		return pluginhostlua.InviteResult{}, errors.New("create_invite_error")
 	}
 	return inviteResult(*invite), nil
 }
 
-func (e pluginDiscordExecutor) GetInvite(ctx context.Context, code string) (pluginhostlua.InviteResult, error) {
-	if e.bot == nil || e.bot.client == nil {
+func (e Executor) GetInvite(ctx context.Context, code string) (pluginhostlua.InviteResult, error) {
+	if e.client() == nil {
 		return pluginhostlua.InviteResult{}, errors.New("discord client unavailable")
 	}
 	code = strings.TrimSpace(code)
 	if code == "" {
 		return pluginhostlua.InviteResult{}, errors.New("invalid invite spec")
 	}
-	invite, err := e.bot.client.Rest.GetInvite(code, rest.WithCtx(ctx))
+	invite, err := e.client().Rest.GetInvite(code, rest.WithCtx(ctx))
 	if err != nil || invite == nil {
 		return pluginhostlua.InviteResult{}, errors.New("get_invite_error")
 	}
 	return inviteResult(*invite), nil
 }
 
-func (e pluginDiscordExecutor) DeleteInvite(ctx context.Context, code string) error {
-	if e.bot == nil || e.bot.client == nil {
+func (e Executor) DeleteInvite(ctx context.Context, code string) error {
+	if e.client() == nil {
 		return errors.New("discord client unavailable")
 	}
 	code = strings.TrimSpace(code)
 	if code == "" {
 		return errors.New("invalid invite spec")
 	}
-	_, err := e.bot.client.Rest.DeleteInvite(code, rest.WithCtx(ctx))
+	_, err := e.client().Rest.DeleteInvite(code, rest.WithCtx(ctx))
 	return err
 }
 
-func (e pluginDiscordExecutor) ListChannelInvites(ctx context.Context, channelID uint64) ([]pluginhostlua.InviteResult, error) {
-	if e.bot == nil || e.bot.client == nil {
+func (e Executor) ListChannelInvites(ctx context.Context, channelID uint64) ([]pluginhostlua.InviteResult, error) {
+	if e.client() == nil {
 		return nil, errors.New("discord client unavailable")
 	}
 	if channelID == 0 {
 		return nil, errors.New("invalid invite spec")
 	}
-	invites, err := e.bot.client.Rest.GetChannelInvites(snowflake.ID(channelID), rest.WithCtx(ctx))
+	invites, err := e.client().Rest.GetChannelInvites(snowflake.ID(channelID), rest.WithCtx(ctx))
 	if err != nil {
 		return nil, err
 	}
@@ -447,14 +447,14 @@ func (e pluginDiscordExecutor) ListChannelInvites(ctx context.Context, channelID
 	return out, nil
 }
 
-func (e pluginDiscordExecutor) ListGuildInvites(ctx context.Context, guildID uint64) ([]pluginhostlua.InviteResult, error) {
-	if e.bot == nil || e.bot.client == nil {
+func (e Executor) ListGuildInvites(ctx context.Context, guildID uint64) ([]pluginhostlua.InviteResult, error) {
+	if e.client() == nil {
 		return nil, errors.New("discord client unavailable")
 	}
 	if guildID == 0 {
 		return nil, errors.New("invalid invite spec")
 	}
-	invites, err := e.bot.client.Rest.GetGuildInvites(snowflake.ID(guildID), rest.WithCtx(ctx))
+	invites, err := e.client().Rest.GetGuildInvites(snowflake.ID(guildID), rest.WithCtx(ctx))
 	if err != nil {
 		return nil, err
 	}
@@ -465,17 +465,17 @@ func (e pluginDiscordExecutor) ListGuildInvites(ctx context.Context, guildID uin
 	return out, nil
 }
 
-func (e pluginDiscordExecutor) CreateWebhook(
+func (e Executor) CreateWebhook(
 	ctx context.Context,
 	spec pluginhostlua.WebhookCreateSpec,
 ) (pluginhostlua.WebhookResult, error) {
-	if e.bot == nil || e.bot.client == nil {
+	if e.client() == nil {
 		return pluginhostlua.WebhookResult{}, errors.New("discord client unavailable")
 	}
 	if spec.ChannelID == 0 || strings.TrimSpace(spec.Name) == "" {
 		return pluginhostlua.WebhookResult{}, errors.New("invalid webhook spec")
 	}
-	webhook, err := e.bot.client.Rest.CreateWebhook(
+	webhook, err := e.client().Rest.CreateWebhook(
 		snowflake.ID(spec.ChannelID),
 		discord.WebhookCreate{Name: strings.TrimSpace(spec.Name)},
 		rest.WithCtx(ctx),
@@ -486,28 +486,28 @@ func (e pluginDiscordExecutor) CreateWebhook(
 	return webhookResult(*webhook), nil
 }
 
-func (e pluginDiscordExecutor) GetWebhook(ctx context.Context, webhookID uint64) (pluginhostlua.WebhookResult, error) {
-	if e.bot == nil || e.bot.client == nil {
+func (e Executor) GetWebhook(ctx context.Context, webhookID uint64) (pluginhostlua.WebhookResult, error) {
+	if e.client() == nil {
 		return pluginhostlua.WebhookResult{}, errors.New("discord client unavailable")
 	}
 	if webhookID == 0 {
 		return pluginhostlua.WebhookResult{}, errors.New("invalid webhook spec")
 	}
-	webhook, err := e.bot.client.Rest.GetWebhook(snowflake.ID(webhookID), rest.WithCtx(ctx))
+	webhook, err := e.client().Rest.GetWebhook(snowflake.ID(webhookID), rest.WithCtx(ctx))
 	if err != nil {
 		return pluginhostlua.WebhookResult{}, errors.New("get_webhook_error")
 	}
 	return webhookResultFromValue(webhook)
 }
 
-func (e pluginDiscordExecutor) ListChannelWebhooks(ctx context.Context, channelID uint64) ([]pluginhostlua.WebhookResult, error) {
-	if e.bot == nil || e.bot.client == nil {
+func (e Executor) ListChannelWebhooks(ctx context.Context, channelID uint64) ([]pluginhostlua.WebhookResult, error) {
+	if e.client() == nil {
 		return nil, errors.New("discord client unavailable")
 	}
 	if channelID == 0 {
 		return nil, errors.New("invalid webhook spec")
 	}
-	webhooks, err := e.bot.client.Rest.GetWebhooks(snowflake.ID(channelID), rest.WithCtx(ctx))
+	webhooks, err := e.client().Rest.GetWebhooks(snowflake.ID(channelID), rest.WithCtx(ctx))
 	if err != nil {
 		return nil, err
 	}
@@ -522,11 +522,11 @@ func (e pluginDiscordExecutor) ListChannelWebhooks(ctx context.Context, channelI
 	return out, nil
 }
 
-func (e pluginDiscordExecutor) EditWebhook(
+func (e Executor) EditWebhook(
 	ctx context.Context,
 	spec pluginhostlua.WebhookEditSpec,
 ) (pluginhostlua.WebhookResult, error) {
-	if e.bot == nil || e.bot.client == nil {
+	if e.client() == nil {
 		return pluginhostlua.WebhookResult{}, errors.New("discord client unavailable")
 	}
 	if spec.WebhookID == 0 {
@@ -537,35 +537,35 @@ func (e pluginDiscordExecutor) EditWebhook(
 		ChannelID: snowflakePtr(spec.ChannelID),
 		Avatar:    omit.NewNilPtr[discord.Icon](),
 	}
-	webhook, err := e.bot.client.Rest.UpdateWebhook(snowflake.ID(spec.WebhookID), update, rest.WithCtx(ctx))
+	webhook, err := e.client().Rest.UpdateWebhook(snowflake.ID(spec.WebhookID), update, rest.WithCtx(ctx))
 	if err != nil {
 		return pluginhostlua.WebhookResult{}, errors.New("edit_webhook_error")
 	}
 	return webhookResultFromValue(webhook)
 }
 
-func (e pluginDiscordExecutor) DeleteWebhook(ctx context.Context, webhookID uint64) error {
-	if e.bot == nil || e.bot.client == nil {
+func (e Executor) DeleteWebhook(ctx context.Context, webhookID uint64) error {
+	if e.client() == nil {
 		return errors.New("discord client unavailable")
 	}
 	if webhookID == 0 {
 		return errors.New("invalid webhook spec")
 	}
-	return e.bot.client.Rest.DeleteWebhook(snowflake.ID(webhookID), rest.WithCtx(ctx))
+	return e.client().Rest.DeleteWebhook(snowflake.ID(webhookID), rest.WithCtx(ctx))
 }
 
-func (e pluginDiscordExecutor) ExecuteWebhook(
+func (e Executor) ExecuteWebhook(
 	ctx context.Context,
 	pluginID string,
 	spec pluginhostlua.WebhookExecuteSpec,
 ) (pluginhostlua.MessageResult, error) {
-	if e.bot == nil || e.bot.client == nil {
+	if e.client() == nil {
 		return pluginhostlua.MessageResult{}, errors.New("discord client unavailable")
 	}
 	if spec.WebhookID == 0 || strings.TrimSpace(spec.Token) == "" {
 		return pluginhostlua.MessageResult{}, errors.New("invalid webhook spec")
 	}
-	msg, err := parseAutomationMessage(pluginID, spec.Message)
+	msg, err := ParseAutomationMessage(pluginID, spec.Message)
 	if err != nil {
 		return pluginhostlua.MessageResult{}, err
 	}
@@ -576,7 +576,7 @@ func (e pluginDiscordExecutor) ExecuteWebhook(
 		AllowedMentions: msg.AllowedMentions,
 		Flags:           msg.Flags,
 	}
-	created, err := e.bot.client.Rest.CreateWebhookMessage(
+	created, err := e.client().Rest.CreateWebhookMessage(
 		snowflake.ID(spec.WebhookID),
 		strings.TrimSpace(spec.Token),
 		webhookMessage,
@@ -637,8 +637,8 @@ func threadResult(thread discord.GuildThread) pluginhostlua.ThreadResult {
 
 func inviteResult(invite discord.Invite) pluginhostlua.InviteResult {
 	result := pluginhostlua.InviteResult{
-		Code:      strings.TrimSpace(invite.Code),
-		URL:       strings.TrimSpace(invite.URL()),
+		Code: strings.TrimSpace(invite.Code),
+		URL:  strings.TrimSpace(invite.URL()),
 	}
 	if invite.Channel != nil {
 		result.ChannelID = uint64(invite.Channel.ID)
