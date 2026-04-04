@@ -60,6 +60,23 @@ type Discord interface {
 	SendDM(ctx context.Context, pluginID string, userID uint64, message any) (luaplugin.MessageResult, error)
 	SendChannel(ctx context.Context, pluginID string, channelID uint64, message any) (luaplugin.MessageResult, error)
 	TimeoutMember(ctx context.Context, guildID, userID uint64, until time.Time) error
+	SetSlowmode(ctx context.Context, channelID uint64, seconds int) error
+	SetNickname(ctx context.Context, guildID, userID uint64, nickname *string) error
+	CreateRole(ctx context.Context, spec luaplugin.RoleCreateSpec) (luaplugin.RoleResult, error)
+	EditRole(ctx context.Context, spec luaplugin.RoleEditSpec) (luaplugin.RoleResult, error)
+	DeleteRole(ctx context.Context, guildID, roleID uint64) error
+	AddRole(ctx context.Context, spec luaplugin.RoleMemberSpec) error
+	RemoveRole(ctx context.Context, spec luaplugin.RoleMemberSpec) error
+	ListMessages(ctx context.Context, spec luaplugin.MessageListSpec) ([]luaplugin.MessageInfo, error)
+	DeleteMessage(ctx context.Context, spec luaplugin.MessageDeleteSpec) error
+	BulkDeleteMessages(ctx context.Context, channelID uint64, messageIDs []uint64) (int, error)
+	PurgeMessages(ctx context.Context, spec luaplugin.PurgeSpec) (int, error)
+	CreateEmoji(ctx context.Context, spec luaplugin.EmojiCreateSpec) (luaplugin.EmojiResult, error)
+	EditEmoji(ctx context.Context, spec luaplugin.EmojiEditSpec) (luaplugin.EmojiResult, error)
+	DeleteEmoji(ctx context.Context, spec luaplugin.EmojiDeleteSpec) error
+	CreateSticker(ctx context.Context, spec luaplugin.StickerCreateSpec) (luaplugin.StickerResult, error)
+	EditSticker(ctx context.Context, spec luaplugin.StickerEditSpec) (luaplugin.StickerResult, error)
+	DeleteSticker(ctx context.Context, spec luaplugin.StickerDeleteSpec) error
 }
 
 type Options struct {
@@ -869,6 +886,10 @@ func commandPermissionByName(name string) (discord.Permissions, bool) {
 		return discord.PermissionManageGuild, true
 	case "manage_roles":
 		return discord.PermissionManageRoles, true
+	case "manage_expressions":
+		return discord.PermissionManageGuildExpressions, true
+	case "create_expressions":
+		return discord.PermissionCreateGuildExpressions, true
 	case "manage_emojis_and_stickers":
 		return discord.PermissionManageGuildExpressions, true
 	case "manage_messages":

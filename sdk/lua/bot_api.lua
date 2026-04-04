@@ -9,6 +9,15 @@
 ---@class MamusiaBtwUserRef
 ---@field id string
 
+---@class MamusiaBtwAttachmentRef
+---@field id string
+---@field filename string
+---@field url string
+---@field size integer
+---@field width? integer
+---@field height? integer
+---@field content_type? string
+
 ---@class MamusiaBtwPluginRef
 ---@field id string
 
@@ -264,10 +273,50 @@
 ---@field channel_id string
 ---@field user_id? string
 
+---@class MamusiaBtwRole
+---@field id string|integer
+---@field name string
+---@field mention string
+---@field color integer
+---@field hoist boolean
+---@field mentionable boolean
+
+---@class MamusiaBtwMessageInfo
+---@field id string|integer
+---@field channel_id string|integer
+---@field author_id string|integer
+---@field content string
+---@field created_at integer
+
+---@class MamusiaBtwEmoji
+---@field id string|integer
+---@field name string
+
+---@class MamusiaBtwSticker
+---@field id string|integer
+---@field name string
+
 ---@class MamusiaBtwDiscordAPI
 ---@field send_dm fun(spec: { user_id?: string, message: MamusiaBtwResponse|string }): (MamusiaBtwDiscordSendResult|nil, string|nil)
 ---@field send_channel fun(spec: { channel_id?: string, message: MamusiaBtwResponse|string }): (MamusiaBtwDiscordSendResult|nil, string|nil)
 ---@field timeout_member fun(spec: { guild_id?: string, user_id?: string, until_unix: integer }): (boolean, string|nil)
+---@field set_slowmode fun(spec: { channel_id?: string|integer, seconds: integer }): (boolean, string|nil)
+---@field set_nickname fun(spec: { guild_id?: string|integer, user_id?: string|integer, nickname?: string }): (boolean, string|nil)
+---@field create_role fun(spec: { guild_id?: string|integer, name: string, color?: integer, hoist?: boolean, mentionable?: boolean }): (MamusiaBtwRole|nil, string|nil)
+---@field edit_role fun(spec: { guild_id?: string|integer, role_id: string|integer, name?: string, color?: integer, hoist?: boolean, mentionable?: boolean }): (MamusiaBtwRole|nil, string|nil)
+---@field delete_role fun(spec: { guild_id?: string|integer, role_id: string|integer }): (boolean, string|nil)
+---@field add_role fun(spec: { guild_id?: string|integer, user_id?: string|integer, role_id: string|integer }): (boolean, string|nil)
+---@field remove_role fun(spec: { guild_id?: string|integer, user_id?: string|integer, role_id: string|integer }): (boolean, string|nil)
+---@field list_messages fun(spec: { channel_id?: string|integer, around_message_id?: string|integer, before_message_id?: string|integer, after_message_id?: string|integer, limit: integer }): (MamusiaBtwMessageInfo[]|nil, string|nil)
+---@field delete_message fun(spec: { channel_id?: string|integer, message_id: string|integer }): (boolean, string|nil)
+---@field bulk_delete_messages fun(spec: { channel_id?: string|integer, message_ids: (string|integer)[] }): ({ deleted_count: integer }|nil, string|nil)
+---@field purge_messages fun(spec: { channel_id?: string|integer, mode: "all"|"before"|"after"|"around", anchor_message_id?: string|integer, count: integer }): ({ deleted_count: integer }|nil, string|nil)
+---@field create_emoji fun(spec: { guild_id?: string|integer, name: string, file: MamusiaBtwAttachmentRef }): (MamusiaBtwEmoji|nil, string|nil)
+---@field edit_emoji fun(spec: { guild_id?: string|integer, emoji: string, name: string }): (MamusiaBtwEmoji|nil, string|nil)
+---@field delete_emoji fun(spec: { guild_id?: string|integer, emoji: string }): (boolean, string|nil)
+---@field create_sticker fun(spec: { guild_id?: string|integer, name: string, description?: string, emoji_tag: string, file: MamusiaBtwAttachmentRef }): (MamusiaBtwSticker|nil, string|nil)
+---@field edit_sticker fun(spec: { guild_id?: string|integer, id: string, name: string, description?: string }): (MamusiaBtwSticker|nil, string|nil)
+---@field delete_sticker fun(spec: { guild_id?: string|integer, id: string }): (boolean, string|nil)
 
 ---@class MamusiaBtwRandomAPI
 ---@field int fun(min: integer, max: integer): integer

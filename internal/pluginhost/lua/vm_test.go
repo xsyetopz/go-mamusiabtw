@@ -77,6 +77,64 @@ func (f *fakeDiscordExecutor) SendChannel(_ context.Context, _ string, channelID
 	}, nil
 }
 
+func (f *fakeDiscordExecutor) SetSlowmode(context.Context, uint64, int) error { return nil }
+
+func (f *fakeDiscordExecutor) SetNickname(context.Context, uint64, uint64, *string) error { return nil }
+
+func (f *fakeDiscordExecutor) CreateRole(context.Context, luaplugin.RoleCreateSpec) (luaplugin.RoleResult, error) {
+	return luaplugin.RoleResult{}, nil
+}
+
+func (f *fakeDiscordExecutor) EditRole(context.Context, luaplugin.RoleEditSpec) (luaplugin.RoleResult, error) {
+	return luaplugin.RoleResult{}, nil
+}
+
+func (f *fakeDiscordExecutor) DeleteRole(context.Context, uint64, uint64) error { return nil }
+
+func (f *fakeDiscordExecutor) AddRole(context.Context, luaplugin.RoleMemberSpec) error { return nil }
+
+func (f *fakeDiscordExecutor) RemoveRole(context.Context, luaplugin.RoleMemberSpec) error { return nil }
+
+func (f *fakeDiscordExecutor) ListMessages(context.Context, luaplugin.MessageListSpec) ([]luaplugin.MessageInfo, error) {
+	return nil, nil
+}
+
+func (f *fakeDiscordExecutor) DeleteMessage(context.Context, luaplugin.MessageDeleteSpec) error {
+	return nil
+}
+
+func (f *fakeDiscordExecutor) BulkDeleteMessages(context.Context, uint64, []uint64) (int, error) {
+	return 0, nil
+}
+
+func (f *fakeDiscordExecutor) PurgeMessages(context.Context, luaplugin.PurgeSpec) (int, error) {
+	return 0, nil
+}
+
+func (f *fakeDiscordExecutor) CreateEmoji(context.Context, luaplugin.EmojiCreateSpec) (luaplugin.EmojiResult, error) {
+	return luaplugin.EmojiResult{}, nil
+}
+
+func (f *fakeDiscordExecutor) EditEmoji(context.Context, luaplugin.EmojiEditSpec) (luaplugin.EmojiResult, error) {
+	return luaplugin.EmojiResult{}, nil
+}
+
+func (f *fakeDiscordExecutor) DeleteEmoji(context.Context, luaplugin.EmojiDeleteSpec) error {
+	return nil
+}
+
+func (f *fakeDiscordExecutor) CreateSticker(context.Context, luaplugin.StickerCreateSpec) (luaplugin.StickerResult, error) {
+	return luaplugin.StickerResult{}, nil
+}
+
+func (f *fakeDiscordExecutor) EditSticker(context.Context, luaplugin.StickerEditSpec) (luaplugin.StickerResult, error) {
+	return luaplugin.StickerResult{}, nil
+}
+
+func (f *fakeDiscordExecutor) DeleteSticker(context.Context, luaplugin.StickerDeleteSpec) error {
+	return nil
+}
+
 func TestDescriptorRoutesAndKV(t *testing.T) {
 	t.Parallel()
 
@@ -899,6 +957,123 @@ return bot.plugin({
 	}
 	if discordExecutor.lastUser != 42 || discordExecutor.lastChannel != 77 {
 		t.Fatalf("unexpected send targets: user=%d channel=%d", discordExecutor.lastUser, discordExecutor.lastChannel)
+	}
+}
+
+func TestManagerPluginRoutes(t *testing.T) {
+	t.Parallel()
+
+	var logs bytes.Buffer
+	logger := slog.New(slog.NewTextHandler(&logs, &slog.HandlerOptions{}))
+
+	reg, err := i18n.LoadCore(filepath.FromSlash("../../../locales"))
+	if err != nil {
+		t.Fatalf("i18n: %v", err)
+	}
+	if err = reg.LoadPluginLocales("manager", filepath.FromSlash("../../../plugins/manager/locales")); err != nil {
+		t.Fatalf("plugin i18n: %v", err)
+	}
+
+	discordExecutor := &fakeDiscordExecutor{}
+	script := filepath.FromSlash("../../../plugins/manager/plugin.lua")
+	vm, err := luaplugin.NewFromFile(script, luaplugin.Options{
+		Logger:    logger,
+		PluginID:  "manager",
+		PluginDir: filepath.Dir(script),
+		Permissions: permissions.Permissions{
+			Discord: permissions.DiscordPermissions{
+				SetSlowmode:   true,
+				SetNickname:   true,
+				CreateRole:    true,
+				EditRole:      true,
+				DeleteRole:    true,
+				AddRole:       true,
+				RemoveRole:    true,
+				PurgeMessages: true,
+				CreateEmoji:   true,
+				EditEmoji:     true,
+				DeleteEmoji:   true,
+				CreateSticker: true,
+				EditSticker:   true,
+				DeleteSticker: true,
+			},
+		},
+		Discord: discordExecutor,
+		I18n:    &reg,
+	})
+	if err != nil {
+		t.Fatalf("NewFromFile(manager): %v", err)
+	}
+	t.Cleanup(vm.Close)
+
+	definition, ok := vm.Definition()
+	if !ok {
+		t.Fatalf("expected descriptor definition")
+	}
+	if len(definition.Commands) != 6 {
+		t.Fatalf("unexpected command count: %#v", definition.Commands)
+	}
+
+	ctx := context.Background()
+
+	got, hasValue, err := vm.CallRoute(ctx, luaplugin.RouteCommand, "slowmode", luaplugin.Payload{
+		GuildID:   "1",
+		ChannelID: "9",
+		UserID:    "42",
+		Locale:    "en-US",
+		Options: map[string]any{
+			"seconds": 5,
+		},
+	})
+	if err != nil {
+		t.Fatalf("CallRoute(slowmode): %v", err)
+	}
+	if !hasValue {
+		t.Fatalf("expected slowmode value")
+	}
+
+	slowmodeMap, ok := got.(map[string]any)
+	if !ok {
+		t.Fatalf("expected slowmode object, got %T", got)
+	}
+	slowmodeEmbeds, _ := slowmodeMap["embeds"].([]any)
+	slowmodeEmbed, _ := slowmodeEmbeds[0].(map[string]any)
+	slowmodeDesc, _ := slowmodeEmbed["description"].(string)
+	if !strings.Contains(slowmodeDesc, "<#9>") || !strings.Contains(slowmodeDesc, "5s") {
+		t.Fatalf("unexpected slowmode description: %#v", slowmodeEmbed)
+	}
+
+	got, hasValue, err = vm.CallRoute(ctx, luaplugin.RouteCommand, "nick", luaplugin.Payload{
+		GuildID: "1",
+		UserID:  "42",
+		Locale:  "en-US",
+		Options: map[string]any{
+			"user":     "99",
+			"nickname": "Captain",
+			"__resolved:user": map[string]any{
+				"id":      "99",
+				"mention": "<@99>",
+				"bot":     false,
+				"system":  false,
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("CallRoute(nick): %v", err)
+	}
+	if !hasValue {
+		t.Fatalf("expected nick value")
+	}
+
+	nickMap, ok := got.(map[string]any)
+	if !ok {
+		t.Fatalf("expected nick object, got %T", got)
+	}
+	nickEmbeds, _ := nickMap["embeds"].([]any)
+	nickEmbed, _ := nickEmbeds[0].(map[string]any)
+	nickDesc, _ := nickEmbed["description"].(string)
+	if !strings.Contains(nickDesc, "<@99>") || !strings.Contains(nickDesc, "Captain") {
+		t.Fatalf("unexpected nick description: %#v", nickEmbed)
 	}
 }
 

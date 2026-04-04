@@ -42,6 +42,23 @@ type Discord interface {
 	SendDM(ctx context.Context, pluginID string, userID uint64, message any) (MessageResult, error)
 	SendChannel(ctx context.Context, pluginID string, channelID uint64, message any) (MessageResult, error)
 	TimeoutMember(ctx context.Context, guildID, userID uint64, until time.Time) error
+	SetSlowmode(ctx context.Context, channelID uint64, seconds int) error
+	SetNickname(ctx context.Context, guildID, userID uint64, nickname *string) error
+	CreateRole(ctx context.Context, spec RoleCreateSpec) (RoleResult, error)
+	EditRole(ctx context.Context, spec RoleEditSpec) (RoleResult, error)
+	DeleteRole(ctx context.Context, guildID, roleID uint64) error
+	AddRole(ctx context.Context, spec RoleMemberSpec) error
+	RemoveRole(ctx context.Context, spec RoleMemberSpec) error
+	ListMessages(ctx context.Context, spec MessageListSpec) ([]MessageInfo, error)
+	DeleteMessage(ctx context.Context, spec MessageDeleteSpec) error
+	BulkDeleteMessages(ctx context.Context, channelID uint64, messageIDs []uint64) (int, error)
+	PurgeMessages(ctx context.Context, spec PurgeSpec) (int, error)
+	CreateEmoji(ctx context.Context, spec EmojiCreateSpec) (EmojiResult, error)
+	EditEmoji(ctx context.Context, spec EmojiEditSpec) (EmojiResult, error)
+	DeleteEmoji(ctx context.Context, spec EmojiDeleteSpec) error
+	CreateSticker(ctx context.Context, spec StickerCreateSpec) (StickerResult, error)
+	EditSticker(ctx context.Context, spec StickerEditSpec) (StickerResult, error)
+	DeleteSticker(ctx context.Context, spec StickerDeleteSpec) error
 }
 
 type MessageResult struct {
@@ -359,6 +376,23 @@ func (v *VM) registerHostAPI() {
 	discordTable.RawSetString("send_dm", v.L.NewFunction(v.luaDiscordSendDM))
 	discordTable.RawSetString("send_channel", v.L.NewFunction(v.luaDiscordSendChannel))
 	discordTable.RawSetString("timeout_member", v.L.NewFunction(v.luaDiscordTimeoutMember))
+	discordTable.RawSetString("set_slowmode", v.L.NewFunction(v.luaDiscordSetSlowmode))
+	discordTable.RawSetString("set_nickname", v.L.NewFunction(v.luaDiscordSetNickname))
+	discordTable.RawSetString("create_role", v.L.NewFunction(v.luaDiscordCreateRole))
+	discordTable.RawSetString("edit_role", v.L.NewFunction(v.luaDiscordEditRole))
+	discordTable.RawSetString("delete_role", v.L.NewFunction(v.luaDiscordDeleteRole))
+	discordTable.RawSetString("add_role", v.L.NewFunction(v.luaDiscordAddRole))
+	discordTable.RawSetString("remove_role", v.L.NewFunction(v.luaDiscordRemoveRole))
+	discordTable.RawSetString("list_messages", v.L.NewFunction(v.luaDiscordListMessages))
+	discordTable.RawSetString("delete_message", v.L.NewFunction(v.luaDiscordDeleteMessage))
+	discordTable.RawSetString("bulk_delete_messages", v.L.NewFunction(v.luaDiscordBulkDeleteMessages))
+	discordTable.RawSetString("purge_messages", v.L.NewFunction(v.luaDiscordPurgeMessages))
+	discordTable.RawSetString("create_emoji", v.L.NewFunction(v.luaDiscordCreateEmoji))
+	discordTable.RawSetString("edit_emoji", v.L.NewFunction(v.luaDiscordEditEmoji))
+	discordTable.RawSetString("delete_emoji", v.L.NewFunction(v.luaDiscordDeleteEmoji))
+	discordTable.RawSetString("create_sticker", v.L.NewFunction(v.luaDiscordCreateSticker))
+	discordTable.RawSetString("edit_sticker", v.L.NewFunction(v.luaDiscordEditSticker))
+	discordTable.RawSetString("delete_sticker", v.L.NewFunction(v.luaDiscordDeleteSticker))
 
 	randomTable.RawSetString("int", v.L.NewFunction(v.luaRandomInt))
 	randomTable.RawSetString("choice", v.L.NewFunction(v.luaRandomChoice))

@@ -176,3 +176,48 @@ func TestModerationPluginLocales_OwnTheirMessages(t *testing.T) {
 		t.Fatalf("expected plugin lookup to fall back to core errors")
 	}
 }
+
+func TestManagerPluginLocales_OwnTheirMessages(t *testing.T) {
+	t.Parallel()
+
+	r, err := i18n.LoadCore(filepath.Join("..", "..", "locales"))
+	if err != nil {
+		t.Fatalf("LoadCore: %v", err)
+	}
+
+	if _, ok := r.TryLocalize(i18n.Config{Locale: "de", MessageID: "mgr.slowmode.set"}); ok {
+		t.Fatalf("expected core locales to no longer expose mgr.slowmode.set")
+	}
+
+	if loadErr := r.LoadPluginLocales("manager", filepath.Join("..", "..", "plugins", "manager", "locales")); loadErr != nil {
+		t.Fatalf("LoadPluginLocales(manager): %v", loadErr)
+	}
+
+	got, ok := r.TryLocalize(i18n.Config{
+		PluginID:     "manager",
+		Locale:       "de",
+		MessageID:    "mgr.slowmode.set",
+		TemplateData: map[string]any{"Channel": "#general", "Seconds": 5},
+	})
+	if !ok || got == "" {
+		t.Fatalf("expected plugin locale to expose mgr.slowmode.set")
+	}
+
+	desc, ok := r.TryLocalize(i18n.Config{
+		PluginID:  "manager",
+		Locale:    "de",
+		MessageID: "cmd.roles.desc",
+	})
+	if !ok || desc == "" {
+		t.Fatalf("expected plugin locale to expose cmd.roles.desc")
+	}
+
+	coreFallback, ok := r.TryLocalize(i18n.Config{
+		PluginID:  "manager",
+		Locale:    "de",
+		MessageID: "err.generic",
+	})
+	if !ok || coreFallback == "" {
+		t.Fatalf("expected plugin lookup to fall back to core errors")
+	}
+}

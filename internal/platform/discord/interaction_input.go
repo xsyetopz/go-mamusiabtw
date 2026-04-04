@@ -69,10 +69,39 @@ func pluginOptions(data discord.SlashCommandInteractionData) map[string]any {
 			}
 			continue
 		}
-		if opt.Type == discord.ApplicationCommandOptionTypeChannel ||
-			opt.Type == discord.ApplicationCommandOptionTypeRole ||
-			opt.Type == discord.ApplicationCommandOptionTypeAttachment {
+		if opt.Type == discord.ApplicationCommandOptionTypeChannel {
 			opts[name] = opt.Snowflake().String()
+			continue
+		}
+		if opt.Type == discord.ApplicationCommandOptionTypeRole {
+			opts[name] = opt.Snowflake().String()
+			role := data.Role(name)
+			opts["__resolved:"+name] = map[string]any{
+				"id":      role.ID.String(),
+				"name":    role.Name,
+				"mention": discord.RoleMention(role.ID),
+			}
+			continue
+		}
+		if opt.Type == discord.ApplicationCommandOptionTypeAttachment {
+			attachment := data.Attachment(name)
+			opts[name] = attachment.ID.String()
+			resolved := map[string]any{
+				"id":       attachment.ID.String(),
+				"filename": attachment.Filename,
+				"url":      strings.TrimSpace(attachment.URL),
+				"size":     attachment.Size,
+			}
+			if attachment.Width != nil {
+				resolved["width"] = *attachment.Width
+			}
+			if attachment.Height != nil {
+				resolved["height"] = *attachment.Height
+			}
+			if attachment.ContentType != nil && strings.TrimSpace(*attachment.ContentType) != "" {
+				resolved["content_type"] = strings.TrimSpace(*attachment.ContentType)
+			}
+			opts["__resolved:"+name] = resolved
 			continue
 		}
 	}

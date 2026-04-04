@@ -13,7 +13,24 @@
     "discord": {
       "send_channel": false,
       "send_dm": false,
-      "timeout_member": false
+      "timeout_member": false,
+      "set_slowmode": false,
+      "set_nickname": false,
+      "create_role": false,
+      "edit_role": false,
+      "delete_role": false,
+      "add_role": false,
+      "remove_role": false,
+      "list_messages": false,
+      "delete_message": false,
+      "bulk_delete_messages": false,
+      "purge_messages": false,
+      "create_emoji": false,
+      "edit_emoji": false,
+      "delete_emoji": false,
+      "create_sticker": false,
+      "edit_sticker": false,
+      "delete_sticker": false
     },
     "network": {
       "http": false
@@ -52,6 +69,27 @@
       "discord": {
         "send_dm": true,
         "timeout_member": true
+      }
+    },
+    "manager": {
+      "discord": {
+        "set_slowmode": true,
+        "set_nickname": true,
+        "create_role": true,
+        "edit_role": true,
+        "delete_role": true,
+        "add_role": true,
+        "remove_role": true,
+        "list_messages": true,
+        "delete_message": true,
+        "bulk_delete_messages": true,
+        "purge_messages": true,
+        "create_emoji": true,
+        "edit_emoji": true,
+        "delete_emoji": true,
+        "create_sticker": true,
+        "edit_sticker": true,
+        "delete_sticker": true
       }
     }
   }

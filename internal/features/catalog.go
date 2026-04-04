@@ -4,10 +4,6 @@ import (
 	cmdadmin "github.com/xsyetopz/go-mamusiabtw/internal/features/admin"
 	cmdcore "github.com/xsyetopz/go-mamusiabtw/internal/features/corecmd"
 	cmdinfo "github.com/xsyetopz/go-mamusiabtw/internal/features/info"
-	cmdmanager "github.com/xsyetopz/go-mamusiabtw/internal/features/manager"
-	cmdemojis "github.com/xsyetopz/go-mamusiabtw/internal/features/manager/emojis"
-	cmdroles "github.com/xsyetopz/go-mamusiabtw/internal/features/manager/roles"
-	cmdstickers "github.com/xsyetopz/go-mamusiabtw/internal/features/manager/stickers"
 
 	"github.com/xsyetopz/go-mamusiabtw/internal/features/commandapi"
 )
@@ -42,20 +38,6 @@ func Catalog() []ModuleDescriptor {
 			DefaultEnabled: true,
 			Toggleable:     false,
 			Commands:       cmdadmin.Commands,
-		},
-		{
-			ID:             "manager",
-			Name:           "Manager",
-			DefaultEnabled: true,
-			Toggleable:     true,
-			Commands: func() []commandapi.SlashCommand {
-				out := []commandapi.SlashCommand{}
-				out = append(out, cmdmanager.Commands()...)
-				out = append(out, cmdroles.Commands()...)
-				out = append(out, cmdemojis.Commands()...)
-				out = append(out, cmdstickers.Commands()...)
-				return out
-			},
 		},
 	}
 }

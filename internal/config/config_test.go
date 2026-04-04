@@ -179,6 +179,7 @@ func TestShippedSchemaURLs(t *testing.T) {
 		{path: "config/modules.json", key: "$schema", want: schemaBaseURL + "modules.schema.v1.json"},
 		{path: "examples/plugins/example/plugin.json", key: "$schema", want: schemaBaseURL + "plugin.schema.v1.json"},
 		{path: "plugins/fun/plugin.json", key: "$schema", want: schemaBaseURL + "plugin.schema.v1.json"},
+		{path: "plugins/manager/plugin.json", key: "$schema", want: schemaBaseURL + "plugin.schema.v1.json"},
 		{path: "plugins/moderation/plugin.json", key: "$schema", want: schemaBaseURL + "plugin.schema.v1.json"},
 		{path: "plugins/wellness/plugin.json", key: "$schema", want: schemaBaseURL + "plugin.schema.v1.json"},
 		{path: "schemas/messages.schema.v1.json", key: "$id", want: schemaBaseURL + "messages.schema.v1.json"},
@@ -264,6 +265,8 @@ func TestAuthoringAssetsLayout(t *testing.T) {
 		"examples/plugins/example/locales/en-GB/messages.json",
 		"plugins/fun/plugin.json",
 		"plugins/fun/plugin.lua",
+		"plugins/manager/plugin.json",
+		"plugins/manager/plugin.lua",
 		"plugins/moderation/plugin.json",
 		"plugins/moderation/plugin.lua",
 		"plugins/wellness/plugin.json",
@@ -299,6 +302,11 @@ func TestAuthoringAssetsLayout(t *testing.T) {
 			t.Fatalf("Stat(%q): %v", moderationLocalePath, err)
 		}
 
+		managerLocalePath := filepath.Join(repoRoot, "plugins", "manager", "locales", entry.Name(), "messages.json")
+		if _, err := os.Stat(managerLocalePath); err != nil {
+			t.Fatalf("Stat(%q): %v", managerLocalePath, err)
+		}
+
 		coreLocalePath := filepath.Join(repoRoot, "locales", entry.Name(), "messages.json")
 		coreBytes, err := os.ReadFile(coreLocalePath)
 		if err != nil {
@@ -331,6 +339,15 @@ func TestAuthoringAssetsLayout(t *testing.T) {
 				strings.HasPrefix(id, "cmd.unwarn") ||
 				strings.HasPrefix(id, "mod.") {
 				t.Fatalf("core locale %q still contains migrated moderation id %q", coreLocalePath, id)
+			}
+			if strings.HasPrefix(id, "cmd.slowmode") ||
+				strings.HasPrefix(id, "cmd.nick") ||
+				strings.HasPrefix(id, "cmd.roles") ||
+				strings.HasPrefix(id, "cmd.purge") ||
+				strings.HasPrefix(id, "cmd.emojis") ||
+				strings.HasPrefix(id, "cmd.stickers") ||
+				strings.HasPrefix(id, "mgr.") {
+				t.Fatalf("core locale %q still contains migrated manager id %q", coreLocalePath, id)
 			}
 		}
 	}
