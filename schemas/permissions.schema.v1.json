@@ -59,6 +59,24 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
+            "get_self_user": {
+              "type": "boolean"
+            },
+            "get_user": {
+              "type": "boolean"
+            },
+            "get_member": {
+              "type": "boolean"
+            },
+            "get_guild": {
+              "type": "boolean"
+            },
+            "get_role": {
+              "type": "boolean"
+            },
+            "get_channel": {
+              "type": "boolean"
+            },
             "send_channel": {
               "type": "boolean"
             },

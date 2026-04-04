@@ -31,6 +31,12 @@ type StoragePermissions struct {
 }
 
 type DiscordPermissions struct {
+	GetSelfUser        bool `json:"get_self_user"`
+	GetUser            bool `json:"get_user"`
+	GetMember          bool `json:"get_member"`
+	GetGuild           bool `json:"get_guild"`
+	GetRole            bool `json:"get_role"`
+	GetChannel         bool `json:"get_channel"`
 	SendChannel        bool `json:"send_channel"`
 	SendDM             bool `json:"send_dm"`
 	TimeoutMember      bool `json:"timeout_member"`
@@ -126,6 +132,12 @@ func Effective(requested, granted Permissions) Permissions {
 			Audit:        requested.Storage.Audit && granted.Storage.Audit,
 		},
 		Discord: DiscordPermissions{
+			GetSelfUser:        requested.Discord.GetSelfUser && granted.Discord.GetSelfUser,
+			GetUser:            requested.Discord.GetUser && granted.Discord.GetUser,
+			GetMember:          requested.Discord.GetMember && granted.Discord.GetMember,
+			GetGuild:           requested.Discord.GetGuild && granted.Discord.GetGuild,
+			GetRole:            requested.Discord.GetRole && granted.Discord.GetRole,
+			GetChannel:         requested.Discord.GetChannel && granted.Discord.GetChannel,
 			SendChannel:        requested.Discord.SendChannel && granted.Discord.SendChannel,
 			SendDM:             requested.Discord.SendDM && granted.Discord.SendDM,
 			TimeoutMember:      requested.Discord.TimeoutMember && granted.Discord.TimeoutMember,
@@ -171,6 +183,12 @@ func merge(base, override Permissions) Permissions {
 	out.Storage.Warnings = out.Storage.Warnings || override.Storage.Warnings
 	out.Storage.Audit = out.Storage.Audit || override.Storage.Audit
 	out.Discord.SendChannel = out.Discord.SendChannel || override.Discord.SendChannel
+	out.Discord.GetSelfUser = out.Discord.GetSelfUser || override.Discord.GetSelfUser
+	out.Discord.GetUser = out.Discord.GetUser || override.Discord.GetUser
+	out.Discord.GetMember = out.Discord.GetMember || override.Discord.GetMember
+	out.Discord.GetGuild = out.Discord.GetGuild || override.Discord.GetGuild
+	out.Discord.GetRole = out.Discord.GetRole || override.Discord.GetRole
+	out.Discord.GetChannel = out.Discord.GetChannel || override.Discord.GetChannel
 	out.Discord.SendDM = out.Discord.SendDM || override.Discord.SendDM
 	out.Discord.TimeoutMember = out.Discord.TimeoutMember || override.Discord.TimeoutMember
 	out.Discord.SetSlowmode = out.Discord.SetSlowmode || override.Discord.SetSlowmode

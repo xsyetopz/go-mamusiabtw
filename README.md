@@ -32,20 +32,23 @@ The bot also supports runtime module toggles from `config/modules.json`, with of
 
 - `/ping`
 - `/help`
-- `/about`
-- `/lookup user|guild|role|channel`
-- `/warn` and `/unwarn` (interactive select-menu)
 - `/block` and `/unblock` (owner-only; owner IDs via `OWNER_USER_IDS`)
-- Wellness: `/timezone`, `/checkin`, `/remind`
-- Manager: `/slowmode`, `/nick`, `/purge`, `/roles`, `/emojis`, `/stickers`
+- `/plugins`
+- `/modules`
 
-Optional first-party plugins now live in `plugins/` too. The shipped `fun` plugin provides `/flip`, `/roll`, `/8ball`, `/hug`, `/pat`, `/poke`, and `/shrug` once enabled.
+Optional first-party plugins now live in `plugins/` too:
+
+- `info`: `/about`, `/lookup user|guild|role|channel`
+- `fun`: `/flip`, `/roll`, `/8ball`, `/hug`, `/pat`, `/poke`, `/shrug`
+- `wellness`: `/timezone`, `/checkin`, `/remind`
+- `moderation`: `/warn`, `/unwarn`
+- `manager`: `/slowmode`, `/nick`, `/purge`, `/roles`, `/emojis`, `/stickers`
 
 ## Modules
 
 mamusiabtw now treats built-ins and plugins as modules:
 
-- required core built-ins stay available even if optional modules are disabled
+- required core/admin built-ins stay available even if optional modules are disabled
 - official first-party plugins live in `plugins/` beside user-made plugins
 - official vs user plugin classification is host-owned, not self-declared by a manifest field
 - owner-only `/modules` lets you list, inspect, enable, disable, reset, and reload modules

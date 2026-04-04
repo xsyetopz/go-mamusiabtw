@@ -3,7 +3,6 @@ package features
 import (
 	cmdadmin "github.com/xsyetopz/go-mamusiabtw/internal/features/admin"
 	cmdcore "github.com/xsyetopz/go-mamusiabtw/internal/features/corecmd"
-	cmdinfo "github.com/xsyetopz/go-mamusiabtw/internal/features/info"
 
 	"github.com/xsyetopz/go-mamusiabtw/internal/features/commandapi"
 )
@@ -24,13 +23,6 @@ func Catalog() []ModuleDescriptor {
 			DefaultEnabled: true,
 			Toggleable:     false,
 			Commands:       cmdcore.Commands,
-		},
-		{
-			ID:             "info",
-			Name:           "Info",
-			DefaultEnabled: true,
-			Toggleable:     false,
-			Commands:       cmdinfo.Commands,
 		},
 		{
 			ID:             "admin",

@@ -6,6 +6,9 @@
     "user_enabled": true
   },
   "modules": {
+    "info": {
+      "enabled": true
+    },
     "fun": {
       "enabled": false
     },

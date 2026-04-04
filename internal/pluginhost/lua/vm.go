@@ -32,13 +32,24 @@ type Options struct {
 	PluginDir   string
 	Permissions permissions.Permissions
 
-	Discord    Discord
-	Store      Store
-	I18n       *i18n.Registry
-	HTTPClient *http.Client
+	Discord     Discord
+	Interaction Interaction
+	Store       Store
+	I18n        *i18n.Registry
+	HTTPClient  *http.Client
+}
+
+type Interaction interface {
+	Defer(ephemeral bool) error
 }
 
 type Discord interface {
+	SelfUser(ctx context.Context) (UserResult, error)
+	GetUser(ctx context.Context, userID uint64) (UserResult, error)
+	GetMember(ctx context.Context, guildID, userID uint64) (MemberResult, error)
+	GetGuild(ctx context.Context, guildID uint64) (GuildResult, error)
+	GetRole(ctx context.Context, guildID, roleID uint64) (RoleResult, error)
+	GetChannel(ctx context.Context, channelID uint64) (ChannelResult, error)
 	SendDM(ctx context.Context, pluginID string, userID uint64, message any) (MessageResult, error)
 	SendChannel(ctx context.Context, pluginID string, channelID uint64, message any) (MessageResult, error)
 	TimeoutMember(ctx context.Context, guildID, userID uint64, until time.Time) error
@@ -77,24 +88,26 @@ type Store interface {
 }
 
 type Payload struct {
-	GuildID   string
-	ChannelID string
-	UserID    string
-	Locale    string
-	Options   map[string]any
+	GuildID     string
+	ChannelID   string
+	UserID      string
+	Locale      string
+	Options     map[string]any
+	Interaction Interaction
 }
 
 type VM struct {
 	mu sync.Mutex
 
-	logger  *slog.Logger
-	plugin  string
-	dir     string
-	perms   permissions.Permissions
-	discord Discord
-	store   Store
-	i18n    *i18n.Registry
-	http    *http.Client
+	logger      *slog.Logger
+	plugin      string
+	dir         string
+	perms       permissions.Permissions
+	discord     Discord
+	interaction Interaction
+	store       Store
+	i18n        *i18n.Registry
+	http        *http.Client
 
 	L *lua.LState
 
@@ -106,6 +119,8 @@ type VM struct {
 	userID  uint64
 	guildID uint64
 	channel uint64
+
+	routeDeferred bool
 }
 
 func NewFromFile(fileName string, opts Options) (*VM, error) {
@@ -138,6 +153,7 @@ func NewFromFile(fileName string, opts Options) (*VM, error) {
 		dir:         opts.PluginDir,
 		perms:       opts.Permissions,
 		discord:     opts.Discord,
+		interaction: opts.Interaction,
 		store:       opts.Store,
 		i18n:        opts.I18n,
 		http:        pluginHTTPClient(opts.HTTPClient),
@@ -307,6 +323,7 @@ func (v *VM) registerHostAPI() {
 	logTable := v.L.NewTable()
 	i18nTable := v.L.NewTable()
 	storeTable := v.L.NewTable()
+	runtimeTable := v.L.NewTable()
 	userSettingsTable := v.L.NewTable()
 	checkInsTable := v.L.NewTable()
 	remindersTable := v.L.NewTable()
@@ -361,6 +378,7 @@ func (v *VM) registerHostAPI() {
 	optionTable.RawSetString("attachment", v.L.NewFunction(v.luaAttachmentOption))
 
 	uiTable.RawSetString("reply", v.L.NewFunction(v.luaReply))
+	uiTable.RawSetString("defer", v.L.NewFunction(v.luaDefer))
 	uiTable.RawSetString("update", v.L.NewFunction(v.luaUpdate))
 	uiTable.RawSetString("modal", v.L.NewFunction(v.luaModal))
 	uiTable.RawSetString("present", v.L.NewFunction(v.luaPresent))
@@ -375,6 +393,12 @@ func (v *VM) registerHostAPI() {
 
 	discordTable.RawSetString("send_dm", v.L.NewFunction(v.luaDiscordSendDM))
 	discordTable.RawSetString("send_channel", v.L.NewFunction(v.luaDiscordSendChannel))
+	discordTable.RawSetString("self_user", v.L.NewFunction(v.luaDiscordSelfUser))
+	discordTable.RawSetString("get_user", v.L.NewFunction(v.luaDiscordGetUser))
+	discordTable.RawSetString("get_member", v.L.NewFunction(v.luaDiscordGetMember))
+	discordTable.RawSetString("get_guild", v.L.NewFunction(v.luaDiscordGetGuild))
+	discordTable.RawSetString("get_role", v.L.NewFunction(v.luaDiscordGetRole))
+	discordTable.RawSetString("get_channel", v.L.NewFunction(v.luaDiscordGetChannel))
 	discordTable.RawSetString("timeout_member", v.L.NewFunction(v.luaDiscordTimeoutMember))
 	discordTable.RawSetString("set_slowmode", v.L.NewFunction(v.luaDiscordSetSlowmode))
 	discordTable.RawSetString("set_nickname", v.L.NewFunction(v.luaDiscordSetNickname))
@@ -398,6 +422,7 @@ func (v *VM) registerHostAPI() {
 	randomTable.RawSetString("choice", v.L.NewFunction(v.luaRandomChoice))
 
 	timeTable.RawSetString("unix", v.L.NewFunction(v.luaTimeUnix))
+	runtimeTable.RawSetString("build_info", v.L.NewFunction(v.luaRuntimeBuildInfo))
 
 	httpTable.RawSetString("get", v.L.NewFunction(v.luaHTTPGet))
 	httpTable.RawSetString("get_json", v.L.NewFunction(v.luaHTTPGetJSON))
@@ -405,6 +430,7 @@ func (v *VM) registerHostAPI() {
 	bot.RawSetString("log", logTable)
 	bot.RawSetString("i18n", i18nTable)
 	bot.RawSetString("store", storeTable)
+	bot.RawSetString("runtime", runtimeTable)
 	bot.RawSetString("usersettings", userSettingsTable)
 	bot.RawSetString("checkins", checkInsTable)
 	bot.RawSetString("reminders", remindersTable)

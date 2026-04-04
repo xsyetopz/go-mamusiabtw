@@ -23,6 +23,7 @@ const (
 
 var officialPluginCatalog = map[string]string{
 	"fun":        "Fun",
+	"info":       "Info",
 	"wellness":   "Wellness",
 	"moderation": "Moderation",
 	"manager":    "Manager",

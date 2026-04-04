@@ -57,6 +57,12 @@ type Store interface {
 }
 
 type Discord interface {
+	SelfUser(ctx context.Context) (luaplugin.UserResult, error)
+	GetUser(ctx context.Context, userID uint64) (luaplugin.UserResult, error)
+	GetMember(ctx context.Context, guildID, userID uint64) (luaplugin.MemberResult, error)
+	GetGuild(ctx context.Context, guildID uint64) (luaplugin.GuildResult, error)
+	GetRole(ctx context.Context, guildID, roleID uint64) (luaplugin.RoleResult, error)
+	GetChannel(ctx context.Context, channelID uint64) (luaplugin.ChannelResult, error)
 	SendDM(ctx context.Context, pluginID string, userID uint64, message any) (luaplugin.MessageResult, error)
 	SendChannel(ctx context.Context, pluginID string, channelID uint64, message any) (luaplugin.MessageResult, error)
 	TimeoutMember(ctx context.Context, guildID, userID uint64, until time.Time) error
@@ -117,11 +123,12 @@ type PluginJob struct {
 }
 
 type Payload struct {
-	GuildID   string
-	ChannelID string
-	UserID    string
-	Locale    string
-	Options   map[string]any
+	GuildID     string
+	ChannelID   string
+	UserID      string
+	Locale      string
+	Options     map[string]any
+	Interaction luaplugin.Interaction
 }
 
 func NewHost(opts Options) (*Host, error) {
@@ -548,11 +555,12 @@ func (m *Host) HandleSlash(ctx context.Context, cmdName string, payload Payload)
 	)
 	if pl.VM.HasDefinition() {
 		res, hasValue, err = pl.VM.CallRoute(ctx, luaplugin.RouteCommand, cmdName, luaplugin.Payload{
-			GuildID:   payload.GuildID,
-			ChannelID: payload.ChannelID,
-			UserID:    payload.UserID,
-			Locale:    payload.Locale,
-			Options:   payload.Options,
+			GuildID:     payload.GuildID,
+			ChannelID:   payload.ChannelID,
+			UserID:      payload.UserID,
+			Locale:      payload.Locale,
+			Options:     payload.Options,
+			Interaction: payload.Interaction,
 		})
 	} else {
 		res, hasValue, err = pl.VM.CallHandle(ctx, "Handle", cmdName, luaplugin.Payload{

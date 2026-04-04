@@ -73,9 +73,39 @@ func (v *VM) luaReply(l *lua.LState) int {
 	return 1
 }
 
+func (v *VM) luaDefer(l *lua.LState) int {
+	spec := l.OptTable(1, l.NewTable())
+	ephemeral := true
+	if value := spec.RawGetString("ephemeral"); value != lua.LNil {
+		ephemeral = luaBoolValue(value, true)
+	}
+	if v.interaction == nil {
+		return pushDiscordBoolResult(l, false, "interaction unavailable")
+	}
+	if v.routeDeferred {
+		return pushDiscordBoolResult(l, true, "")
+	}
+	if err := v.interaction.Defer(ephemeral); err != nil {
+		return pushDiscordBoolResult(l, false, err.Error())
+	}
+	v.routeDeferred = true
+	return pushDiscordBoolResult(l, true, "")
+}
+
+func luaBoolValue(value lua.LValue, fallback bool) bool {
+	boolean, ok := value.(lua.LBool)
+	if !ok {
+		return fallback
+	}
+	return bool(boolean)
+}
+
 func (v *VM) luaUpdate(l *lua.LState) int {
 	spec := copyLuaTable(l, l.CheckTable(1))
 	spec.RawSetString("type", lua.LString("update"))
+	if v.routeDeferred {
+		spec.RawSetString("__deferred", lua.LTrue)
+	}
 	l.Push(spec)
 	return 1
 }

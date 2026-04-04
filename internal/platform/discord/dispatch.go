@@ -166,12 +166,14 @@ func (b *Bot) handlePluginSlash(
 		return
 	}
 
+	interaction := &pluginSlashInteraction{event: e}
 	res, defaultEphemeral, pluginID, err := route.host.HandleSlash(ctx, cmdName, pluginhost.Payload{
-		GuildID:   snowflakePtrToString(e.GuildID()),
-		ChannelID: e.Channel().ID().String(),
-		UserID:    e.User().ID.String(),
-		Locale:    locale.Code(),
-		Options:   pluginOptions(data),
+		GuildID:     snowflakePtrToString(e.GuildID()),
+		ChannelID:   e.Channel().ID().String(),
+		UserID:      e.User().ID.String(),
+		Locale:      locale.Code(),
+		Options:     pluginOptions(data),
+		Interaction: interaction,
 	})
 	if err != nil {
 		b.logger.ErrorContext(
@@ -180,7 +182,7 @@ func (b *Bot) handlePluginSlash(
 			slog.String("cmd", cmdName),
 			slog.String("err", err.Error()),
 		)
-		_ = e.CreateMessage(interactions.NoticeMessage(present.KindError, "", t.S("err.generic", nil), true))
+		b.respondPluginSlashError(e, t, interaction)
 		return
 	}
 
@@ -192,11 +194,29 @@ func (b *Bot) handlePluginSlash(
 			slog.String("cmd", cmdName),
 			slog.String("err", err.Error()),
 		)
-		_ = e.CreateMessage(b.pluginResponseErrorMessage(t, err))
+		b.respondPluginSlashError(e, t, interaction)
 		return
 	}
 
 	b.executePluginActionFromSlash(e, t, action)
+}
+
+func (b *Bot) respondPluginSlashError(
+	e *events.ApplicationCommandInteractionCreate,
+	t commandapi.Translator,
+	interaction *pluginSlashInteraction,
+) {
+	if interaction != nil && interaction.Deferred() {
+		content := t.S("err.generic", nil)
+		_ = interactions.SlashUpdateInteractionResponse{Update: discord.MessageUpdate{
+			Content:         &content,
+			AllowedMentions: &discord.AllowedMentions{},
+			Embeds:          &[]discord.Embed{},
+		}}.Execute(e)
+		return
+	}
+
+	_ = e.CreateMessage(interactions.NoticeMessage(present.KindError, "", t.S("err.generic", nil), true))
 }
 
 func (b *Bot) executePluginActionFromSlash(
@@ -210,7 +230,7 @@ func (b *Bot) executePluginActionFromSlash(
 	case pluginActionModal:
 		_ = e.Modal(action.Modal)
 	case pluginActionUpdate:
-		_ = e.CreateMessage(interactions.NoticeMessage(present.KindError, "", t.S("err.generic", nil), true))
+		_ = interactions.SlashUpdateInteractionResponse{Update: action.Update}.Execute(e)
 	case pluginActionMessage:
 		_ = e.CreateMessage(action.Create)
 	default:

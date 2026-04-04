@@ -11,6 +11,12 @@
       "audit": false
     },
     "discord": {
+      "get_self_user": false,
+      "get_user": false,
+      "get_member": false,
+      "get_guild": false,
+      "get_role": false,
+      "get_channel": false,
       "send_channel": false,
       "send_dm": false,
       "timeout_member": false,
@@ -69,6 +75,14 @@
       "discord": {
         "send_dm": true,
         "timeout_member": true
+      }
+    },
+    "info": {
+      "discord": {
+        "get_self_user": true,
+        "get_user": true,
+        "get_member": true,
+        "get_guild": true
       }
     },
     "manager": {

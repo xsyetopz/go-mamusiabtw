@@ -490,9 +490,14 @@ func roleResult(role discord.Role) pluginhostlua.RoleResult {
 	return pluginhostlua.RoleResult{
 		ID:          uint64(role.ID),
 		Name:        role.Name,
+		Mention:     discord.RoleMention(role.ID),
 		Color:       role.Color,
 		Hoist:       role.Hoist,
 		Mentionable: role.Mentionable,
+		Position:    role.Position,
+		Managed:     role.Managed,
+		Permissions: int64(role.Permissions),
+		CreatedAt:   role.CreatedAt().UTC().Unix(),
 	}
 }
 

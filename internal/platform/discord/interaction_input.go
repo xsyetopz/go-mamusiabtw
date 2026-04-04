@@ -71,15 +71,35 @@ func pluginOptions(data discord.SlashCommandInteractionData) map[string]any {
 		}
 		if opt.Type == discord.ApplicationCommandOptionTypeChannel {
 			opts[name] = opt.Snowflake().String()
+			channel := data.Channel(name)
+			resolved := map[string]any{
+				"id":          channel.ID.String(),
+				"name":        channel.Name,
+				"mention":     discord.ChannelMention(channel.ID),
+				"type":        pluginChannelTypeName(channel.Type),
+				"permissions": channel.Permissions.String(),
+				"created_at":  channel.ID.Time().UTC().Unix(),
+			}
+			if channel.ParentID != 0 {
+				resolved["parent_id"] = channel.ParentID.String()
+			}
+			opts["__resolved:"+name] = resolved
 			continue
 		}
 		if opt.Type == discord.ApplicationCommandOptionTypeRole {
 			opts[name] = opt.Snowflake().String()
 			role := data.Role(name)
 			opts["__resolved:"+name] = map[string]any{
-				"id":      role.ID.String(),
-				"name":    role.Name,
-				"mention": discord.RoleMention(role.ID),
+				"id":          role.ID.String(),
+				"name":        role.Name,
+				"mention":     discord.RoleMention(role.ID),
+				"color":       role.Color,
+				"hoist":       role.Hoist,
+				"mentionable": role.Mentionable,
+				"managed":     role.Managed,
+				"position":    role.Position,
+				"permissions": role.Permissions.String(),
+				"created_at":  role.CreatedAt().UTC().Unix(),
 			}
 			continue
 		}

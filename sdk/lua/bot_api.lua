@@ -143,7 +143,9 @@
 ---@field url? string
 ---@field color? integer
 ---@field image_url? string
----@field footer? string
+---@field thumbnail_url? string
+---@field footer? string|{ text: string, icon_url?: string }
+---@field author? { name: string, url?: string, icon_url?: string }
 ---@field fields? MamusiaBtwEmbedField[]
 
 ---@class MamusiaBtwModalField
@@ -254,6 +256,7 @@
 
 ---@class MamusiaBtwUIAPI
 ---@field reply fun(spec: table): MamusiaBtwMessageResponse
+---@field defer fun(spec?: { ephemeral?: boolean }): (boolean, string|nil)
 ---@field update fun(spec: table): MamusiaBtwMessageResponse
 ---@field modal fun(id: string, spec: table): MamusiaBtwModalResponse
 ---@field present fun(spec: table): MamusiaBtwMessageResponse
@@ -280,6 +283,53 @@
 ---@field color integer
 ---@field hoist boolean
 ---@field mentionable boolean
+---@field position integer
+---@field managed boolean
+---@field permissions integer
+---@field created_at integer
+
+---@class MamusiaBtwUser
+---@field id string|integer
+---@field username string
+---@field display_name string
+---@field mention string
+---@field bot boolean
+---@field system boolean
+---@field accent_color integer
+---@field avatar_url string
+---@field banner_url string
+---@field created_at integer
+
+---@class MamusiaBtwMember
+---@field user_id string|integer
+---@field guild_id string|integer
+---@field joined_at integer
+---@field role_ids (string|integer)[]
+---@field avatar_url string
+---@field banner_url string
+
+---@class MamusiaBtwGuild
+---@field id string|integer
+---@field name string
+---@field description string
+---@field owner_id string|integer
+---@field roles_count integer
+---@field emojis_count integer
+---@field stickers_count integer
+---@field member_count integer
+---@field channels_count integer
+---@field icon_url string
+---@field banner_url string
+---@field created_at integer
+
+---@class MamusiaBtwChannel
+---@field id string|integer
+---@field name string
+---@field mention string
+---@field type string
+---@field parent_id? string|integer
+---@field permissions integer
+---@field created_at integer
 
 ---@class MamusiaBtwMessageInfo
 ---@field id string|integer
@@ -297,6 +347,12 @@
 ---@field name string
 
 ---@class MamusiaBtwDiscordAPI
+---@field self_user fun(): (MamusiaBtwUser|nil, string|nil)
+---@field get_user fun(spec?: { user_id?: string|integer }): (MamusiaBtwUser|nil, string|nil)
+---@field get_member fun(spec?: { guild_id?: string|integer, user_id?: string|integer }): (MamusiaBtwMember|nil, string|nil)
+---@field get_guild fun(spec?: { guild_id?: string|integer }): (MamusiaBtwGuild|nil, string|nil)
+---@field get_role fun(spec: { guild_id?: string|integer, role_id: string|integer }): (MamusiaBtwRole|nil, string|nil)
+---@field get_channel fun(spec?: { channel_id?: string|integer }): (MamusiaBtwChannel|nil, string|nil)
 ---@field send_dm fun(spec: { user_id?: string, message: MamusiaBtwResponse|string }): (MamusiaBtwDiscordSendResult|nil, string|nil)
 ---@field send_channel fun(spec: { channel_id?: string, message: MamusiaBtwResponse|string }): (MamusiaBtwDiscordSendResult|nil, string|nil)
 ---@field timeout_member fun(spec: { guild_id?: string, user_id?: string, until_unix: integer }): (boolean, string|nil)
@@ -324,6 +380,9 @@
 
 ---@class MamusiaBtwTimeAPI
 ---@field unix fun(): integer
+
+---@class MamusiaBtwRuntimeAPI
+---@field build_info fun(): { version: string, description: string, repository: string, mascot_image_url: string, developer_url: string, support_server_url: string }
 
 ---@class MamusiaBtwHTTPResponse
 ---@field status integer
@@ -413,6 +472,7 @@
 ---@field ui MamusiaBtwUIAPI
 ---@field effects MamusiaBtwEffectsAPI
 ---@field discord MamusiaBtwDiscordAPI
+---@field runtime MamusiaBtwRuntimeAPI
 ---@field random MamusiaBtwRandomAPI
 ---@field time MamusiaBtwTimeAPI
 ---@field http MamusiaBtwHTTPAPI

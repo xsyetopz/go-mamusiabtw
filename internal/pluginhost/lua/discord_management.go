@@ -10,9 +10,14 @@ import (
 type RoleResult struct {
 	ID          uint64
 	Name        string
+	Mention     string
 	Color       int
 	Hoist       bool
 	Mentionable bool
+	Position    int
+	Managed     bool
+	Permissions int64
+	CreatedAt   int64
 }
 
 type MessageInfo struct {
@@ -628,13 +633,21 @@ func pushDiscordValueResult(l *lua.LState, value any, errText string) int {
 }
 
 func roleMap(role RoleResult) map[string]any {
+	mention := role.Mention
+	if strings.TrimSpace(mention) == "" {
+		mention = "<@&" + luaUintString(role.ID) + ">"
+	}
 	return map[string]any{
-		"id":          role.ID,
+		"id":          luaUintString(role.ID),
 		"name":        role.Name,
-		"mention":     "<@&" + luaUintString(role.ID) + ">",
+		"mention":     mention,
 		"color":       role.Color,
 		"hoist":       role.Hoist,
 		"mentionable": role.Mentionable,
+		"position":    role.Position,
+		"managed":     role.Managed,
+		"permissions": strconv.FormatInt(role.Permissions, 10),
+		"created_at":  role.CreatedAt,
 	}
 }
 

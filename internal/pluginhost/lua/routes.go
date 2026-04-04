@@ -80,12 +80,16 @@ func (v *VM) CallRoute(ctx context.Context, kind RouteKind, routeID string, payl
 	v.userID = parseSnowflakeString(payload.UserID)
 	v.guildID = parseSnowflakeString(payload.GuildID)
 	v.channel = parseSnowflakeString(payload.ChannelID)
+	v.interaction = payload.Interaction
+	v.routeDeferred = false
 	defer func() {
 		v.execCtx = nil
 		v.locale = ""
 		v.userID = 0
 		v.guildID = 0
 		v.channel = 0
+		v.interaction = nil
+		v.routeDeferred = false
 	}()
 
 	ctxTable, err := v.routeContextToLua(kind, routeID, payload)

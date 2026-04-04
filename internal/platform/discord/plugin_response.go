@@ -155,7 +155,7 @@ func pluginActionFromMap(
 		msg.Flags = messageFlagsFromEphemeral(m, defaultEphemeral)
 		return pluginAction{Kind: pluginActionMessage, Create: msg}, nil
 	case "update":
-		if mode == pluginResponseSlash {
+		if mode == pluginResponseSlash && !isDeferredPluginResponse(m) {
 			return pluginAction{}, errors.New("update not supported for slash commands")
 		}
 		// On modal submit, Update is only valid if the modal was triggered from a button; disgo/discord will reject if not.
@@ -176,6 +176,11 @@ func pluginActionFromMap(
 	default:
 		return pluginAction{}, fmt.Errorf("unknown response type %q", typ)
 	}
+}
+
+func isDeferredPluginResponse(m map[string]any) bool {
+	b, ok := asBool(m, "__deferred")
+	return ok && b
 }
 
 func defaultPluginResponseType(mode pluginResponseMode) string {
@@ -322,10 +327,92 @@ func parseEmbed(raw any) (discord.Embed, error) {
 		}
 		e.Image = &discord.EmbedResource{URL: s}
 	}
-	if s, ok := asString(m, "footer"); ok {
-		e.Footer = &discord.EmbedFooter{Text: s}
+	if s, ok := asString(m, "thumbnail_url"); ok {
+		if !isHTTPSURL(s) {
+			return discord.Embed{}, errors.New("embed.thumbnail_url must be https")
+		}
+		e.Thumbnail = &discord.EmbedResource{URL: s}
+	}
+	if footerRaw, ok := m["footer"]; ok {
+		footer, err := parseEmbedFooter(footerRaw)
+		if err != nil {
+			return discord.Embed{}, err
+		}
+		e.Footer = footer
+	}
+	if authorRaw, ok := m["author"]; ok {
+		author, err := parseEmbedAuthor(authorRaw)
+		if err != nil {
+			return discord.Embed{}, err
+		}
+		e.Author = author
 	}
 	return e, nil
+}
+
+func parseEmbedFooter(raw any) (*discord.EmbedFooter, error) {
+	if raw == nil {
+		return nil, nil
+	}
+	if text, ok := raw.(string); ok {
+		text = strings.TrimSpace(text)
+		if text == "" {
+			return nil, nil
+		}
+		return &discord.EmbedFooter{Text: text}, nil
+	}
+
+	m, ok := raw.(map[string]any)
+	if !ok {
+		return nil, errors.New("embed.footer must be a string or object")
+	}
+
+	text, _ := asString(m, "text")
+	text = strings.TrimSpace(text)
+	if text == "" {
+		return nil, nil
+	}
+
+	footer := &discord.EmbedFooter{Text: text}
+	if iconURL, ok := asString(m, "icon_url"); ok {
+		if !isHTTPSURL(iconURL) {
+			return nil, errors.New("embed.footer.icon_url must be https")
+		}
+		footer.IconURL = iconURL
+	}
+	return footer, nil
+}
+
+func parseEmbedAuthor(raw any) (*discord.EmbedAuthor, error) {
+	if raw == nil {
+		return nil, nil
+	}
+
+	m, ok := raw.(map[string]any)
+	if !ok {
+		return nil, errors.New("embed.author must be an object")
+	}
+
+	name, _ := asString(m, "name")
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return nil, nil
+	}
+
+	author := &discord.EmbedAuthor{Name: name}
+	if url, ok := asString(m, "url"); ok {
+		if !isHTTPSURL(url) {
+			return nil, errors.New("embed.author.url must be https")
+		}
+		author.URL = url
+	}
+	if iconURL, ok := asString(m, "icon_url"); ok {
+		if !isHTTPSURL(iconURL) {
+			return nil, errors.New("embed.author.icon_url must be https")
+		}
+		author.IconURL = iconURL
+	}
+	return author, nil
 }
 
 func parseEmbedFields(raw any) ([]discord.EmbedField, error) {

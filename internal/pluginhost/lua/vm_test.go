@@ -28,6 +28,17 @@ func (fn roundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) 
 	return fn(req)
 }
 
+type fakeInteraction struct {
+	deferCalls    int
+	lastEphemeral bool
+}
+
+func (f *fakeInteraction) Defer(ephemeral bool) error {
+	f.deferCalls++
+	f.lastEphemeral = ephemeral
+	return nil
+}
+
 type fakeDiscordExecutor struct {
 	sendDMErr        error
 	sendChannelErr   error
@@ -40,6 +51,84 @@ type fakeDiscordExecutor struct {
 	lastUser         uint64
 	lastUntil        time.Time
 	lastMessage      any
+}
+
+func (f *fakeDiscordExecutor) SelfUser(context.Context) (luaplugin.UserResult, error) {
+	return luaplugin.UserResult{
+		ID:          999,
+		Username:    "MamusiaBtw",
+		DisplayName: "MamusiaBtw",
+		Mention:     "<@999>",
+		AvatarURL:   "https://example.com/self.png",
+		CreatedAt:   time.Unix(1_700_000_000, 0).Unix(),
+	}, nil
+}
+
+func (f *fakeDiscordExecutor) GetUser(_ context.Context, userID uint64) (luaplugin.UserResult, error) {
+	return luaplugin.UserResult{
+		ID:          userID,
+		Username:    "user" + strconv.FormatUint(userID, 10),
+		DisplayName: "Display " + strconv.FormatUint(userID, 10),
+		Mention:     "<@" + strconv.FormatUint(userID, 10) + ">",
+		AvatarURL:   "https://example.com/user.png",
+		BannerURL:   "https://example.com/banner.png",
+		CreatedAt:   time.Unix(1_700_000_100, 0).Unix(),
+	}, nil
+}
+
+func (f *fakeDiscordExecutor) GetMember(_ context.Context, guildID, userID uint64) (luaplugin.MemberResult, error) {
+	return luaplugin.MemberResult{
+		UserID:    userID,
+		GuildID:   guildID,
+		JoinedAt:  time.Unix(1_700_000_200, 0).Unix(),
+		RoleIDs:   []uint64{11, 22},
+		AvatarURL: "https://example.com/member.png",
+		BannerURL: "https://example.com/member-banner.png",
+	}, nil
+}
+
+func (f *fakeDiscordExecutor) GetGuild(context.Context, uint64) (luaplugin.GuildResult, error) {
+	return luaplugin.GuildResult{
+		ID:            777,
+		Name:          "Guild Name",
+		Description:   "Guild Description",
+		OwnerID:       888,
+		RolesCount:    5,
+		EmojisCount:   6,
+		StickersCount: 7,
+		MemberCount:   8,
+		ChannelsCount: 9,
+		IconURL:       "https://example.com/guild.png",
+		BannerURL:     "https://example.com/guild-banner.png",
+		CreatedAt:     time.Unix(1_700_000_300, 0).Unix(),
+	}, nil
+}
+
+func (f *fakeDiscordExecutor) GetRole(_ context.Context, _, roleID uint64) (luaplugin.RoleResult, error) {
+	return luaplugin.RoleResult{
+		ID:          roleID,
+		Name:        "Role " + strconv.FormatUint(roleID, 10),
+		Mention:     "<@&" + strconv.FormatUint(roleID, 10) + ">",
+		Color:       0x5865F2,
+		Hoist:       true,
+		Mentionable: true,
+		Position:    3,
+		Managed:     false,
+		Permissions: 123456,
+		CreatedAt:   time.Unix(1_700_000_400, 0).Unix(),
+	}, nil
+}
+
+func (f *fakeDiscordExecutor) GetChannel(_ context.Context, channelID uint64) (luaplugin.ChannelResult, error) {
+	return luaplugin.ChannelResult{
+		ID:          channelID,
+		Name:        "channel-" + strconv.FormatUint(channelID, 10),
+		Mention:     "<#" + strconv.FormatUint(channelID, 10) + ">",
+		Type:        "guild_text",
+		ParentID:    123,
+		Permissions: 654321,
+		CreatedAt:   time.Unix(1_700_000_500, 0).Unix(),
+	}, nil
 }
 
 func (f *fakeDiscordExecutor) TimeoutMember(_ context.Context, guildID, userID uint64, until time.Time) error {
@@ -585,6 +674,173 @@ func TestWellnessPluginRoutes(t *testing.T) {
 	}
 	if content, _ := deleteResult["content"].(string); !strings.Contains(content, "Deleted") {
 		t.Fatalf("unexpected delete component response: %#v", deleteResult)
+	}
+}
+
+func TestInfoPluginRoutes(t *testing.T) {
+	t.Parallel()
+
+	var logs bytes.Buffer
+	logger := slog.New(slog.NewTextHandler(&logs, &slog.HandlerOptions{}))
+
+	reg, err := i18n.LoadCore(filepath.FromSlash("../../../locales"))
+	if err != nil {
+		t.Fatalf("i18n: %v", err)
+	}
+	if err = reg.LoadPluginLocales("info", filepath.FromSlash("../../../plugins/info/locales")); err != nil {
+		t.Fatalf("plugin i18n: %v", err)
+	}
+
+	executor := &fakeDiscordExecutor{}
+	script := filepath.FromSlash("../../../plugins/info/plugin.lua")
+	vm, err := luaplugin.NewFromFile(script, luaplugin.Options{
+		Logger:    logger,
+		PluginID:  "info",
+		PluginDir: filepath.Dir(script),
+		Permissions: permissions.Permissions{
+			Discord: permissions.DiscordPermissions{
+				GetSelfUser: true,
+				GetUser:     true,
+				GetMember:   true,
+				GetGuild:    true,
+			},
+		},
+		Discord: executor,
+		I18n:    &reg,
+	})
+	if err != nil {
+		t.Fatalf("NewFromFile(info): %v", err)
+	}
+	t.Cleanup(vm.Close)
+
+	ctx := context.Background()
+
+	got, hasValue, err := vm.CallRoute(ctx, luaplugin.RouteCommand, "about", luaplugin.Payload{
+		UserID: "42",
+		Locale: "en-US",
+	})
+	if err != nil {
+		t.Fatalf("CallRoute(about): %v", err)
+	}
+	if !hasValue {
+		t.Fatalf("expected about value")
+	}
+	aboutMap, ok := got.(map[string]any)
+	if !ok {
+		t.Fatalf("expected about object, got %T", got)
+	}
+	aboutEmbeds, ok := aboutMap["embeds"].([]any)
+	if !ok || len(aboutEmbeds) != 1 {
+		t.Fatalf("expected about embeds, got %#v", aboutMap)
+	}
+	aboutEmbed, ok := aboutEmbeds[0].(map[string]any)
+	if !ok {
+		t.Fatalf("expected about embed object, got %#v", aboutEmbeds[0])
+	}
+	if title, _ := aboutEmbed["title"].(string); title == "" {
+		t.Fatalf("expected about title, got %#v", aboutEmbed)
+	}
+
+	interaction := &fakeInteraction{}
+	got, hasValue, err = vm.CallRoute(ctx, luaplugin.RouteCommand, "lookup", luaplugin.Payload{
+		GuildID:     "777",
+		ChannelID:   "555",
+		UserID:      "42",
+		Locale:      "en-US",
+		Interaction: interaction,
+		Options: map[string]any{
+			"__subcommand": "user",
+			"user":         "55",
+		},
+	})
+	if err != nil {
+		t.Fatalf("CallRoute(lookup user): %v", err)
+	}
+	if !hasValue {
+		t.Fatalf("expected lookup user value")
+	}
+	if interaction.deferCalls != 1 || !interaction.lastEphemeral {
+		t.Fatalf("expected deferred ephemeral lookup user interaction, got %+v", interaction)
+	}
+	userMap, ok := got.(map[string]any)
+	if !ok || userMap["type"] != "update" || userMap["__deferred"] != true {
+		t.Fatalf("expected deferred update response, got %#v", got)
+	}
+
+	interaction = &fakeInteraction{}
+	got, hasValue, err = vm.CallRoute(ctx, luaplugin.RouteCommand, "lookup", luaplugin.Payload{
+		GuildID:     "777",
+		ChannelID:   "555",
+		UserID:      "42",
+		Locale:      "en-US",
+		Interaction: interaction,
+		Options: map[string]any{
+			"__subcommand": "guild",
+		},
+	})
+	if err != nil {
+		t.Fatalf("CallRoute(lookup guild): %v", err)
+	}
+	if !hasValue {
+		t.Fatalf("expected lookup guild value")
+	}
+	if interaction.deferCalls != 1 {
+		t.Fatalf("expected lookup guild defer, got %+v", interaction)
+	}
+
+	got, hasValue, err = vm.CallRoute(ctx, luaplugin.RouteCommand, "lookup", luaplugin.Payload{
+		GuildID:   "777",
+		ChannelID: "555",
+		UserID:    "42",
+		Locale:    "en-US",
+		Options: map[string]any{
+			"__subcommand": "role",
+			"role":         "1234",
+			"__resolved:role": map[string]any{
+				"id":          "1234",
+				"name":        "Moderators",
+				"mention":     "<@&1234>",
+				"color":       0x57F287,
+				"hoist":       true,
+				"mentionable": true,
+				"managed":     false,
+				"position":    2,
+				"permissions": "123456",
+				"created_at":  time.Unix(1_700_000_600, 0).Unix(),
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("CallRoute(lookup role): %v", err)
+	}
+	if !hasValue {
+		t.Fatalf("expected lookup role value")
+	}
+
+	got, hasValue, err = vm.CallRoute(ctx, luaplugin.RouteCommand, "lookup", luaplugin.Payload{
+		GuildID:   "777",
+		ChannelID: "555",
+		UserID:    "42",
+		Locale:    "en-US",
+		Options: map[string]any{
+			"__subcommand": "channel",
+			"channel":      "555",
+			"__resolved:channel": map[string]any{
+				"id":          "555",
+				"name":        "general",
+				"mention":     "<#555>",
+				"type":        "guild_text",
+				"permissions": "654321",
+				"parent_id":   "444",
+				"created_at":  time.Unix(1_700_000_700, 0).Unix(),
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("CallRoute(lookup channel): %v", err)
+	}
+	if !hasValue {
+		t.Fatalf("expected lookup channel value")
 	}
 }
 

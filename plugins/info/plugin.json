@@ -1,0 +1,14 @@
+{
+  "$schema": "https://raw.githubusercontent.com/xsyetopz/go-mamusiabtw/refs/heads/main/schemas/plugin.schema.v1.json",
+  "id": "info",
+  "name": "Info",
+  "version": "0.1.0",
+  "permissions": {
+    "discord": {
+      "get_self_user": true,
+      "get_user": true,
+      "get_member": true,
+      "get_guild": true
+    }
+  }
+}
