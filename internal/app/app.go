@@ -120,7 +120,6 @@ func (a *App) initDiscordBot() error {
 	bot, err := discordplatform.New(discordplatform.Dependencies{
 		Logger: a.logger,
 		Token:  a.cfg.DiscordToken,
-		Kawaii: discordplatform.KawaiiConfig{Token: a.cfg.KawaiiToken},
 
 		Owners:                   a.cfg.OwnerUserID,
 		DevGuildID:               a.cfg.DevGuildID,

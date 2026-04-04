@@ -22,7 +22,10 @@ type Permissions struct {
 }
 
 type StoragePermissions struct {
-	KV bool `json:"kv"`
+	KV           bool `json:"kv"`
+	UserSettings bool `json:"user_settings"`
+	CheckIns     bool `json:"checkins"`
+	Reminders    bool `json:"reminders"`
 }
 
 type DiscordPermissions struct {
@@ -95,7 +98,10 @@ func (p Policy) Granted(pluginID string) Permissions {
 func Effective(requested, granted Permissions) Permissions {
 	return Permissions{
 		Storage: StoragePermissions{
-			KV: requested.Storage.KV && granted.Storage.KV,
+			KV:           requested.Storage.KV && granted.Storage.KV,
+			UserSettings: requested.Storage.UserSettings && granted.Storage.UserSettings,
+			CheckIns:     requested.Storage.CheckIns && granted.Storage.CheckIns,
+			Reminders:    requested.Storage.Reminders && granted.Storage.Reminders,
 		},
 		Discord: DiscordPermissions{
 			SendChannel: requested.Discord.SendChannel && granted.Discord.SendChannel,
@@ -119,6 +125,9 @@ func merge(base, override Permissions) Permissions {
 	// For v1, simple boolean OR for "grants" is sufficient.
 	out := base
 	out.Storage.KV = out.Storage.KV || override.Storage.KV
+	out.Storage.UserSettings = out.Storage.UserSettings || override.Storage.UserSettings
+	out.Storage.CheckIns = out.Storage.CheckIns || override.Storage.CheckIns
+	out.Storage.Reminders = out.Storage.Reminders || override.Storage.Reminders
 	out.Discord.SendChannel = out.Discord.SendChannel || override.Discord.SendChannel
 	out.Discord.SendDM = out.Discord.SendDM || override.Discord.SendDM
 	out.Network.HTTP = out.Network.HTTP || override.Network.HTTP

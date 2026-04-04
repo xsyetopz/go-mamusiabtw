@@ -71,6 +71,7 @@ func (b *Bot) runOneReminder(ctx context.Context, leaseID string, now time.Time,
 	t := commandapi.Translator{
 		Registry: b.i18n,
 		Locale:   reminderDefaultLocale,
+		PluginID: "wellness",
 		UserID:   r.UserID,
 	}
 

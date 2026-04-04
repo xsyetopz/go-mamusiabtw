@@ -3,7 +3,10 @@
   "version": "1",
   "defaults": {
     "storage": {
-      "kv": false
+      "kv": false,
+      "user_settings": false,
+      "checkins": false,
+      "reminders": false
     },
     "discord": {
       "send_channel": false,
@@ -29,6 +32,13 @@
     "fun": {
       "network": {
         "http": true
+      }
+    },
+    "wellness": {
+      "storage": {
+        "user_settings": true,
+        "checkins": true,
+        "reminders": true
       }
     }
   }

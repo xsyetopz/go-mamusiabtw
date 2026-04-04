@@ -126,6 +126,39 @@ func (v *VM) luaButton(l *lua.LState) int {
 	return 1
 }
 
+func (v *VM) luaStringSelectOption(l *lua.LState) int {
+	label := strings.TrimSpace(l.CheckString(1))
+	value := strings.TrimSpace(l.CheckString(2))
+	spec := l.OptTable(3, l.NewTable())
+	if label == "" {
+		l.RaiseError("string select option label is required")
+		return 0
+	}
+	if value == "" {
+		l.RaiseError("string select option value is required")
+		return 0
+	}
+
+	option := copyLuaTable(l, spec)
+	option.RawSetString("label", lua.LString(label))
+	option.RawSetString("value", lua.LString(value))
+	l.Push(option)
+	return 1
+}
+
+func (v *VM) luaStringSelect(l *lua.LState) int {
+	id := strings.TrimSpace(l.CheckString(1))
+	spec := copyLuaTable(l, l.CheckTable(2))
+	if id == "" {
+		l.RaiseError("string select id is required")
+		return 0
+	}
+	spec.RawSetString("type", lua.LString("string_select"))
+	spec.RawSetString("id", lua.LString(id))
+	l.Push(spec)
+	return 1
+}
+
 func (v *VM) luaTextInput(l *lua.LState) int {
 	id := strings.TrimSpace(l.CheckString(1))
 	spec := copyLuaTable(l, l.CheckTable(2))

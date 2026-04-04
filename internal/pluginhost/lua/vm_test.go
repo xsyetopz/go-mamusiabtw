@@ -7,6 +7,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -30,7 +31,7 @@ func TestDescriptorRoutesAndKV(t *testing.T) {
 
 	db := openTestDB(t)
 	t.Cleanup(func() { _ = db.Close() })
-	if err := initPluginKVSchema(db); err != nil {
+	if err := initSQLiteSchema(db, "../../../migrations/sqlite/001_init.sql"); err != nil {
 		t.Fatalf("init schema: %v", err)
 	}
 
@@ -67,7 +68,7 @@ func TestDescriptorRoutesAndKV(t *testing.T) {
 		Permissions: permissions.Permissions{
 			Storage: permissions.StoragePermissions{KV: true},
 		},
-		Store: store.PluginKV(),
+		Store: store,
 		I18n:  &reg,
 	})
 	if err != nil {
@@ -315,6 +316,169 @@ func TestFunPluginRoutes(t *testing.T) {
 	}
 }
 
+func TestWellnessPluginRoutes(t *testing.T) {
+	t.Parallel()
+
+	db := openTestDB(t)
+	t.Cleanup(func() { _ = db.Close() })
+	if err := initSQLiteSchema(db, "../../../migrations/sqlite/001_init.sql", "../../../migrations/sqlite/003_wellness.sql"); err != nil {
+		t.Fatalf("init schema: %v", err)
+	}
+
+	store, err := sqlitestore.New(db)
+	if err != nil {
+		t.Fatalf("store: %v", err)
+	}
+
+	var logs bytes.Buffer
+	logger := slog.New(slog.NewTextHandler(&logs, &slog.HandlerOptions{}))
+
+	reg, err := i18n.LoadCore(filepath.FromSlash("../../../locales"))
+	if err != nil {
+		t.Fatalf("i18n: %v", err)
+	}
+	if err = reg.LoadPluginLocales("wellness", filepath.FromSlash("../../../plugins/wellness/locales")); err != nil {
+		t.Fatalf("plugin i18n: %v", err)
+	}
+
+	script := filepath.FromSlash("../../../plugins/wellness/plugin.lua")
+	vm, err := luaplugin.NewFromFile(script, luaplugin.Options{
+		Logger:    logger,
+		PluginID:  "wellness",
+		PluginDir: filepath.Dir(script),
+		Permissions: permissions.Permissions{
+			Storage: permissions.StoragePermissions{
+				UserSettings: true,
+				CheckIns:     true,
+				Reminders:    true,
+			},
+		},
+		Store: store,
+		I18n:  &reg,
+	})
+	if err != nil {
+		t.Fatalf("NewFromFile(wellness): %v", err)
+	}
+	t.Cleanup(vm.Close)
+
+	ctx := context.Background()
+
+	got, hasValue, err := vm.CallRoute(ctx, luaplugin.RouteCommand, "timezone", luaplugin.Payload{
+		UserID: "42",
+		Locale: "en-US",
+		Options: map[string]any{
+			"__subcommand": "set",
+			"iana":         "Europe/Tallinn",
+		},
+	})
+	if err != nil {
+		t.Fatalf("CallRoute(timezone set): %v", err)
+	}
+	if !hasValue {
+		t.Fatalf("expected timezone response")
+	}
+	timezoneMap, ok := got.(map[string]any)
+	if !ok {
+		t.Fatalf("expected timezone object, got %T", got)
+	}
+	if content, _ := timezoneMap["content"].(string); !strings.Contains(content, "Europe/Tallinn") {
+		t.Fatalf("unexpected timezone response: %#v", timezoneMap)
+	}
+
+	got, hasValue, err = vm.CallRoute(ctx, luaplugin.RouteCommand, "checkin", luaplugin.Payload{
+		UserID: "42",
+		Locale: "en-US",
+		Options: map[string]any{
+			"mood": 5,
+		},
+	})
+	if err != nil {
+		t.Fatalf("CallRoute(checkin): %v", err)
+	}
+	if !hasValue {
+		t.Fatalf("expected checkin response")
+	}
+
+	got, hasValue, err = vm.CallRoute(ctx, luaplugin.RouteCommand, "remind", luaplugin.Payload{
+		GuildID:   "7",
+		ChannelID: "11",
+		UserID:    "42",
+		Locale:    "en-US",
+		Options: map[string]any{
+			"__subcommand": "create",
+			"schedule":     "0 9 * * *",
+			"kind":         "hydrate",
+			"delivery":     "dm",
+		},
+	})
+	if err != nil {
+		t.Fatalf("CallRoute(remind create): %v", err)
+	}
+	if !hasValue {
+		t.Fatalf("expected remind create response")
+	}
+	createMap, ok := got.(map[string]any)
+	if !ok {
+		t.Fatalf("expected remind create object, got %T", got)
+	}
+	createContent, _ := createMap["content"].(string)
+	if !strings.Contains(createContent, "hydrate") {
+		t.Fatalf("unexpected remind create response: %#v", createMap)
+	}
+
+	listed, err := store.Reminders().ListReminders(ctx, 42, 10)
+	if err != nil {
+		t.Fatalf("ListReminders: %v", err)
+	}
+	if len(listed) != 1 {
+		t.Fatalf("expected one reminder, got %d", len(listed))
+	}
+
+	got, hasValue, err = vm.CallRoute(ctx, luaplugin.RouteCommand, "remind", luaplugin.Payload{
+		UserID: "42",
+		Locale: "en-US",
+		Options: map[string]any{
+			"__subcommand": "delete",
+		},
+	})
+	if err != nil {
+		t.Fatalf("CallRoute(remind delete): %v", err)
+	}
+	if !hasValue {
+		t.Fatalf("expected remind delete prompt")
+	}
+	deleteMap, ok := got.(map[string]any)
+	if !ok {
+		t.Fatalf("expected remind delete object, got %T", got)
+	}
+	rows, _ := deleteMap["components"].([]any)
+	if len(rows) != 1 {
+		t.Fatalf("expected one component row, got %#v", deleteMap)
+	}
+
+	got, hasValue, err = vm.CallRoute(ctx, luaplugin.RouteComponent, "delete_reminder", luaplugin.Payload{
+		UserID: "42",
+		Locale: "en-US",
+		Options: map[string]any{
+			"type":   "string_select",
+			"values": []any{listed[0].ID},
+		},
+	})
+	if err != nil {
+		t.Fatalf("CallRoute(delete_reminder): %v", err)
+	}
+	if !hasValue {
+		t.Fatalf("expected delete component response")
+	}
+	deleteResult, ok := got.(map[string]any)
+	if !ok {
+		t.Fatalf("expected delete component object, got %T", got)
+	}
+	if content, _ := deleteResult["content"].(string); !strings.Contains(content, "Deleted") {
+		t.Fatalf("unexpected delete component response: %#v", deleteResult)
+	}
+}
+
 func openTestDB(t *testing.T) *sql.DB {
 	t.Helper()
 	db, err := sql.Open("sqlite3", ":memory:")
@@ -324,15 +488,16 @@ func openTestDB(t *testing.T) *sql.DB {
 	return db
 }
 
-func initPluginKVSchema(db *sql.DB) error {
-	_, err := db.Exec(`
-CREATE TABLE IF NOT EXISTS plugin_kv (
-    guild_id INTEGER NOT NULL,
-    plugin_id TEXT NOT NULL,
-    key TEXT NOT NULL,
-    value_json TEXT NOT NULL,
-    updated_at INTEGER NOT NULL,
-    PRIMARY KEY (guild_id, plugin_id, key)
-);`)
-	return err
+func initSQLiteSchema(db *sql.DB, relPaths ...string) error {
+	for _, relPath := range relPaths {
+		scriptPath := filepath.FromSlash(relPath)
+		bytes, err := os.ReadFile(scriptPath)
+		if err != nil {
+			return err
+		}
+		if _, err := db.Exec(string(bytes)); err != nil {
+			return err
+		}
+	}
+	return nil
 }

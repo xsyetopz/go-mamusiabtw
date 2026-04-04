@@ -11,7 +11,6 @@ import (
 
 type Config struct {
 	DiscordToken string
-	KawaiiToken  string
 
 	SQLitePath      string
 	Migrations      string
@@ -39,7 +38,6 @@ type Config struct {
 }
 
 const (
-	defaultKawaiiToken       = "anonymous"
 	defaultSQLitePath        = "./data/mamusiabtw.sqlite"
 	defaultMigrationsDir     = "./migrations/sqlite"
 	defaultLocalesDir        = "./locales"
@@ -60,7 +58,6 @@ func LoadFromEnv() (Config, error) {
 		return Config{}, err
 	}
 
-	kawaiiToken := envDefault("KAWAII_TOKEN", defaultKawaiiToken)
 	sqlitePath := envDefault("SQLITE_PATH", defaultSQLitePath)
 	migrations := envDefault("MIGRATIONS_DIR", defaultMigrationsDir)
 	localesDir := envDefault("LOCALES_DIR", defaultLocalesDir)
@@ -125,7 +122,6 @@ func LoadFromEnv() (Config, error) {
 
 	return Config{
 		DiscordToken:    discordToken,
-		KawaiiToken:     kawaiiToken,
 		SQLitePath:      sqlitePath,
 		Migrations:      migrations,
 		LocalesDir:      localesDir,

@@ -9,9 +9,8 @@ import (
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 
-	cmdmoderation "github.com/xsyetopz/go-mamusiabtw/internal/features/moderation"
-	cmdwellness "github.com/xsyetopz/go-mamusiabtw/internal/features/wellness"
 	"github.com/xsyetopz/go-mamusiabtw/internal/features/commandapi"
+	cmdmoderation "github.com/xsyetopz/go-mamusiabtw/internal/features/moderation"
 	"github.com/xsyetopz/go-mamusiabtw/internal/platform/discord/interactions"
 	"github.com/xsyetopz/go-mamusiabtw/internal/pluginhost"
 	"github.com/xsyetopz/go-mamusiabtw/internal/present"
@@ -235,10 +234,6 @@ func (b *Bot) onComponent(e *events.ComponentInteractionCreate) {
 		return
 	}
 
-	if b.handleRemindDeleteComponent(ctx, e, t, customID) {
-		return
-	}
-
 	b.handlePluginComponent(ctx, e, t, locale, customID)
 }
 
@@ -280,53 +275,6 @@ func (b *Bot) handleUnwarnComponent(
 
 	data := e.StringSelectMenuInteractionData()
 	action, err := cmdmoderation.HandleUnwarnSelection(ctx, e, t, b.services(locale), customID, data.Values)
-	if err != nil {
-		b.logger.ErrorContext(
-			ctx,
-			"component failed",
-			slog.String("custom_id", customID),
-			slog.String("err", err.Error()),
-		)
-		_ = e.CreateMessage(interactions.NoticeMessage(present.KindError, "", t.S("err.generic", nil), true))
-		return true
-	}
-	if action == nil {
-		_ = e.Acknowledge()
-		return true
-	}
-	if execErr := action.Execute(e); execErr != nil {
-		b.logger.ErrorContext(
-			ctx,
-			"component action failed",
-			slog.String("custom_id", customID),
-			slog.String("err", execErr.Error()),
-		)
-		_ = e.CreateMessage(interactions.NoticeMessage(present.KindError, "", t.S("err.generic", nil), true))
-	}
-	return true
-}
-
-func (b *Bot) handleRemindDeleteComponent(
-	ctx context.Context,
-	e *events.ComponentInteractionCreate,
-	t commandapi.Translator,
-	customID string,
-) bool {
-	if !strings.HasPrefix(customID, "mamusiabtw:reminddel:") {
-		return false
-	}
-	if !b.moduleEnabled("wellness") {
-		_ = e.Acknowledge()
-		return true
-	}
-
-	if b.store == nil {
-		_ = e.CreateMessage(interactions.NoticeMessage(present.KindError, "", t.S("err.generic", nil), true))
-		return true
-	}
-
-	data := e.StringSelectMenuInteractionData()
-	action, err := cmdwellness.HandleRemindDeleteSelection(ctx, e, t, b.store, customID, data.Values)
 	if err != nil {
 		b.logger.ErrorContext(
 			ctx,

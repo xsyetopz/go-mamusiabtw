@@ -9,7 +9,6 @@ import (
 	cmdroles "github.com/xsyetopz/go-mamusiabtw/internal/features/manager/roles"
 	cmdstickers "github.com/xsyetopz/go-mamusiabtw/internal/features/manager/stickers"
 	cmdmoderation "github.com/xsyetopz/go-mamusiabtw/internal/features/moderation"
-	cmdwellness "github.com/xsyetopz/go-mamusiabtw/internal/features/wellness"
 
 	"github.com/xsyetopz/go-mamusiabtw/internal/features/commandapi"
 )
@@ -65,13 +64,6 @@ func Catalog() []ModuleDescriptor {
 				out = append(out, cmdstickers.Commands()...)
 				return out
 			},
-		},
-		{
-			ID:             "wellness",
-			Name:           "Wellness",
-			DefaultEnabled: true,
-			Toggleable:     true,
-			Commands:       cmdwellness.Commands,
 		},
 	}
 }

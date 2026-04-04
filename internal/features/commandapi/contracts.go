@@ -9,10 +9,9 @@ import (
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 
-	"github.com/xsyetopz/go-mamusiabtw/internal/platform/discord/interactions"
 	"github.com/xsyetopz/go-mamusiabtw/internal/i18n"
-	"github.com/xsyetopz/go-mamusiabtw/internal/integrations/kawaii"
 	"github.com/xsyetopz/go-mamusiabtw/internal/persona"
+	"github.com/xsyetopz/go-mamusiabtw/internal/platform/discord/interactions"
 	"github.com/xsyetopz/go-mamusiabtw/internal/pluginhost"
 	"github.com/xsyetopz/go-mamusiabtw/internal/store"
 )
@@ -35,6 +34,7 @@ type Store interface {
 type Translator struct {
 	Registry i18n.Registry
 	Locale   discord.Locale
+	PluginID string
 	UserID   uint64
 }
 
@@ -44,6 +44,7 @@ func (t Translator) S(messageID string, data map[string]any) string {
 	}
 	return t.Registry.MustLocalize(i18n.Config{
 		Locale:       t.Locale.Code(),
+		PluginID:     strings.TrimSpace(t.PluginID),
 		MessageID:    messageID,
 		TemplateData: data,
 	})
@@ -104,10 +105,6 @@ func LocalizeMap(locales []string, fn func(locale string) string) map[discord.Lo
 	return out
 }
 
-type Kawaii interface {
-	FetchGIF(ctx context.Context, endpoint kawaii.Endpoint) (string, error)
-}
-
 type PluginAdmin interface {
 	Configured() bool
 	Infos() []pluginhost.PluginInfo
@@ -117,9 +114,9 @@ type PluginAdmin interface {
 type ModuleKind string
 
 const (
-	ModuleKindCoreBuiltin   ModuleKind = "core_builtin"
+	ModuleKindCoreBuiltin    ModuleKind = "core_builtin"
 	ModuleKindOfficialPlugin ModuleKind = "official_plugin"
-	ModuleKindUserPlugin    ModuleKind = "user_plugin"
+	ModuleKindUserPlugin     ModuleKind = "user_plugin"
 )
 
 type ModuleRuntime string
@@ -156,8 +153,6 @@ type Services struct {
 	ProdMode bool
 
 	IsOwner func(userID uint64) bool
-
-	Kawaii Kawaii
 
 	Plugins PluginAdmin
 	Modules ModuleAdmin

@@ -32,9 +32,16 @@ type Options struct {
 	PluginDir   string
 	Permissions permissions.Permissions
 
-	Store      store.PluginKVStore
+	Store      Store
 	I18n       *i18n.Registry
 	HTTPClient *http.Client
+}
+
+type Store interface {
+	PluginKV() store.PluginKVStore
+	UserSettings() store.UserSettingsStore
+	Reminders() store.ReminderStore
+	CheckIns() store.CheckInStore
 }
 
 type Payload struct {
@@ -52,7 +59,7 @@ type VM struct {
 	plugin string
 	dir    string
 	perms  permissions.Permissions
-	store  store.PluginKVStore
+	store  Store
 	i18n   *i18n.Registry
 	http   *http.Client
 
@@ -260,6 +267,9 @@ func (v *VM) registerHostAPI() {
 	logTable := v.L.NewTable()
 	i18nTable := v.L.NewTable()
 	storeTable := v.L.NewTable()
+	userSettingsTable := v.L.NewTable()
+	checkInsTable := v.L.NewTable()
+	remindersTable := v.L.NewTable()
 	optionTable := v.L.NewTable()
 	uiTable := v.L.NewTable()
 	effectsTable := v.L.NewTable()
@@ -276,6 +286,19 @@ func (v *VM) registerHostAPI() {
 	storeTable.RawSetString("get_json", v.L.NewFunction(v.luaKVGetJSON))
 	storeTable.RawSetString("put_json", v.L.NewFunction(v.luaKVPutJSON))
 
+	userSettingsTable.RawSetString("normalize_timezone", v.L.NewFunction(v.luaUserSettingsNormalizeTimezone))
+	userSettingsTable.RawSetString("get", v.L.NewFunction(v.luaUserSettingsGet))
+	userSettingsTable.RawSetString("set_timezone", v.L.NewFunction(v.luaUserSettingsSetTimezone))
+	userSettingsTable.RawSetString("clear_timezone", v.L.NewFunction(v.luaUserSettingsClearTimezone))
+
+	checkInsTable.RawSetString("create", v.L.NewFunction(v.luaCheckInsCreate))
+	checkInsTable.RawSetString("list", v.L.NewFunction(v.luaCheckInsList))
+
+	remindersTable.RawSetString("plan", v.L.NewFunction(v.luaRemindersPlan))
+	remindersTable.RawSetString("create", v.L.NewFunction(v.luaRemindersCreate))
+	remindersTable.RawSetString("list", v.L.NewFunction(v.luaRemindersList))
+	remindersTable.RawSetString("delete", v.L.NewFunction(v.luaRemindersDelete))
+
 	optionTable.RawSetString("string", v.L.NewFunction(v.luaStringOption))
 	optionTable.RawSetString("bool", v.L.NewFunction(v.luaBoolOption))
 	optionTable.RawSetString("int", v.L.NewFunction(v.luaIntOption))
@@ -291,6 +314,8 @@ func (v *VM) registerHostAPI() {
 	uiTable.RawSetString("modal", v.L.NewFunction(v.luaModal))
 	uiTable.RawSetString("present", v.L.NewFunction(v.luaPresent))
 	uiTable.RawSetString("button", v.L.NewFunction(v.luaButton))
+	uiTable.RawSetString("string_option", v.L.NewFunction(v.luaStringSelectOption))
+	uiTable.RawSetString("string_select", v.L.NewFunction(v.luaStringSelect))
 	uiTable.RawSetString("text_input", v.L.NewFunction(v.luaTextInput))
 
 	effectsTable.RawSetString("send_channel", v.L.NewFunction(v.luaEffectSendChannel))
@@ -305,6 +330,9 @@ func (v *VM) registerHostAPI() {
 	bot.RawSetString("log", logTable)
 	bot.RawSetString("i18n", i18nTable)
 	bot.RawSetString("store", storeTable)
+	bot.RawSetString("usersettings", userSettingsTable)
+	bot.RawSetString("checkins", checkInsTable)
+	bot.RawSetString("reminders", remindersTable)
 	bot.RawSetString("option", optionTable)
 	bot.RawSetString("ui", uiTable)
 	bot.RawSetString("effects", effectsTable)
@@ -531,7 +559,7 @@ func (v *VM) luaKVGet(l *lua.LState) int {
 		l.RaiseError("permission denied: storage.kv")
 		return 0
 	}
-	if v.store == nil {
+	if v.store == nil || v.store.PluginKV() == nil {
 		l.RaiseError("storage unavailable")
 		return 0
 	}
@@ -544,7 +572,7 @@ func (v *VM) luaKVGet(l *lua.LState) int {
 		return retPair
 	}
 
-	value, ok, err := v.store.GetPluginKV(v.ctx(), guildID, v.plugin, key)
+	value, ok, err := v.store.PluginKV().GetPluginKV(v.ctx(), guildID, v.plugin, key)
 	if err != nil {
 		l.RaiseError("storage error")
 		return 0
@@ -583,7 +611,7 @@ func (v *VM) luaKVPut(l *lua.LState) int {
 		l.RaiseError("permission denied: storage.kv")
 		return 0
 	}
-	if v.store == nil {
+	if v.store == nil || v.store.PluginKV() == nil {
 		l.RaiseError("storage unavailable")
 		return 0
 	}
@@ -612,7 +640,7 @@ func (v *VM) luaKVPut(l *lua.LState) int {
 		return 0
 	}
 
-	if putErr := v.store.PutPluginKV(v.ctx(), guildID, v.plugin, key, string(enc)); putErr != nil {
+	if putErr := v.store.PluginKV().PutPluginKV(v.ctx(), guildID, v.plugin, key, string(enc)); putErr != nil {
 		l.RaiseError("storage error")
 		return 0
 	}
@@ -631,7 +659,7 @@ func (v *VM) luaKVDel(l *lua.LState) int {
 		l.RaiseError("permission denied: storage.kv")
 		return 0
 	}
-	if v.store == nil {
+	if v.store == nil || v.store.PluginKV() == nil {
 		l.RaiseError("storage unavailable")
 		return 0
 	}
@@ -643,7 +671,7 @@ func (v *VM) luaKVDel(l *lua.LState) int {
 		return 0
 	}
 
-	if err := v.store.DeletePluginKV(v.ctx(), guildID, v.plugin, key); err != nil {
+	if err := v.store.PluginKV().DeletePluginKV(v.ctx(), guildID, v.plugin, key); err != nil {
 		l.RaiseError("storage error")
 		return 0
 	}
@@ -662,7 +690,7 @@ func (v *VM) luaKVGetJSON(l *lua.LState) int {
 		l.RaiseError("permission denied: storage.kv")
 		return 0
 	}
-	if v.store == nil {
+	if v.store == nil || v.store.PluginKV() == nil {
 		l.RaiseError("storage unavailable")
 		return 0
 	}
@@ -675,7 +703,7 @@ func (v *VM) luaKVGetJSON(l *lua.LState) int {
 		return retPair
 	}
 
-	value, ok, err := v.store.GetPluginKV(v.ctx(), guildID, v.plugin, key)
+	value, ok, err := v.store.PluginKV().GetPluginKV(v.ctx(), guildID, v.plugin, key)
 	if err != nil {
 		l.RaiseError("storage error")
 		return 0
@@ -702,7 +730,7 @@ func (v *VM) luaKVPutJSON(l *lua.LState) int {
 		l.RaiseError("permission denied: storage.kv")
 		return 0
 	}
-	if v.store == nil {
+	if v.store == nil || v.store.PluginKV() == nil {
 		l.RaiseError("storage unavailable")
 		return 0
 	}
@@ -724,7 +752,7 @@ func (v *VM) luaKVPutJSON(l *lua.LState) int {
 		return 0
 	}
 
-	if putErr := v.store.PutPluginKV(v.ctx(), guildID, v.plugin, key, value); putErr != nil {
+	if putErr := v.store.PluginKV().PutPluginKV(v.ctx(), guildID, v.plugin, key, value); putErr != nil {
 		l.RaiseError("storage error")
 		return 0
 	}

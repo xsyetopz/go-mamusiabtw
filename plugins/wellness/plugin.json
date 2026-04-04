@@ -1,0 +1,13 @@
+{
+  "$schema": "https://raw.githubusercontent.com/xsyetopz/go-mamusiabtw/refs/heads/main/schemas/plugin.schema.v1.json",
+  "id": "wellness",
+  "name": "Wellness",
+  "version": "0.1.0",
+  "permissions": {
+    "storage": {
+      "user_settings": true,
+      "checkins": true,
+      "reminders": true
+    }
+  }
+}

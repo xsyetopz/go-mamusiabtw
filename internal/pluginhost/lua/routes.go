@@ -77,9 +77,11 @@ func (v *VM) CallRoute(ctx context.Context, kind RouteKind, routeID string, payl
 
 	v.execCtx = timeoutCtx
 	v.locale = strings.TrimSpace(payload.Locale)
+	v.userID = parseSnowflakeString(payload.UserID)
 	defer func() {
 		v.execCtx = nil
 		v.locale = ""
+		v.userID = 0
 	}()
 
 	ctxTable, err := v.routeContextToLua(kind, routeID, payload)
@@ -240,7 +242,7 @@ func (v *VM) luaScopedKVGet(l *lua.LState, guildID string) int {
 		l.RaiseError("permission denied: storage.kv")
 		return 0
 	}
-	if v.store == nil {
+	if v.store == nil || v.store.PluginKV() == nil {
 		l.RaiseError("storage unavailable")
 		return 0
 	}
@@ -253,7 +255,7 @@ func (v *VM) luaScopedKVGet(l *lua.LState, guildID string) int {
 		return 2
 	}
 
-	value, ok, err := v.store.GetPluginKV(v.ctx(), guild, v.plugin, key)
+	value, ok, err := v.store.PluginKV().GetPluginKV(v.ctx(), guild, v.plugin, key)
 	if err != nil {
 		l.RaiseError("storage error")
 		return 0
@@ -285,7 +287,7 @@ func (v *VM) luaScopedKVPut(l *lua.LState, guildID string) int {
 		l.RaiseError("permission denied: storage.kv")
 		return 0
 	}
-	if v.store == nil {
+	if v.store == nil || v.store.PluginKV() == nil {
 		l.RaiseError("storage unavailable")
 		return 0
 	}
@@ -311,7 +313,7 @@ func (v *VM) luaScopedKVPut(l *lua.LState, guildID string) int {
 		l.RaiseError("value too large")
 		return 0
 	}
-	if putErr := v.store.PutPluginKV(v.ctx(), guild, v.plugin, key, string(enc)); putErr != nil {
+	if putErr := v.store.PluginKV().PutPluginKV(v.ctx(), guild, v.plugin, key, string(enc)); putErr != nil {
 		l.RaiseError("storage error")
 		return 0
 	}
@@ -325,7 +327,7 @@ func (v *VM) luaScopedKVDel(l *lua.LState, guildID string) int {
 		l.RaiseError("permission denied: storage.kv")
 		return 0
 	}
-	if v.store == nil {
+	if v.store == nil || v.store.PluginKV() == nil {
 		l.RaiseError("storage unavailable")
 		return 0
 	}
@@ -336,7 +338,7 @@ func (v *VM) luaScopedKVDel(l *lua.LState, guildID string) int {
 		l.RaiseError("invalid key")
 		return 0
 	}
-	if err := v.store.DeletePluginKV(v.ctx(), guild, v.plugin, key); err != nil {
+	if err := v.store.PluginKV().DeletePluginKV(v.ctx(), guild, v.plugin, key); err != nil {
 		l.RaiseError("storage error")
 		return 0
 	}
@@ -350,7 +352,7 @@ func (v *VM) luaScopedKVGetJSON(l *lua.LState, guildID string) int {
 		l.RaiseError("permission denied: storage.kv")
 		return 0
 	}
-	if v.store == nil {
+	if v.store == nil || v.store.PluginKV() == nil {
 		l.RaiseError("storage unavailable")
 		return 0
 	}
@@ -363,7 +365,7 @@ func (v *VM) luaScopedKVGetJSON(l *lua.LState, guildID string) int {
 		return 2
 	}
 
-	value, ok, err := v.store.GetPluginKV(v.ctx(), guild, v.plugin, key)
+	value, ok, err := v.store.PluginKV().GetPluginKV(v.ctx(), guild, v.plugin, key)
 	if err != nil {
 		l.RaiseError("storage error")
 		return 0
@@ -384,7 +386,7 @@ func (v *VM) luaScopedKVPutJSON(l *lua.LState, guildID string) int {
 		l.RaiseError("permission denied: storage.kv")
 		return 0
 	}
-	if v.store == nil {
+	if v.store == nil || v.store.PluginKV() == nil {
 		l.RaiseError("storage unavailable")
 		return 0
 	}
@@ -404,7 +406,7 @@ func (v *VM) luaScopedKVPutJSON(l *lua.LState, guildID string) int {
 		l.RaiseError("value too large")
 		return 0
 	}
-	if putErr := v.store.PutPluginKV(v.ctx(), guild, v.plugin, key, value); putErr != nil {
+	if putErr := v.store.PluginKV().PutPluginKV(v.ctx(), guild, v.plugin, key, value); putErr != nil {
 		l.RaiseError("storage error")
 		return 0
 	}

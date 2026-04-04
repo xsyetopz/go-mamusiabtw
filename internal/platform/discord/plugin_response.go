@@ -361,6 +361,9 @@ func parseEmbedFields(raw any) ([]discord.EmbedField, error) {
 }
 
 func parseMessageComponents(pluginID string, raw any) ([]discord.LayoutComponent, error) {
+	if emptyObject, isObject := raw.(map[string]any); isObject && len(emptyObject) == 0 {
+		return []discord.LayoutComponent{}, nil
+	}
 	rows, isRows := raw.([]any)
 	if !isRows {
 		return nil, errors.New("components must be an array of rows")

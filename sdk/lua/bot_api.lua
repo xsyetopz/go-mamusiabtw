@@ -247,6 +247,8 @@
 ---@field modal fun(id: string, spec: table): MamusiaBtwModalResponse
 ---@field present fun(spec: table): MamusiaBtwMessageResponse
 ---@field button fun(id: string, spec: table): MamusiaBtwButton
+---@field string_option fun(label: string, value: string, spec?: table): MamusiaBtwStringSelectOption
+---@field string_select fun(id: string, spec: table): MamusiaBtwStringSelect
 ---@field text_input fun(id: string, spec: table): MamusiaBtwModalField
 
 ---@class MamusiaBtwEffectsAPI
@@ -266,10 +268,62 @@
 ---@field get fun(spec: { url: string, headers?: table<string, string>, max_bytes?: integer }): MamusiaBtwHTTPResponse
 ---@field get_json fun(spec: { url: string, headers?: table<string, string>, max_bytes?: integer }): any
 
+---@class MamusiaBtwUserSettings
+---@field user_id integer
+---@field timezone string
+---@field dm_channel_id string
+---@field created_at integer
+---@field updated_at integer
+
+---@class MamusiaBtwUserSettingsAPI
+---@field normalize_timezone fun(timezone: string): string|nil
+---@field get fun(user_id?: string|integer): (MamusiaBtwUserSettings|nil, boolean)
+---@field set_timezone fun(user_id: string|integer, timezone: string): string
+---@field clear_timezone fun(user_id?: string|integer): boolean
+
+---@class MamusiaBtwCheckIn
+---@field id string
+---@field user_id integer
+---@field mood integer
+---@field created_at integer
+
+---@class MamusiaBtwCheckInsAPI
+---@field create fun(spec: { user_id?: string|integer, mood: integer, created_at?: integer }): MamusiaBtwCheckIn
+---@field list fun(user_id?: string|integer, limit?: integer): MamusiaBtwCheckIn[]
+
+---@class MamusiaBtwReminder
+---@field id string
+---@field user_id integer
+---@field schedule string
+---@field kind string
+---@field note string
+---@field delivery string
+---@field guild_id string
+---@field channel_id string
+---@field enabled boolean
+---@field next_run_at integer
+---@field last_run_at integer|nil
+---@field failure_count integer
+---@field created_at integer
+---@field updated_at integer
+
+---@class MamusiaBtwReminderPlan
+---@field schedule string
+---@field next_run_at integer
+
+---@class MamusiaBtwRemindersAPI
+---@field plan fun(spec: { user_id?: string|integer, schedule: string }): MamusiaBtwReminderPlan|nil
+---@field create fun(spec: { user_id?: string|integer, schedule: string, kind: string, note?: string, delivery?: string, guild_id?: string|integer, channel_id?: string|integer }): MamusiaBtwReminder|nil
+---@field list fun(user_id?: string|integer, limit?: integer): MamusiaBtwReminder[]
+---@field delete fun(user_id: string|integer, reminder_id: string): boolean
+
 ---@class MamusiaBtwAPI
 ---@field log MamusiaBtwLogAPI
 ---@field i18n MamusiaBtwI18nAPI
 ---@field store MamusiaBtwStoreAPI
+---@field usersettings MamusiaBtwUserSettingsAPI
+---@field checkins MamusiaBtwCheckInsAPI
+---@field reminders MamusiaBtwRemindersAPI
 ---@field option MamusiaBtwOptionAPI
 ---@field ui MamusiaBtwUIAPI
 ---@field effects MamusiaBtwEffectsAPI

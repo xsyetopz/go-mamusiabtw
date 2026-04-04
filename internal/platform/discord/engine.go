@@ -28,7 +28,6 @@ import (
 type Dependencies struct {
 	Logger *slog.Logger
 	Token  string
-	Kawaii KawaiiConfig
 
 	Owners                   []uint64
 	DevGuildID               *uint64
@@ -59,7 +58,6 @@ type Bot struct {
 	store  commandapi.Store
 
 	prodMode bool
-	kawaii   commandapi.Kawaii
 
 	cooldowns *cooldownTracker
 
@@ -103,11 +101,6 @@ func New(deps Dependencies) (*Bot, error) {
 		return nil, err
 	}
 
-	kc, err := newKawaiiClient(deps.Kawaii)
-	if err != nil {
-		return nil, err
-	}
-
 	commandRegistrationMode, err := normalizeCommandRegistrationMode(deps.CommandRegistrationMode)
 	if err != nil {
 		return nil, err
@@ -123,7 +116,6 @@ func New(deps Dependencies) (*Bot, error) {
 		i18n:       deps.I18n,
 		store:      deps.Store,
 		prodMode:   deps.ProdMode,
-		kawaii:     kc,
 		devGuildID: deps.DevGuildID,
 		owners:     toSet(deps.Owners),
 		cooldowns:  newCooldownTracker(),
@@ -307,7 +299,6 @@ func (b *Bot) services(_ discord.Locale) commandapi.Services {
 		Store:    b.store,
 		ProdMode: b.prodMode,
 		IsOwner:  b.isOwner,
-		Kawaii:   b.kawaii,
 		HelpNames: func(locale discord.Locale) []string {
 			t := commandapi.Translator{Registry: b.i18n, Locale: locale}
 			out := make([]string, 0, len(b.order)+len(b.pluginCommands))

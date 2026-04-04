@@ -47,3 +47,87 @@ func TestLoadPluginLocales_OnlyLoadsSupportedDiscordLocales(t *testing.T) {
 		t.Fatalf("expected unsupported locale folder to be ignored")
 	}
 }
+
+func TestFunPluginLocales_OwnTheirMessages(t *testing.T) {
+	t.Parallel()
+
+	r, err := i18n.LoadCore(filepath.Join("..", "..", "locales"))
+	if err != nil {
+		t.Fatalf("LoadCore: %v", err)
+	}
+
+	if _, ok := r.TryLocalize(i18n.Config{Locale: "de", MessageID: "fun.flip.result"}); ok {
+		t.Fatalf("expected core locales to no longer expose fun.flip.result")
+	}
+
+	if loadErr := r.LoadPluginLocales("fun", filepath.Join("..", "..", "plugins", "fun", "locales")); loadErr != nil {
+		t.Fatalf("LoadPluginLocales(fun): %v", loadErr)
+	}
+
+	got, ok := r.TryLocalize(i18n.Config{
+		PluginID:     "fun",
+		Locale:       "de",
+		MessageID:    "fun.flip.result",
+		TemplateData: map[string]any{"Pet": "pet", "User": "@user", "Result": "heads"},
+	})
+	if !ok {
+		t.Fatalf("expected plugin locale to expose fun.flip.result")
+	}
+	if got == "" {
+		t.Fatalf("expected localized fun.flip.result content")
+	}
+
+	desc, ok := r.TryLocalize(i18n.Config{
+		PluginID:  "fun",
+		Locale:    "de",
+		MessageID: "cmd.flip.desc",
+	})
+	if !ok || desc == "" {
+		t.Fatalf("expected plugin locale to expose cmd.flip.desc")
+	}
+}
+
+func TestWellnessPluginLocales_OwnTheirMessages(t *testing.T) {
+	t.Parallel()
+
+	r, err := i18n.LoadCore(filepath.Join("..", "..", "locales"))
+	if err != nil {
+		t.Fatalf("LoadCore: %v", err)
+	}
+
+	if _, ok := r.TryLocalize(i18n.Config{Locale: "de", MessageID: "wellness.timezone.set"}); ok {
+		t.Fatalf("expected core locales to no longer expose wellness.timezone.set")
+	}
+
+	if loadErr := r.LoadPluginLocales("wellness", filepath.Join("..", "..", "plugins", "wellness", "locales")); loadErr != nil {
+		t.Fatalf("LoadPluginLocales(wellness): %v", loadErr)
+	}
+
+	got, ok := r.TryLocalize(i18n.Config{
+		PluginID:     "wellness",
+		Locale:       "de",
+		MessageID:    "wellness.timezone.set",
+		TemplateData: map[string]any{"Timezone": "Europe/Tallinn"},
+	})
+	if !ok || got == "" {
+		t.Fatalf("expected plugin locale to expose wellness.timezone.set")
+	}
+
+	desc, ok := r.TryLocalize(i18n.Config{
+		PluginID:  "wellness",
+		Locale:    "de",
+		MessageID: "cmd.timezone.desc",
+	})
+	if !ok || desc == "" {
+		t.Fatalf("expected plugin locale to expose cmd.timezone.desc")
+	}
+
+	coreFallback, ok := r.TryLocalize(i18n.Config{
+		PluginID:  "wellness",
+		Locale:    "de",
+		MessageID: "err.generic",
+	})
+	if !ok || coreFallback == "" {
+		t.Fatalf("expected plugin lookup to fall back to core errors")
+	}
+}

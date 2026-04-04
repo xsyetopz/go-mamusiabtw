@@ -46,6 +46,9 @@ type Host struct {
 type Store interface {
 	TrustedSigners() store.TrustedSignerStore
 	PluginKV() store.PluginKVStore
+	UserSettings() store.UserSettingsStore
+	Reminders() store.ReminderStore
+	CheckIns() store.CheckInStore
 }
 
 type Options struct {
@@ -749,12 +752,7 @@ func (m *Host) loadOne(
 		PluginDir:   pluginDir,
 		Permissions: effective,
 		I18n:        m.i18n,
-		Store: func() store.PluginKVStore {
-			if m.store == nil {
-				return nil
-			}
-			return m.store.PluginKV()
-		}(),
+		Store:       m.store,
 	})
 	if err != nil {
 		return nil, nil, err

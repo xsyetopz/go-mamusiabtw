@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -22,9 +23,6 @@ func TestLoadFromEnv_Defaults(t *testing.T) {
 
 	if cfg.DiscordToken != "discord-token" {
 		t.Fatalf("unexpected discord token: %q", cfg.DiscordToken)
-	}
-	if cfg.KawaiiToken != "anonymous" {
-		t.Fatalf("unexpected kawaii token: %q", cfg.KawaiiToken)
 	}
 	if cfg.SQLitePath != "./data/mamusiabtw.sqlite" {
 		t.Fatalf("unexpected sqlite path: %q", cfg.SQLitePath)
@@ -181,6 +179,7 @@ func TestShippedSchemaURLs(t *testing.T) {
 		{path: "config/modules.json", key: "$schema", want: schemaBaseURL + "modules.schema.v1.json"},
 		{path: "examples/plugins/example/plugin.json", key: "$schema", want: schemaBaseURL + "plugin.schema.v1.json"},
 		{path: "plugins/fun/plugin.json", key: "$schema", want: schemaBaseURL + "plugin.schema.v1.json"},
+		{path: "plugins/wellness/plugin.json", key: "$schema", want: schemaBaseURL + "plugin.schema.v1.json"},
 		{path: "schemas/messages.schema.v1.json", key: "$id", want: schemaBaseURL + "messages.schema.v1.json"},
 		{path: "schemas/modules.schema.v1.json", key: "$id", want: schemaBaseURL + "modules.schema.v1.json"},
 		{path: "schemas/permissions.schema.v1.json", key: "$id", want: schemaBaseURL + "permissions.schema.v1.json"},
@@ -264,12 +263,62 @@ func TestAuthoringAssetsLayout(t *testing.T) {
 		"examples/plugins/example/locales/en-GB/messages.json",
 		"plugins/fun/plugin.json",
 		"plugins/fun/plugin.lua",
-		"plugins/fun/locales/en-US/messages.json",
-		"plugins/fun/locales/en-GB/messages.json",
+		"plugins/wellness/plugin.json",
+		"plugins/wellness/plugin.lua",
 	} {
 		fullPath := filepath.Join(repoRoot, relPath)
 		if _, err := os.Stat(fullPath); err != nil {
 			t.Fatalf("Stat(%q): %v", fullPath, err)
+		}
+	}
+
+	localeEntries, err := os.ReadDir(filepath.Join(repoRoot, "locales"))
+	if err != nil {
+		t.Fatalf("ReadDir(locales): %v", err)
+	}
+	for _, entry := range localeEntries {
+		if !entry.IsDir() {
+			continue
+		}
+
+		funLocalePath := filepath.Join(repoRoot, "plugins", "fun", "locales", entry.Name(), "messages.json")
+		if _, err := os.Stat(funLocalePath); err != nil {
+			t.Fatalf("Stat(%q): %v", funLocalePath, err)
+		}
+
+		wellnessLocalePath := filepath.Join(repoRoot, "plugins", "wellness", "locales", entry.Name(), "messages.json")
+		if _, err := os.Stat(wellnessLocalePath); err != nil {
+			t.Fatalf("Stat(%q): %v", wellnessLocalePath, err)
+		}
+
+		coreLocalePath := filepath.Join(repoRoot, "locales", entry.Name(), "messages.json")
+		coreBytes, err := os.ReadFile(coreLocalePath)
+		if err != nil {
+			t.Fatalf("ReadFile(%q): %v", coreLocalePath, err)
+		}
+
+		var coreMessages []map[string]any
+		if err := json.Unmarshal(coreBytes, &coreMessages); err != nil {
+			t.Fatalf("json.Unmarshal(%q): %v", coreLocalePath, err)
+		}
+		for _, message := range coreMessages {
+			id, _ := message["id"].(string)
+			if strings.HasPrefix(id, "cmd.flip") ||
+				strings.HasPrefix(id, "cmd.roll") ||
+				strings.HasPrefix(id, "cmd.8ball") ||
+				strings.HasPrefix(id, "cmd.hug") ||
+				strings.HasPrefix(id, "cmd.pat") ||
+				strings.HasPrefix(id, "cmd.poke") ||
+				strings.HasPrefix(id, "cmd.shrug") ||
+				strings.HasPrefix(id, "fun.") {
+				t.Fatalf("core locale %q still contains migrated fun id %q", coreLocalePath, id)
+			}
+			if strings.HasPrefix(id, "cmd.timezone") ||
+				strings.HasPrefix(id, "cmd.checkin") ||
+				strings.HasPrefix(id, "cmd.remind") ||
+				strings.HasPrefix(id, "wellness.") {
+				t.Fatalf("core locale %q still contains migrated wellness id %q", coreLocalePath, id)
+			}
 		}
 	}
 }
@@ -279,7 +328,6 @@ func resetConfigEnv(t *testing.T) {
 
 	for _, name := range []string{
 		"DISCORD_TOKEN",
-		"KAWAII_TOKEN",
 		"SQLITE_PATH",
 		"MIGRATIONS_DIR",
 		"LOCALES_DIR",

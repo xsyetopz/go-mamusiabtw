@@ -148,11 +148,14 @@ func (r *Registry) Localize(cfg Config) (string, error) {
 		}
 
 		localizer := i18n.NewLocalizer(bundle, locale, fallbackPrimary, fallbackSecondary)
-		return localizer.Localize(&i18n.LocalizeConfig{
+		text, err := localizer.Localize(&i18n.LocalizeConfig{
 			MessageID:    messageID,
 			TemplateData: cfg.TemplateData,
 			PluralCount:  cfg.PluralCount,
 		})
+		if err == nil {
+			return text, nil
+		}
 	}
 
 	r.state.mu.RLock()

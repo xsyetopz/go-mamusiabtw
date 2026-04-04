@@ -37,6 +37,15 @@
           "properties": {
             "kv": {
               "type": "boolean"
+            },
+            "user_settings": {
+              "type": "boolean"
+            },
+            "checkins": {
+              "type": "boolean"
+            },
+            "reminders": {
+              "type": "boolean"
             }
           }
         },

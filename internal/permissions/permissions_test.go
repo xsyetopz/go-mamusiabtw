@@ -11,11 +11,20 @@ import (
 func TestEffective(t *testing.T) {
 	t.Parallel()
 
-	req := permissions.Permissions{Storage: permissions.StoragePermissions{KV: true}}
-	grant := permissions.Permissions{Storage: permissions.StoragePermissions{KV: false}}
+	req := permissions.Permissions{Storage: permissions.StoragePermissions{KV: true, UserSettings: true, CheckIns: true, Reminders: true}}
+	grant := permissions.Permissions{Storage: permissions.StoragePermissions{KV: false, UserSettings: true, CheckIns: false, Reminders: true}}
 	eff := permissions.Effective(req, grant)
 	if eff.Storage.KV {
 		t.Fatalf("expected kv denied")
+	}
+	if !eff.Storage.UserSettings {
+		t.Fatalf("expected user_settings allowed")
+	}
+	if eff.Storage.CheckIns {
+		t.Fatalf("expected checkins denied")
+	}
+	if !eff.Storage.Reminders {
+		t.Fatalf("expected reminders allowed")
 	}
 
 	grant.Storage.KV = true
@@ -80,9 +89,9 @@ func TestPolicyGranted(t *testing.T) {
 	p := filepath.Join(dir, "permissions.json")
 
 	if err := os.WriteFile(p, []byte(`{
-  "defaults": { "storage": { "kv": false }, "discord": { "send_channel": false } },
+  "defaults": { "storage": { "kv": false, "user_settings": false }, "discord": { "send_channel": false } },
   "plugins": {
-    "a": { "storage": { "kv": true }, "discord": { "send_channel": true }, "network": { "http": true } }
+    "a": { "storage": { "kv": true, "user_settings": true, "checkins": true, "reminders": true }, "discord": { "send_channel": true }, "network": { "http": true } }
   }
 }`), 0o600); err != nil {
 		t.Fatalf("write file: %v", err)
@@ -98,6 +107,15 @@ func TestPolicyGranted(t *testing.T) {
 	}
 	if !pol.Granted("a").Storage.KV {
 		t.Fatalf("expected plugin override kv allowed")
+	}
+	if !pol.Granted("a").Storage.UserSettings {
+		t.Fatalf("expected plugin override user_settings allowed")
+	}
+	if !pol.Granted("a").Storage.CheckIns {
+		t.Fatalf("expected plugin override checkins allowed")
+	}
+	if !pol.Granted("a").Storage.Reminders {
+		t.Fatalf("expected plugin override reminders allowed")
 	}
 	if !pol.Granted("a").Discord.SendChannel {
 		t.Fatalf("expected plugin override send_channel allowed")
