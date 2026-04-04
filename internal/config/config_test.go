@@ -30,6 +30,9 @@ func TestLoadFromEnv_Defaults(t *testing.T) {
 	if cfg.Migrations != "./migrations/sqlite" {
 		t.Fatalf("unexpected migrations dir: %q", cfg.Migrations)
 	}
+	if cfg.MigrationBackups != "./data/migration_backups" {
+		t.Fatalf("unexpected migration backup dir: %q", cfg.MigrationBackups)
+	}
 	if cfg.LocalesDir != "./locales" {
 		t.Fatalf("unexpected locales dir: %q", cfg.LocalesDir)
 	}
@@ -365,6 +368,48 @@ func TestAuthoringAssetsLayout(t *testing.T) {
 			}
 		}
 	}
+
+	for _, relPath := range []string{
+		"migrations/sqlite/001_init.up.sql",
+		"migrations/sqlite/001_init.down.sql",
+		"migrations/sqlite/002_guilds_users.up.sql",
+		"migrations/sqlite/002_guilds_users.down.sql",
+		"migrations/sqlite/003_wellness.up.sql",
+		"migrations/sqlite/003_wellness.down.sql",
+		"migrations/sqlite/004_modules.up.sql",
+		"migrations/sqlite/004_modules.down.sql",
+	} {
+		fullPath := filepath.Join(repoRoot, relPath)
+		if _, err := os.Stat(fullPath); err != nil {
+			t.Fatalf("Stat(%q): %v", fullPath, err)
+		}
+	}
+}
+
+func TestMigrationLayoutAndSchemaHygiene(t *testing.T) {
+	t.Parallel()
+
+	repoRoot := filepath.Clean(filepath.Join("..", ".."))
+	migrationsDir := filepath.Join(repoRoot, "migrations", "sqlite")
+
+	entries, err := os.ReadDir(migrationsDir)
+	if err != nil {
+		t.Fatalf("ReadDir(%q): %v", migrationsDir, err)
+	}
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		name := entry.Name()
+		if !strings.HasSuffix(name, ".sql") {
+			continue
+		}
+		if strings.HasSuffix(name, ".up.sql") || strings.HasSuffix(name, ".down.sql") {
+			continue
+		}
+		t.Fatalf("legacy migration filename still present: %s", name)
+	}
 }
 
 func resetConfigEnv(t *testing.T) {
@@ -374,6 +419,7 @@ func resetConfigEnv(t *testing.T) {
 		"DISCORD_TOKEN",
 		"SQLITE_PATH",
 		"MIGRATIONS_DIR",
+		"MAMUSIABTW_MIGRATION_BACKUPS_DIR",
 		"LOCALES_DIR",
 		"PLUGINS_DIR",
 		"MAMUSIABTW_PERMISSIONS_FILE",

@@ -15,7 +15,18 @@ Important: the repo’s stable internal name is `mamusiabtw` (env vars, IDs, and
 2. (Recommended) Set `DISCORD_DEV_GUILD_ID` for quicker command registration.
 3. Start: `go run ./cmd/mamusiabtw`
 
-mamusiabtw creates or opens the SQLite database at `SQLITE_PATH` and applies migrations automatically on startup.
+mamusiabtw creates or opens the SQLite database at `SQLITE_PATH` and applies pending `up` migrations automatically on startup.
+
+For explicit migration control, use:
+
+- `go run ./cmd/mamusiabtw migrate status`
+- `go run ./cmd/mamusiabtw migrate up`
+- `go run ./cmd/mamusiabtw migrate backup`
+- `go run ./cmd/mamusiabtw migrate down --to 4`
+- `go run ./cmd/mamusiabtw migrate down --steps 1`
+
+`migrate backup` writes a SQLite snapshot into `MAMUSIABTW_MIGRATION_BACKUPS_DIR`.
+Old local DB files from the legacy pre-plugin project are not supported for upgrade and should be recreated.
 
 The direct-binary flow and the Docker flow use the same env vars and the same `config/`, `plugins/`, `locales/`, and `migrations/` folders.
 

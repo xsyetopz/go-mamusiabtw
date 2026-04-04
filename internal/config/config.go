@@ -12,16 +12,17 @@ import (
 type Config struct {
 	DiscordToken string
 
-	SQLitePath      string
-	Migrations      string
-	LocalesDir      string
-	PluginsDir      string
-	PermissionsFile string
-	ModulesFile     string
-	LogLevel        string
-	ProdMode        bool
-	OwnerUserID     []uint64
-	DevGuildID      *uint64
+	SQLitePath       string
+	Migrations       string
+	MigrationBackups string
+	LocalesDir       string
+	PluginsDir       string
+	PermissionsFile  string
+	ModulesFile      string
+	LogLevel         string
+	ProdMode         bool
+	OwnerUserID      []uint64
+	DevGuildID       *uint64
 
 	CommandRegistrationMode  string
 	CommandGuildIDs          []uint64
@@ -40,6 +41,7 @@ type Config struct {
 const (
 	defaultSQLitePath        = "./data/mamusiabtw.sqlite"
 	defaultMigrationsDir     = "./migrations/sqlite"
+	defaultMigrationBackups  = "./data/migration_backups"
 	defaultLocalesDir        = "./locales"
 	defaultPluginsDir        = "./plugins"
 	defaultPermissionsFile   = "./config/permissions.json"
@@ -53,13 +55,28 @@ const (
 )
 
 func LoadFromEnv() (Config, error) {
-	discordToken, err := requiredEnv("DISCORD_TOKEN")
-	if err != nil {
-		return Config{}, err
+	return loadFromEnv(true)
+}
+
+func LoadStorageFromEnv() (Config, error) {
+	return loadFromEnv(false)
+}
+
+func loadFromEnv(requireDiscordToken bool) (Config, error) {
+	var (
+		discordToken string
+		err          error
+	)
+	if requireDiscordToken {
+		discordToken, err = requiredEnv("DISCORD_TOKEN")
+		if err != nil {
+			return Config{}, err
+		}
 	}
 
 	sqlitePath := envDefault("SQLITE_PATH", defaultSQLitePath)
 	migrations := envDefault("MIGRATIONS_DIR", defaultMigrationsDir)
+	migrationBackups := envDefault("MAMUSIABTW_MIGRATION_BACKUPS_DIR", defaultMigrationBackups)
 	localesDir := envDefault("LOCALES_DIR", defaultLocalesDir)
 	pluginsDir := envDefault("PLUGINS_DIR", defaultPluginsDir)
 	permissionsFile := envDefault("MAMUSIABTW_PERMISSIONS_FILE", defaultPermissionsFile)
@@ -121,17 +138,18 @@ func LoadFromEnv() (Config, error) {
 	}
 
 	return Config{
-		DiscordToken:    discordToken,
-		SQLitePath:      sqlitePath,
-		Migrations:      migrations,
-		LocalesDir:      localesDir,
-		PluginsDir:      pluginsDir,
-		PermissionsFile: permissionsFile,
-		ModulesFile:     modulesFile,
-		LogLevel:        logLevel,
-		ProdMode:        prodMode,
-		OwnerUserID:     owners,
-		DevGuildID:      devGuildID,
+		DiscordToken:     discordToken,
+		SQLitePath:       sqlitePath,
+		Migrations:       migrations,
+		MigrationBackups: migrationBackups,
+		LocalesDir:       localesDir,
+		PluginsDir:       pluginsDir,
+		PermissionsFile:  permissionsFile,
+		ModulesFile:      modulesFile,
+		LogLevel:         logLevel,
+		ProdMode:         prodMode,
+		OwnerUserID:      owners,
+		DevGuildID:       devGuildID,
 
 		CommandRegistrationMode:  cmdRegMode,
 		CommandGuildIDs:          cmdGuildIDs,

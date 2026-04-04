@@ -1,3 +1,4 @@
+-- migrate:kind=normal
 CREATE TABLE IF NOT EXISTS trusted_signers (
     key_id TEXT PRIMARY KEY,
     public_key_b64 TEXT NOT NULL,
@@ -25,23 +26,6 @@ CREATE TABLE IF NOT EXISTS warnings (
 CREATE INDEX IF NOT EXISTS idx_warnings_guild_user_created
     ON warnings(guild_id, user_id, created_at DESC);
 
-CREATE TABLE IF NOT EXISTS guild_plugins (
-    guild_id INTEGER NOT NULL,
-    plugin_id TEXT NOT NULL,
-    enabled INTEGER NOT NULL,
-    config_json TEXT NOT NULL DEFAULT '{}',
-    updated_at INTEGER NOT NULL,
-    PRIMARY KEY (guild_id, plugin_id)
-);
-
-CREATE TABLE IF NOT EXISTS guild_settings (
-    guild_id INTEGER NOT NULL,
-    key TEXT NOT NULL,
-    value_json TEXT NOT NULL,
-    updated_at INTEGER NOT NULL,
-    PRIMARY KEY (guild_id, key)
-);
-
 CREATE TABLE IF NOT EXISTS plugin_kv (
     guild_id INTEGER NOT NULL,
     plugin_id TEXT NOT NULL,
@@ -61,4 +45,3 @@ CREATE TABLE IF NOT EXISTS audit_log (
     created_at INTEGER NOT NULL,
     meta_json TEXT NOT NULL DEFAULT '{}'
 );
-

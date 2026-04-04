@@ -1,3 +1,4 @@
+-- migrate:kind=normal
 CREATE TABLE IF NOT EXISTS user_settings (
     user_id INTEGER PRIMARY KEY,
     timezone TEXT NOT NULL DEFAULT '',
@@ -40,4 +41,3 @@ CREATE TABLE IF NOT EXISTS checkins (
 
 CREATE INDEX IF NOT EXISTS idx_checkins_user_created
     ON checkins(user_id, created_at DESC);
-

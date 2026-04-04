@@ -72,21 +72,22 @@ func (a *App) initStorage(ctx context.Context) error {
 		return nil
 	}
 
+	runner, err := migrate.New(migrate.Options{
+		Dir:       a.cfg.Migrations,
+		BackupDir: a.cfg.MigrationBackups,
+	})
+	if err != nil {
+		return err
+	}
+	if _, runErr := runner.UpPath(ctx, a.cfg.SQLitePath); runErr != nil {
+		return runErr
+	}
+
 	db, err := sqlite.Open(ctx, sqlite.Options{
 		Path: a.cfg.SQLitePath,
 	})
 	if err != nil {
 		return err
-	}
-
-	runner, err := migrate.New(a.cfg.Migrations)
-	if err != nil {
-		_ = db.Close()
-		return err
-	}
-	if runErr := runner.Run(ctx, db); runErr != nil {
-		_ = db.Close()
-		return runErr
 	}
 
 	store, err := sqlitestore.New(db)

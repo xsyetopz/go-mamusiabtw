@@ -17,8 +17,10 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/xsyetopz/go-mamusiabtw/internal/i18n"
+	"github.com/xsyetopz/go-mamusiabtw/internal/migrate"
 	"github.com/xsyetopz/go-mamusiabtw/internal/permissions"
 	"github.com/xsyetopz/go-mamusiabtw/internal/pluginhost/lua"
+	"github.com/xsyetopz/go-mamusiabtw/internal/sqlite"
 	"github.com/xsyetopz/go-mamusiabtw/internal/store/sqlitestore"
 )
 
@@ -229,9 +231,6 @@ func TestDescriptorRoutesAndKV(t *testing.T) {
 
 	db := openTestDB(t)
 	t.Cleanup(func() { _ = db.Close() })
-	if err := initSQLiteSchema(db, "../../../migrations/sqlite/001_init.sql"); err != nil {
-		t.Fatalf("init schema: %v", err)
-	}
 
 	store, err := sqlitestore.New(db)
 	if err != nil {
@@ -519,9 +518,6 @@ func TestWellnessPluginRoutes(t *testing.T) {
 
 	db := openTestDB(t)
 	t.Cleanup(func() { _ = db.Close() })
-	if err := initSQLiteSchema(db, "../../../migrations/sqlite/001_init.sql", "../../../migrations/sqlite/003_wellness.sql"); err != nil {
-		t.Fatalf("init schema: %v", err)
-	}
 
 	store, err := sqlitestore.New(db)
 	if err != nil {
@@ -849,9 +845,6 @@ func TestModerationPluginRoutes(t *testing.T) {
 
 	db := openTestDB(t)
 	t.Cleanup(func() { _ = db.Close() })
-	if err := initSQLiteSchema(db, "../../../migrations/sqlite/001_init.sql"); err != nil {
-		t.Fatalf("init schema: %v", err)
-	}
 
 	store, err := sqlitestore.New(db)
 	if err != nil {
@@ -1028,9 +1021,6 @@ func TestModerationPluginWarnTimeoutFailure(t *testing.T) {
 
 	db := openTestDB(t)
 	t.Cleanup(func() { _ = db.Close() })
-	if err := initSQLiteSchema(db, "../../../migrations/sqlite/001_init.sql"); err != nil {
-		t.Fatalf("init schema: %v", err)
-	}
 
 	store, err := sqlitestore.New(db)
 	if err != nil {
@@ -1335,23 +1325,23 @@ func TestManagerPluginRoutes(t *testing.T) {
 
 func openTestDB(t *testing.T) *sql.DB {
 	t.Helper()
-	db, err := sql.Open("sqlite3", ":memory:")
+	dir := t.TempDir()
+	dbPath := filepath.Join(dir, "test.sqlite")
+
+	runner, err := migrate.New(migrate.Options{
+		Dir:       filepath.FromSlash("../../../migrations/sqlite"),
+		BackupDir: filepath.Join(dir, "migration_backups"),
+	})
+	if err != nil {
+		t.Fatalf("migrate.New: %v", err)
+	}
+	if _, err := runner.UpPath(context.Background(), dbPath); err != nil {
+		t.Fatalf("runner.UpPath: %v", err)
+	}
+
+	db, err := sqlite.Open(context.Background(), sqlite.Options{Path: dbPath})
 	if err != nil {
 		t.Fatalf("open db: %v", err)
 	}
 	return db
-}
-
-func initSQLiteSchema(db *sql.DB, relPaths ...string) error {
-	for _, relPath := range relPaths {
-		scriptPath := filepath.FromSlash(relPath)
-		bytes, err := os.ReadFile(scriptPath)
-		if err != nil {
-			return err
-		}
-		if _, err := db.Exec(string(bytes)); err != nil {
-			return err
-		}
-	}
-	return nil
 }

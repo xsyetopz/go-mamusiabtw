@@ -19,7 +19,7 @@ func mustNoErr(t *testing.T, err error, msg string) {
 	}
 }
 
-func TestLegacyParityPersistence(t *testing.T) {
+func TestSQLitePersistence(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -30,9 +30,10 @@ func TestLegacyParityPersistence(t *testing.T) {
 	t.Cleanup(func() { _ = db.Close() })
 
 	migrationsDir := filepath.Clean(filepath.Join("..", "..", "..", "migrations", "sqlite"))
-	runner, err := migrate.New(migrationsDir)
+	runner, err := migrate.New(migrate.Options{Dir: migrationsDir, BackupDir: filepath.Join(dir, "migration_backups")})
 	mustNoErr(t, err, "migrate.New")
-	mustNoErr(t, runner.Run(ctx, db), "runner.Run")
+	_, err = runner.Up(ctx, db)
+	mustNoErr(t, err, "runner.Up")
 
 	s, err := sqlitestore.New(db)
 	mustNoErr(t, err, "sqlitestore.New")

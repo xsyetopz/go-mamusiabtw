@@ -1,3 +1,4 @@
+-- migrate:kind=normal
 CREATE TABLE IF NOT EXISTS users (
     user_id INTEGER PRIMARY KEY,
     created_at INTEGER NOT NULL,
@@ -33,4 +34,3 @@ CREATE TABLE IF NOT EXISTS guild_members (
 
 CREATE INDEX IF NOT EXISTS idx_guild_members_user
     ON guild_members(user_id);
-
