@@ -46,6 +46,20 @@ func (b *Bot) onModal(e *events.ModalSubmitInteractionCreate) {
 		_ = e.Acknowledge()
 		return
 	}
+	if guildID := e.GuildID(); guildID != nil {
+		enabled, err := b.guildPluginEnabled(ctx, uint64(*guildID), pluginID)
+		if err != nil {
+			b.incInteractionFailure()
+			b.incPluginFailure()
+			b.logger.Error("plugin modal permission check failed", slog.String("custom_id", customID), slog.String("err", err.Error()))
+			_ = e.CreateMessage(interactions.NoticeMessage(interactions.KindError, "", t.S("err.generic", nil), true))
+			return
+		}
+		if !enabled {
+			_ = e.CreateMessage(interactions.NoticeMessage(interactions.KindWarning, "", "This plugin is disabled in this server.", true))
+			return
+		}
+	}
 	route, ok := b.pluginRoutes[pluginID]
 	if !ok {
 		_ = e.Acknowledge()

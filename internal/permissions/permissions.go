@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -93,6 +94,30 @@ func LoadPolicyFile(path string) (Policy, error) {
 		p.Plugins = map[string]Permissions{}
 	}
 	return p, nil
+}
+
+func WritePolicyFile(path string, policy Policy) error {
+	path = strings.TrimSpace(path)
+	if path == "" {
+		return fmt.Errorf("permissions policy path is required")
+	}
+	if policy.Plugins == nil {
+		policy.Plugins = map[string]Permissions{}
+	}
+
+	bytes, err := json.MarshalIndent(policy, "", "  ")
+	if err != nil {
+		return fmt.Errorf("marshal permissions policy %q: %w", path, err)
+	}
+	bytes = append(bytes, '\n')
+
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return fmt.Errorf("create permissions dir for %q: %w", path, err)
+	}
+	if err := os.WriteFile(path, bytes, 0o644); err != nil {
+		return fmt.Errorf("write permissions policy %q: %w", path, err)
+	}
+	return nil
 }
 
 func (p Policy) Granted(pluginID string) Permissions {

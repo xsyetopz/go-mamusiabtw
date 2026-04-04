@@ -132,7 +132,8 @@ go run ./cmd/mamusiabtw
 docker compose up --build
 ```
 
-Use `.env.example` as the starting point for local configuration.
+Use `.env.local.example` as the starting point for local bot/API development,
+and `apps/dashboard/.env.local.example` for local dashboard development.
 
 ## Using AI Assistants
 

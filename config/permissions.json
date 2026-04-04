@@ -42,12 +42,16 @@
       }
     },
     "fun": {
+      "storage": {
+        "kv": true
+      },
       "network": {
         "http": true
       }
     },
     "wellness": {
       "storage": {
+        "kv": true,
         "user_settings": true,
         "checkins": true,
         "reminders": true
@@ -55,6 +59,7 @@
     },
     "moderation": {
       "storage": {
+        "kv": true,
         "warnings": true,
         "audit": true
       },
@@ -64,6 +69,9 @@
       }
     },
     "info": {
+      "storage": {
+        "kv": true
+      },
       "discord": {
         "users": true,
         "members": true,
@@ -71,6 +79,9 @@
       }
     },
     "manager": {
+      "storage": {
+        "kv": true
+      },
       "discord": {
         "channels": true,
         "messages": true,

@@ -5,6 +5,7 @@
   "version": "0.1.0",
   "permissions": {
     "storage": {
+      "kv": true,
       "user_settings": true,
       "checkins": true,
       "reminders": true

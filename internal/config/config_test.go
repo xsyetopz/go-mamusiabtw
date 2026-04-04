@@ -36,6 +36,9 @@ func TestLoadFromEnv_Defaults(t *testing.T) {
 	if cfg.OpsAddr != "" {
 		t.Fatalf("unexpected ops addr: %q", cfg.OpsAddr)
 	}
+	if cfg.AdminAddr != "" {
+		t.Fatalf("unexpected admin addr: %q", cfg.AdminAddr)
+	}
 	if cfg.LocalesDir != "./locales" {
 		t.Fatalf("unexpected locales dir: %q", cfg.LocalesDir)
 	}
@@ -50,6 +53,9 @@ func TestLoadFromEnv_Defaults(t *testing.T) {
 	}
 	if cfg.TrustedKeysFile != "./config/trusted_keys.json" {
 		t.Fatalf("unexpected trusted keys file: %q", cfg.TrustedKeysFile)
+	}
+	if cfg.DashboardAppOrigin != "" || cfg.DashboardClientID != "" || cfg.DashboardRedirectURL != "" {
+		t.Fatalf("unexpected dashboard auth defaults: %#v", cfg)
 	}
 	if cfg.CommandRegistrationMode != "global" {
 		t.Fatalf("unexpected command registration mode: %q", cfg.CommandRegistrationMode)
@@ -76,14 +82,22 @@ func TestLoadFromEnv_Defaults(t *testing.T) {
 func TestLoadFromEnv_ParsesOverrides(t *testing.T) {
 	resetConfigEnv(t)
 	t.Setenv("DISCORD_TOKEN", "discord-token")
-	t.Setenv("OWNER_USER_IDS", "11,22")
+	t.Setenv("OWNER_USER_ID", "11")
 	t.Setenv("DISCORD_DEV_GUILD_ID", "33")
 	t.Setenv("MAMUSIABTW_COMMAND_REGISTRATION_MODE", "hybrid")
 	t.Setenv("MAMUSIABTW_COMMAND_GUILD_IDS", "44,55")
 	t.Setenv("MAMUSIABTW_COMMAND_REGISTER_ALL_GUILDS", "1")
 	t.Setenv("MAMUSIABTW_OPS_ADDR", ":8080")
+	t.Setenv("MAMUSIABTW_ADMIN_ADDR", ":8081")
 	t.Setenv("MAMUSIABTW_PROD_MODE", "0")
 	t.Setenv("MAMUSIABTW_ALLOW_UNSIGNED_PLUGINS", "1")
+	t.Setenv("MAMUSIABTW_DASHBOARD_APP_ORIGIN", "http://127.0.0.1:5173")
+	t.Setenv("MAMUSIABTW_DASHBOARD_CLIENT_ID", "client-id")
+	t.Setenv("MAMUSIABTW_DASHBOARD_CLIENT_SECRET", "client-secret")
+	t.Setenv("MAMUSIABTW_DASHBOARD_REDIRECT_URL", "http://127.0.0.1:8081/api/auth/callback")
+	t.Setenv("MAMUSIABTW_DASHBOARD_SESSION_SECRET", strings.Repeat("s", 32))
+	t.Setenv("MAMUSIABTW_DASHBOARD_SIGNING_KEY_ID", "official")
+	t.Setenv("MAMUSIABTW_DASHBOARD_SIGNING_KEY_FILE", "./data/keys/official.key")
 	t.Setenv("MAMUSIABTW_SLASH_COOLDOWN_MS", "9000")
 	t.Setenv("MAMUSIABTW_COMPONENT_COOLDOWN_MS", "250")
 	t.Setenv("MAMUSIABTW_MODAL_COOLDOWN_MS", "350")
@@ -95,8 +109,8 @@ func TestLoadFromEnv_ParsesOverrides(t *testing.T) {
 		t.Fatalf("LoadFromEnv: %v", err)
 	}
 
-	if !reflect.DeepEqual(cfg.OwnerUserID, []uint64{11, 22}) {
-		t.Fatalf("unexpected owner ids: %#v", cfg.OwnerUserID)
+	if cfg.OwnerUserID == nil || *cfg.OwnerUserID != 11 {
+		t.Fatalf("unexpected owner id: %#v", cfg.OwnerUserID)
 	}
 	if cfg.DevGuildID == nil || *cfg.DevGuildID != 33 {
 		t.Fatalf("unexpected dev guild id: %v", cfg.DevGuildID)
@@ -118,6 +132,18 @@ func TestLoadFromEnv_ParsesOverrides(t *testing.T) {
 	}
 	if cfg.OpsAddr != ":8080" {
 		t.Fatalf("unexpected ops addr: %q", cfg.OpsAddr)
+	}
+	if cfg.AdminAddr != ":8081" {
+		t.Fatalf("unexpected admin addr: %q", cfg.AdminAddr)
+	}
+	if cfg.DashboardAppOrigin != "http://127.0.0.1:5173" {
+		t.Fatalf("unexpected dashboard origin: %q", cfg.DashboardAppOrigin)
+	}
+	if cfg.DashboardClientID != "client-id" || cfg.DashboardRedirectURL != "http://127.0.0.1:8081/api/auth/callback" {
+		t.Fatalf("unexpected dashboard auth config: %#v", cfg)
+	}
+	if cfg.DashboardSigningKeyID != "official" || cfg.DashboardSigningKeyFile != "./data/keys/official.key" {
+		t.Fatalf("unexpected dashboard signing config: %#v", cfg)
 	}
 	if cfg.SlashCooldown != 9*time.Second {
 		t.Fatalf("unexpected slash cooldown: %s", cfg.SlashCooldown)
@@ -164,13 +190,58 @@ func TestLoadFromEnv_RejectsInvalidInputs(t *testing.T) {
 		}
 	})
 
-	t.Run("owner ids", func(t *testing.T) {
+	t.Run("owner id", func(t *testing.T) {
 		resetConfigEnv(t)
 		t.Setenv("DISCORD_TOKEN", "discord-token")
-		t.Setenv("OWNER_USER_IDS", "11,nope")
+		t.Setenv("OWNER_USER_ID", "nope")
 
 		if _, err := config.LoadFromEnv(); err == nil {
-			t.Fatalf("expected invalid owner ids error")
+			t.Fatalf("expected invalid owner id error")
+		}
+	})
+
+	t.Run("admin config", func(t *testing.T) {
+		resetConfigEnv(t)
+		t.Setenv("DISCORD_TOKEN", "discord-token")
+		t.Setenv("MAMUSIABTW_ADMIN_ADDR", ":8081")
+		t.Setenv("MAMUSIABTW_DASHBOARD_APP_ORIGIN", "http://127.0.0.1:5173")
+		t.Setenv("MAMUSIABTW_DASHBOARD_CLIENT_ID", "client-id")
+		t.Setenv("MAMUSIABTW_DASHBOARD_CLIENT_SECRET", "client-secret")
+		t.Setenv("MAMUSIABTW_DASHBOARD_REDIRECT_URL", "http://127.0.0.1:8081/api/auth/callback")
+		t.Setenv("MAMUSIABTW_DASHBOARD_SESSION_SECRET", "too-short")
+
+		if _, err := config.LoadFromEnv(); err == nil {
+			t.Fatalf("expected invalid dashboard session secret error")
+		}
+	})
+
+	t.Run("dashboard origin url", func(t *testing.T) {
+		resetConfigEnv(t)
+		t.Setenv("DISCORD_TOKEN", "discord-token")
+		t.Setenv("MAMUSIABTW_ADMIN_ADDR", ":8081")
+		t.Setenv("MAMUSIABTW_DASHBOARD_APP_ORIGIN", "invalid")
+		t.Setenv("MAMUSIABTW_DASHBOARD_CLIENT_ID", "client-id")
+		t.Setenv("MAMUSIABTW_DASHBOARD_CLIENT_SECRET", "client-secret")
+		t.Setenv("MAMUSIABTW_DASHBOARD_REDIRECT_URL", "http://127.0.0.1:8081/api/auth/callback")
+		t.Setenv("MAMUSIABTW_DASHBOARD_SESSION_SECRET", strings.Repeat("s", 32))
+
+		if _, err := config.LoadFromEnv(); err == nil {
+			t.Fatalf("expected invalid dashboard origin error")
+		}
+	})
+
+	t.Run("dashboard redirect url", func(t *testing.T) {
+		resetConfigEnv(t)
+		t.Setenv("DISCORD_TOKEN", "discord-token")
+		t.Setenv("MAMUSIABTW_ADMIN_ADDR", ":8081")
+		t.Setenv("MAMUSIABTW_DASHBOARD_APP_ORIGIN", "http://127.0.0.1:5173")
+		t.Setenv("MAMUSIABTW_DASHBOARD_CLIENT_ID", "client-id")
+		t.Setenv("MAMUSIABTW_DASHBOARD_CLIENT_SECRET", "client-secret")
+		t.Setenv("MAMUSIABTW_DASHBOARD_REDIRECT_URL", "invalid")
+		t.Setenv("MAMUSIABTW_DASHBOARD_SESSION_SECRET", strings.Repeat("s", 32))
+
+		if _, err := config.LoadFromEnv(); err == nil {
+			t.Fatalf("expected invalid dashboard redirect url error")
 		}
 	})
 
@@ -434,6 +505,7 @@ func resetConfigEnv(t *testing.T) {
 		"MIGRATIONS_DIR",
 		"MAMUSIABTW_MIGRATION_BACKUPS_DIR",
 		"MAMUSIABTW_OPS_ADDR",
+		"MAMUSIABTW_ADMIN_ADDR",
 		"LOCALES_DIR",
 		"PLUGINS_DIR",
 		"MAMUSIABTW_PERMISSIONS_FILE",
@@ -442,7 +514,14 @@ func resetConfigEnv(t *testing.T) {
 		"MAMUSIABTW_PROD_MODE",
 		"MAMUSIABTW_ALLOW_UNSIGNED_PLUGINS",
 		"MAMUSIABTW_TRUSTED_KEYS_FILE",
-		"OWNER_USER_IDS",
+		"MAMUSIABTW_DASHBOARD_APP_ORIGIN",
+		"MAMUSIABTW_DASHBOARD_CLIENT_ID",
+		"MAMUSIABTW_DASHBOARD_CLIENT_SECRET",
+		"MAMUSIABTW_DASHBOARD_REDIRECT_URL",
+		"MAMUSIABTW_DASHBOARD_SESSION_SECRET",
+		"MAMUSIABTW_DASHBOARD_SIGNING_KEY_ID",
+		"MAMUSIABTW_DASHBOARD_SIGNING_KEY_FILE",
+		"OWNER_USER_ID",
 		"DISCORD_DEV_GUILD_ID",
 		"MAMUSIABTW_COMMAND_REGISTRATION_MODE",
 		"MAMUSIABTW_COMMAND_GUILD_IDS",

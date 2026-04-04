@@ -34,6 +34,7 @@ return bot.command("warn", {
     local target_id = shared.trim(ctx.command.args.user)
     local resolved = shared.resolved_user(ctx, "user")
     local reason = shared.trim(ctx.command.args.reason)
+    local config = shared.guild_config(ctx)
 
     if target_id == ctx.user.id then
       return shared.reply_text(i18n.t("mod.warn.self", nil, nil), true)
@@ -46,7 +47,7 @@ return bot.command("warn", {
     end
 
     local count = warnings.count(ctx.guild.id, target_id)
-    if count >= shared.warn_max then
+    if count >= config.warning_limit then
       return shared.reply_text(i18n.t("mod.warn.too_many", {
         User = shared.mention(target_id),
       }, nil), true)
@@ -73,12 +74,13 @@ return bot.command("warn", {
 
     local timeout_minutes = 0
     local timeout_failed = false
-    if count + 1 >= shared.warn_max then
-      local until_unix = now + shared.warn_timeout_seconds
+    if count + 1 >= config.timeout_threshold then
+      local timeout_seconds = config.timeout_minutes * 60
+      local until_unix = now + timeout_seconds
       local timed_out = false
       timed_out, _ = shared.timeout_member(ctx.guild.id, target_id, until_unix)
       if timed_out then
-        timeout_minutes = math.floor(shared.warn_timeout_seconds / 60)
+        timeout_minutes = config.timeout_minutes
         audit.append({
           guild_id = ctx.guild.id,
           actor_id = ctx.user.id,

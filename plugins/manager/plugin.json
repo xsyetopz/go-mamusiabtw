@@ -4,6 +4,9 @@
   "name": "Manager",
   "version": "0.1.0",
   "permissions": {
+    "storage": {
+      "kv": true
+    },
     "discord": {
       "channels": true,
       "messages": true,

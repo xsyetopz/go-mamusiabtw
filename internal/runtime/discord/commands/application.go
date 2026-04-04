@@ -8,6 +8,7 @@ import (
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
+	"github.com/disgoorg/snowflake/v2"
 
 	commandapi "github.com/xsyetopz/go-mamusiabtw/internal/commands/api"
 	"github.com/xsyetopz/go-mamusiabtw/internal/i18n"
@@ -21,6 +22,7 @@ type RestrictionCheck func(ctx context.Context, e *events.ApplicationCommandInte
 type SlashCooldownCheck func(e *events.ApplicationCommandInteractionCreate, cmdName string, now time.Time) (remainingSeconds int, ok bool)
 type ServicesFactory func(locale discord.Locale) commandapi.Services
 type PluginEnabled func(pluginID string) bool
+type GuildCommandEnabled func(ctx context.Context, guildID uint64, pluginID, commandName string) (bool, error)
 
 type Dispatcher struct {
 	Logger                *slog.Logger
@@ -33,6 +35,7 @@ type Dispatcher struct {
 	Services              ServicesFactory
 	CheckRestrictions     RestrictionCheck
 	TakeSlashCooldown     SlashCooldownCheck
+	GuildCommandEnabled   GuildCommandEnabled
 	IncInteraction        func()
 	IncInteractionFailure func()
 	IncPluginFailure      func()
@@ -93,6 +96,15 @@ func (d Dispatcher) OnAutocomplete(e *events.AutocompleteInteractionCreate) {
 	cmdName := data.CommandName
 	route, ok := d.PluginCommands[cmdName]
 	if !ok {
+		_ = e.AutocompleteResult(nil)
+		return
+	}
+	if disabled, err := d.commandDisabled(ctx, e.GuildID(), route.PluginID, cmdName); err != nil {
+		d.incInteractionFailure()
+		d.logger().ErrorContext(ctx, "plugin autocomplete permission check failed", slog.String("cmd", cmdName), slog.String("err", err.Error()))
+		_ = e.AutocompleteResult(nil)
+		return
+	} else if disabled {
 		_ = e.AutocompleteResult(nil)
 		return
 	}
@@ -212,8 +224,18 @@ func (d Dispatcher) handlePluginSlash(
 		_ = e.CreateMessage(interactions.NoticeMessage(interactions.KindError, "", t.S("err.generic", nil), true))
 		return
 	}
-
 	interaction := discordplugin.NewSlashInteraction(e)
+	if disabled, err := d.commandDisabled(ctx, e.GuildID(), route.PluginID, cmdName); err != nil {
+		d.incInteractionFailure()
+		d.incPluginFailure()
+		d.logger().ErrorContext(ctx, "plugin command permission check failed", slog.String("cmd", cmdName), slog.String("err", err.Error()))
+		d.respondPluginSlashError(e, t, interaction)
+		return
+	} else if disabled {
+		d.respondCommandDisabled(e)
+		return
+	}
+
 	res, defaultEphemeral, pluginID, err := route.Host.HandleSlash(ctx, cmdName, pluginhost.Payload{
 		GuildID:     router.SnowflakePtrToString(e.GuildID()),
 		ChannelID:   e.Channel().ID().String(),
@@ -255,8 +277,18 @@ func (d Dispatcher) handlePluginUserCommand(
 		_ = e.CreateMessage(interactions.NoticeMessage(interactions.KindError, "", t.S("err.generic", nil), true))
 		return
 	}
-
 	interaction := discordplugin.NewSlashInteraction(e)
+	if disabled, err := d.commandDisabled(ctx, e.GuildID(), route.PluginID, cmdName); err != nil {
+		d.incInteractionFailure()
+		d.incPluginFailure()
+		d.logger().ErrorContext(ctx, "plugin user command permission check failed", slog.String("cmd", cmdName), slog.String("err", err.Error()))
+		d.respondPluginSlashError(e, t, interaction)
+		return
+	} else if disabled {
+		d.respondCommandDisabled(e)
+		return
+	}
+
 	res, defaultEphemeral, pluginID, err := route.Host.HandleUserCommand(ctx, cmdName, pluginhost.Payload{
 		GuildID:     router.SnowflakePtrToString(e.GuildID()),
 		ChannelID:   e.Channel().ID().String(),
@@ -298,8 +330,18 @@ func (d Dispatcher) handlePluginMessageCommand(
 		_ = e.CreateMessage(interactions.NoticeMessage(interactions.KindError, "", t.S("err.generic", nil), true))
 		return
 	}
-
 	interaction := discordplugin.NewSlashInteraction(e)
+	if disabled, err := d.commandDisabled(ctx, e.GuildID(), route.PluginID, cmdName); err != nil {
+		d.incInteractionFailure()
+		d.incPluginFailure()
+		d.logger().ErrorContext(ctx, "plugin message command permission check failed", slog.String("cmd", cmdName), slog.String("err", err.Error()))
+		d.respondPluginSlashError(e, t, interaction)
+		return
+	} else if disabled {
+		d.respondCommandDisabled(e)
+		return
+	}
+
 	res, defaultEphemeral, pluginID, err := route.Host.HandleMessageCommand(ctx, cmdName, pluginhost.Payload{
 		GuildID:     router.SnowflakePtrToString(e.GuildID()),
 		ChannelID:   e.Channel().ID().String(),
@@ -363,6 +405,25 @@ func (d Dispatcher) executePluginActionFromSlash(
 	default:
 		_ = e.CreateMessage(interactions.NoticeMessage(interactions.KindError, "", t.S("err.generic", nil), true))
 	}
+}
+
+func (d Dispatcher) commandDisabled(
+	ctx context.Context,
+	guildID *snowflake.ID,
+	pluginID, commandName string,
+) (bool, error) {
+	if guildID == nil || d.GuildCommandEnabled == nil {
+		return false, nil
+	}
+	enabled, err := d.GuildCommandEnabled(ctx, uint64(*guildID), pluginID, commandName)
+	if err != nil {
+		return false, err
+	}
+	return !enabled, nil
+}
+
+func (d Dispatcher) respondCommandDisabled(e *events.ApplicationCommandInteractionCreate) {
+	_ = e.CreateMessage(interactions.NoticeMessage(interactions.KindWarning, "", "This command is disabled in this server.", true))
 }
 
 func (d Dispatcher) services(locale discord.Locale) commandapi.Services {

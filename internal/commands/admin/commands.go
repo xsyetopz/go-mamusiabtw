@@ -427,7 +427,7 @@ func modulesHandle(
 	actorID := uint64(e.User().ID)
 	if s.IsOwner == nil || !s.IsOwner(actorID) {
 		return interactions.SlashMessage{
-			Create: discord.NewMessageCreate().WithEphemeral(true).WithContent("Only bot owners can manage modules."),
+			Create: discord.NewMessageCreate().WithEphemeral(true).WithContent("Only the bot owner can manage modules."),
 		}, nil
 	}
 	if s.Modules == nil || !s.Modules.Configured() {

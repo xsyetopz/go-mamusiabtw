@@ -11,7 +11,7 @@ Important: the repo’s stable internal name is `mamusiabtw` (env vars, IDs, and
 
 ## Running
 
-1. Copy `.env.example` to `.env` and fill in `DISCORD_TOKEN`.
+1. Copy `.env.local.example` to `.env.local` and fill in `DISCORD_TOKEN`.
 2. (Recommended) Set `DISCORD_DEV_GUILD_ID` for quicker command registration.
 3. Start: `go run ./cmd/mamusiabtw`
 
@@ -38,6 +38,9 @@ If `MAMUSIABTW_OPS_ADDR` is set, mamusiabtw also starts a small HTTP ops server 
 - `/readyz`
 - `/metrics`
 
+If `MAMUSIABTW_ADMIN_ADDR` is set, mamusiabtw also starts the website/dashboard API.
+The frontend lives in `apps/dashboard/` and uses Discord OAuth against that API.
+
 ## Release Builds
 
 Use `./scripts/build-release.sh` to build a binary with injected `buildinfo` metadata.
@@ -59,16 +62,82 @@ The bot also supports runtime module toggles from `config/modules.json`, with of
 
 ## Docker
 
-1. Copy `.env.example` to `.env` and fill in at least `DISCORD_TOKEN`.
+1. Copy `.env.local.example` to `.env.local` and fill in at least `DISCORD_TOKEN`.
 2. Start: `docker compose up --build`
 
 `compose.yml` bind-mounts `./data`, `./plugins`, and `./config` into the container for a dev-friendly workflow.
+
+## Website + Dashboard
+
+The repo includes a Mantine web app in `apps/dashboard/`.
+It is designed to serve two audiences through the same frontend:
+
+- public/server-admin routes for signing in, listing manageable servers, and opening a server dashboard
+- owner-only routes under `#/owner` for bot-global controls such as modules, plugins, setup, and migrations
+
+Local setup:
+
+1. Copy the root bot example:
+   - `.env.local.example` -> `.env.local`
+2. Make sure the Discord OAuth application allows the redirect URL.
+3. If you want to use the owner area, the bot must be able to resolve the Discord application owner. You can also set `OWNER_USER_ID` as a fallback.
+4. Start the bot: `go run ./cmd/mamusiabtw`
+5. In another terminal:
+   - `cd apps/dashboard`
+   - `cp .env.local.example .env.local`
+   - `bun install`
+   - `bun run dev`
+
+Production website build:
+
+1. Copy the production examples:
+   - `.env.production.example` -> your production bot env file
+   - `apps/dashboard/.env.production.example` -> `apps/dashboard/.env.production`
+2. Set the public website origin and API origin as separate domains, for example:
+   - website: `https://app.example.com`
+   - API: `https://api.example.com`
+3. Configure the bot with:
+   - `MAMUSIABTW_DASHBOARD_APP_ORIGIN=https://app.example.com`
+   - `MAMUSIABTW_DASHBOARD_REDIRECT_URL=https://api.example.com/api/auth/callback`
+4. Build the frontend with:
+   - `VITE_ADMIN_API_BASE_URL=https://api.example.com`
+5. Production frontend builds do not fall back to `127.0.0.1:8081`. If `VITE_ADMIN_API_BASE_URL` is missing or invalid, the site opens into setup diagnostics and blocks sign-in/install redirects.
+
+Env-file convention:
+
+- root local bot/API: `.env.local`
+- root production bot/API: `.env.production`
+- dashboard local frontend: `apps/dashboard/.env.local`
+- dashboard production frontend: `apps/dashboard/.env.production`
+
+`.env` is still fine for a personal workflow if you prefer it, but the documented repo standard is now `local` and `production`.
+
+Current routes:
+
+- `#/` home
+- `#/servers` server picker
+- `#/servers/<guild_id>` server dashboard
+- `#/owner` owner-only control area
+
+Current website/dashboard coverage:
+
+- Discord sign-in
+- server picker for guilds the user can manage
+- per-server install/setup status
+- owner overview / runtime state
+- owner module enable / disable / reset / reload
+- owner plugin list / reload / signing state
+- owner plugin scaffolding
+- owner setup diagnostics for API and OAuth wiring
+- owner migration status / backup
+
+If the API is not reachable or the dashboard URLs are invalid, the app opens into setup diagnostics instead of a blank login failure.
 
 ## Built-in Commands
 
 - `/ping`
 - `/help`
-- `/block` and `/unblock` (owner-only; owner IDs via `OWNER_USER_IDS`)
+- `/block` and `/unblock` (owner-only; owner resolved from the Discord application, with optional `OWNER_USER_ID` fallback)
 - `/plugins`
 - `/modules`
 

@@ -67,6 +67,7 @@ local function delete_subcommand()
 end
 
 local function create_reminder(ctx)
+  local config = shared.guild_config(ctx)
   local schedule_text = shared.trim(ctx.command.args.schedule)
   local kind = shared.trim(ctx.command.args.kind)
   local note = shared.trim(ctx.command.args.note)
@@ -92,6 +93,12 @@ local function create_reminder(ctx)
   end
   if guild_message ~= nil then
     return guild_message
+  end
+  if delivery == "channel" and not config.allow_channel_reminders then
+    return shared.reply_text("Channel reminders are disabled in this server.", true)
+  end
+  if delivery == "channel" and channel_id == "" and config.default_reminder_channel_id ~= "" then
+    channel_id = config.default_reminder_channel_id
   end
   if delivery == "channel" and channel_id == "" then
     return shared.reply_text(i18n.t("wellness.remind.channel_required", nil, nil), true)

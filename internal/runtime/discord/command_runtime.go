@@ -33,6 +33,7 @@ func (b *Bot) commandDispatcher() discordcommands.Dispatcher {
 		Services:              b.services,
 		CheckRestrictions:     b.checkRestrictions,
 		TakeSlashCooldown:     b.takeSlashCooldown,
+		GuildCommandEnabled:   b.guildCommandEnabled,
 		IncInteraction:        b.incInteraction,
 		IncInteractionFailure: b.incInteractionFailure,
 		IncPluginFailure:      b.incPluginFailure,

@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/xsyetopz/go-mamusiabtw/internal/adminapi"
+	"github.com/xsyetopz/go-mamusiabtw/internal/buildinfo"
 	"github.com/xsyetopz/go-mamusiabtw/internal/config"
 	"github.com/xsyetopz/go-mamusiabtw/internal/i18n"
 	migrate "github.com/xsyetopz/go-mamusiabtw/internal/migration"
@@ -31,6 +33,7 @@ type App struct {
 	i18n    i18n.Registry
 	bot     *discordplatform.Bot
 	ops     *ops.Server
+	admin   *adminapi.Server
 	metrics *ops.Metrics
 
 	startedAt        time.Time
@@ -69,8 +72,16 @@ func (a *App) Start(ctx context.Context) error {
 	if err := a.initOpsServer(); err != nil {
 		return err
 	}
+	if err := a.initAdminServer(); err != nil {
+		return err
+	}
 	if a.ops != nil {
 		if err := a.ops.Start(); err != nil {
+			return err
+		}
+	}
+	if a.admin != nil {
+		if err := a.admin.Start(); err != nil {
 			return err
 		}
 	}
@@ -84,6 +95,9 @@ func (a *App) Start(ctx context.Context) error {
 }
 
 func (a *App) Close() error {
+	if a.admin != nil {
+		_ = a.admin.Close(context.Background())
+	}
 	if a.ops != nil {
 		_ = a.ops.Close(context.Background())
 	}
@@ -178,7 +192,7 @@ func (a *App) initDiscordBot() error {
 		Logger: a.logger,
 		Token:  a.cfg.DiscordToken,
 
-		Owners:                   a.cfg.OwnerUserID,
+		OwnerUserID:              a.cfg.OwnerUserID,
 		DevGuildID:               a.cfg.DevGuildID,
 		CommandRegistrationMode:  a.cfg.CommandRegistrationMode,
 		CommandGuildIDs:          a.cfg.CommandGuildIDs,
@@ -218,6 +232,158 @@ func (a *App) initOpsServer() error {
 		return err
 	}
 	a.ops = server
+	return nil
+}
+
+func (a *App) initAdminServer() error {
+	if a.admin != nil || a.cfg.AdminAddr == "" {
+		return nil
+	}
+	if a.bot == nil {
+		return errors.New("discord bot must be initialized before admin server")
+	}
+	oauthClient := adminapi.NewDiscordOAuthClient(
+		a.cfg.DashboardClientID,
+		a.cfg.DashboardClientSecret,
+		a.cfg.DashboardRedirectURL,
+	)
+	ownerStatus := func() adminapi.OwnerStatus {
+		status := a.bot.OwnerStatus()
+		return adminapi.OwnerStatus{
+			Configured:      status.Configured,
+			Resolved:        status.Resolved,
+			Source:          status.Source,
+			EffectiveUserID: status.EffectiveUserID,
+		}
+	}
+
+	server, err := adminapi.New(adminapi.Options{
+		Addr:           a.cfg.AdminAddr,
+		Logger:         a.logger,
+		AppOrigin:      a.cfg.DashboardAppOrigin,
+		OwnerAppOrigin: a.cfg.DashboardAppOrigin,
+		SessionSecret:  a.cfg.DashboardSessionSecret,
+		ClientID:       a.cfg.DashboardClientID,
+		ClientSecret:   a.cfg.DashboardClientSecret,
+		RedirectURL:    a.cfg.DashboardRedirectURL,
+		OAuthClient:    oauthClient,
+		Service: adminapi.Service{
+			Logger:        a.logger,
+			Config:        a.cfg,
+			Snapshot:      a.opsSnapshot,
+			ModuleAdmin:   a.bot.ModuleAdmin(),
+			PluginAdmin:   a.bot.PluginAdmin(),
+			Store:         a.store,
+			BuildInfo:     buildinfo.Current,
+			OAuth:         oauthClient,
+			OwnerStatus:   ownerStatus,
+			KnownGuildIDs: a.bot.KnownGuildIDs,
+			ListGuildChannels: func(ctx context.Context, guildID uint64) ([]adminapi.GuildChannelInfo, error) {
+				items, err := a.bot.ListGuildChannels(ctx, guildID)
+				if err != nil {
+					return nil, err
+				}
+				out := make([]adminapi.GuildChannelInfo, 0, len(items))
+				for _, item := range items {
+					out = append(out, adminapi.GuildChannelInfo{
+						ID:       item.ID,
+						Name:     item.Name,
+						Type:     item.Type,
+						ParentID: item.ParentID,
+					})
+				}
+				return out, nil
+			},
+			ListGuildRoles: func(ctx context.Context, guildID uint64) ([]adminapi.GuildRoleInfo, error) {
+				items, err := a.bot.ListGuildRoles(ctx, guildID)
+				if err != nil {
+					return nil, err
+				}
+				out := make([]adminapi.GuildRoleInfo, 0, len(items))
+				for _, item := range items {
+					out = append(out, adminapi.GuildRoleInfo{
+						ID:          item.ID,
+						Name:        item.Name,
+						Color:       item.Color,
+						Position:    item.Position,
+						Managed:     item.Managed,
+						Mentionable: item.Mentionable,
+					})
+				}
+				return out, nil
+			},
+			SearchGuildMembers: func(ctx context.Context, guildID uint64, query string, limit int) ([]adminapi.GuildMemberInfo, error) {
+				items, err := a.bot.SearchGuildMembers(ctx, guildID, query, limit)
+				if err != nil {
+					return nil, err
+				}
+				out := make([]adminapi.GuildMemberInfo, 0, len(items))
+				for _, item := range items {
+					out = append(out, adminapi.GuildMemberInfo{
+						UserID:      item.UserID,
+						Username:    item.Username,
+						DisplayName: item.DisplayName,
+						AvatarURL:   item.AvatarURL,
+						Bot:         item.Bot,
+						JoinedAt:    item.JoinedAt,
+						RoleIDs:     item.RoleIDs,
+					})
+				}
+				return out, nil
+			},
+			ListGuildEmojis: func(ctx context.Context, guildID uint64) ([]adminapi.GuildEmojiInfo, error) {
+				items, err := a.bot.ListGuildEmojis(ctx, guildID)
+				if err != nil {
+					return nil, err
+				}
+				out := make([]adminapi.GuildEmojiInfo, 0, len(items))
+				for _, item := range items {
+					out = append(out, adminapi.GuildEmojiInfo{
+						ID:       item.ID,
+						Name:     item.Name,
+						Animated: item.Animated,
+					})
+				}
+				return out, nil
+			},
+			ListGuildStickers: func(ctx context.Context, guildID uint64) ([]adminapi.GuildStickerInfo, error) {
+				items, err := a.bot.ListGuildStickers(ctx, guildID)
+				if err != nil {
+					return nil, err
+				}
+				out := make([]adminapi.GuildStickerInfo, 0, len(items))
+				for _, item := range items {
+					out = append(out, adminapi.GuildStickerInfo{
+						ID:          item.ID,
+						Name:        item.Name,
+						Description: item.Description,
+						Tags:        item.Tags,
+					})
+				}
+				return out, nil
+			},
+			SetSlowmode:         a.bot.SetSlowmode,
+			SetNickname:         a.bot.SetNickname,
+			TimeoutMember:       a.bot.TimeoutMember,
+			CreateRole:          a.bot.CreateRole,
+			EditRole:            a.bot.EditRole,
+			DeleteRole:          a.bot.DeleteRole,
+			AddRole:             a.bot.AddRole,
+			RemoveRole:          a.bot.RemoveRole,
+			PurgeMessages:       a.bot.PurgeMessages,
+			CreateEmojiUpload:   a.bot.CreateEmojiUpload,
+			EditEmoji:           a.bot.EditEmoji,
+			DeleteEmoji:         a.bot.DeleteEmoji,
+			CreateStickerUpload: a.bot.CreateStickerUpload,
+			EditSticker:         a.bot.EditSticker,
+			DeleteSticker:       a.bot.DeleteSticker,
+		},
+		OwnerStatus: ownerStatus,
+	})
+	if err != nil {
+		return err
+	}
+	a.admin = server
 	return nil
 }
 

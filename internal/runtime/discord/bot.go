@@ -20,7 +20,7 @@ type Dependencies struct {
 	Logger *slog.Logger
 	Token  string
 
-	Owners                   []uint64
+	OwnerUserID              *uint64
 	DevGuildID               *uint64
 	CommandRegistrationMode  string
 	CommandGuildIDs          []uint64
@@ -61,7 +61,7 @@ type Bot struct {
 	slashCooldownOverrides map[string]time.Duration
 
 	devGuildID *uint64
-	owners     map[uint64]struct{}
+	owner      ownerState
 
 	commandRegistrationMode  string
 	commandGuildIDs          []uint64
@@ -105,8 +105,8 @@ func New(deps Dependencies) (*Bot, error) {
 		store:      deps.Store,
 		metrics:    deps.Metrics,
 		prodMode:   deps.ProdMode,
-		devGuildID: deps.DevGuildID,
-		owners:     toSet(deps.Owners),
+		devGuildID: cloneOptionalUint64(deps.DevGuildID),
+		owner:      newOwnerState(deps.OwnerUserID),
 		cooldowns:  newCooldownTracker(),
 
 		commandRegistrationMode:  commandRegistrationMode,
@@ -138,6 +138,7 @@ func New(deps Dependencies) (*Bot, error) {
 		return nil, err
 	}
 	b.client = client
+	b.resolveOwner(context.Background())
 	if b.pluginHost != nil {
 		b.pluginAuto = discordplugin.NewAutomation(
 			b.logger,
@@ -153,4 +154,12 @@ func New(deps Dependencies) (*Bot, error) {
 	}
 
 	return b, nil
+}
+
+func (b *Bot) ModuleAdmin() commandapi.ModuleAdmin {
+	return moduleAdmin{b: b}
+}
+
+func (b *Bot) PluginAdmin() commandapi.PluginAdmin {
+	return pluginAdmin{b: b}
 }

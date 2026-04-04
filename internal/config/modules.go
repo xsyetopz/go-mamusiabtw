@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -44,4 +45,31 @@ func LoadModulesFile(path string) (ModulesFile, error) {
 		file.Modules = map[string]ModuleEntry{}
 	}
 	return file, nil
+}
+
+func WriteModulesFile(path string, file ModulesFile) error {
+	path = strings.TrimSpace(path)
+	if path == "" {
+		return fmt.Errorf("modules file path is required")
+	}
+	if file.Version == "" {
+		file.Version = "1"
+	}
+	if file.Modules == nil {
+		file.Modules = map[string]ModuleEntry{}
+	}
+
+	bytes, err := json.MarshalIndent(file, "", "  ")
+	if err != nil {
+		return fmt.Errorf("marshal modules file %q: %w", path, err)
+	}
+	bytes = append(bytes, '\n')
+
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return fmt.Errorf("create modules dir for %q: %w", path, err)
+	}
+	if err := os.WriteFile(path, bytes, 0o644); err != nil {
+		return fmt.Errorf("write modules file %q: %w", path, err)
+	}
+	return nil
 }

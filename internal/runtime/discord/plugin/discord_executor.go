@@ -640,6 +640,107 @@ func (e Executor) DeleteSticker(ctx context.Context, spec pluginhostlua.StickerD
 	return nil
 }
 
+func (e Executor) CreateEmojiUpload(
+	ctx context.Context,
+	guildID uint64,
+	name, filename string,
+	body []byte,
+	width, height int,
+) (pluginhostlua.EmojiResult, error) {
+	if e.client() == nil {
+		return pluginhostlua.EmojiResult{}, errors.New("discord client unavailable")
+	}
+	if guildID == 0 || strings.TrimSpace(name) == "" || strings.TrimSpace(filename) == "" || len(body) == 0 {
+		return pluginhostlua.EmojiResult{}, errors.New("invalid emoji spec")
+	}
+	if len(body) > pluginEmojiMaxFileBytes {
+		return pluginhostlua.EmojiResult{}, errors.New("file_too_large")
+	}
+	if !allowedEmojiExtension(filename) {
+		return pluginhostlua.EmojiResult{}, errors.New("bad_extension")
+	}
+
+	guild, err := e.client().Rest.GetGuild(snowflake.ID(guildID), false, rest.WithCtx(ctx))
+	if err != nil || guild == nil {
+		return pluginhostlua.EmojiResult{}, errors.New("create_error")
+	}
+	maxAllowed := maxGuildEmojis(guild.PremiumTier)
+	if len(guild.Emojis) >= maxAllowed {
+		return pluginhostlua.EmojiResult{}, errors.New("too_many:" + strconv.Itoa(maxAllowed))
+	}
+
+	detectedWidth, detectedHeight, ok := imageDims(width, height, body)
+	if !ok {
+		return pluginhostlua.EmojiResult{}, errors.New("dimensions_error")
+	}
+	if detectedWidth > pluginEmojiMaxDimension || detectedHeight > pluginEmojiMaxDimension {
+		return pluginhostlua.EmojiResult{}, errors.New("too_large_dims:" + strconv.Itoa(detectedWidth) + ":" + strconv.Itoa(detectedHeight))
+	}
+
+	icon, err := discord.ParseIconRaw(body)
+	if err != nil || icon == nil {
+		return pluginhostlua.EmojiResult{}, errors.New("bad_image")
+	}
+
+	emoji, err := e.client().Rest.CreateEmoji(snowflake.ID(guildID), discord.EmojiCreate{
+		Name:  strings.TrimSpace(name),
+		Image: *icon,
+	}, rest.WithCtx(ctx))
+	if err != nil {
+		return pluginhostlua.EmojiResult{}, errors.New("create_error")
+	}
+	return pluginhostlua.EmojiResult{ID: uint64(emoji.ID), Name: emoji.Name}, nil
+}
+
+func (e Executor) CreateStickerUpload(
+	ctx context.Context,
+	guildID uint64,
+	name, description, emojiTag, filename string,
+	body []byte,
+	width, height int,
+) (pluginhostlua.StickerResult, error) {
+	if e.client() == nil {
+		return pluginhostlua.StickerResult{}, errors.New("discord client unavailable")
+	}
+	if guildID == 0 || strings.TrimSpace(name) == "" || strings.TrimSpace(emojiTag) == "" || strings.TrimSpace(filename) == "" || len(body) == 0 {
+		return pluginhostlua.StickerResult{}, errors.New("invalid sticker spec")
+	}
+	if len(body) > pluginStickerMaxFileBytes {
+		return pluginhostlua.StickerResult{}, errors.New("file_too_large")
+	}
+	if !allowedStickerExtension(filename) {
+		return pluginhostlua.StickerResult{}, errors.New("bad_extension")
+	}
+
+	guild, err := e.client().Rest.GetGuild(snowflake.ID(guildID), false, rest.WithCtx(ctx))
+	if err != nil || guild == nil {
+		return pluginhostlua.StickerResult{}, errors.New("create_error")
+	}
+	maxAllowed := maxGuildStickers(guild.PremiumTier)
+	if len(guild.Stickers) >= maxAllowed {
+		return pluginhostlua.StickerResult{}, errors.New("too_many:" + strconv.Itoa(maxAllowed))
+	}
+
+	detectedWidth, detectedHeight, ok := imageDims(width, height, body)
+	if !ok {
+		return pluginhostlua.StickerResult{}, errors.New("dimensions_error")
+	}
+	if detectedWidth > pluginStickerMaxDimension || detectedHeight > pluginStickerMaxDimension {
+		return pluginhostlua.StickerResult{}, errors.New("too_large_dims:" + strconv.Itoa(detectedWidth) + ":" + strconv.Itoa(detectedHeight))
+	}
+
+	sticker, err := e.client().Rest.CreateSticker(snowflake.ID(guildID), discord.StickerCreate{
+		Name:        strings.TrimSpace(name),
+		Description: strings.TrimSpace(description),
+		Tags:        strings.TrimSpace(emojiTag),
+		File:        discord.NewFile(filename, "", bytes.NewReader(body)),
+	}, rest.WithCtx(ctx))
+	if err != nil {
+		return pluginhostlua.StickerResult{}, errors.New("create_error")
+	}
+	return pluginhostlua.StickerResult{ID: uint64(sticker.ID), Name: sticker.Name}, nil
+}
+
 func roleResult(role discord.Role) pluginhostlua.RoleResult {
 	return pluginhostlua.RoleResult{
 		ID:          uint64(role.ID),
