@@ -23,7 +23,7 @@ go run ./cmd/mamusiabtw dev
 Manual path:
 
 1. Copy the env example:
-   - `.env.dev.example` -> `.env.dev` (or legacy: `.env.local.example` -> `.env.local`)
+   - `.env.dev.example` -> `.env.dev`
 2. Fill in:
    - `DISCORD_TOKEN` (from the Discord Developer Portal, Bot page)
 3. Optional but recommended for fast iteration:
@@ -35,18 +35,13 @@ mamusiabtw creates or opens the SQLite database at `SQLITE_PATH` and applies pen
 
 If you see migration output: that is expected on first run.
 
-Note: mamusiabtw auto-loads an env file if present (dev commands prefer `.env.dev`,
-production-style runs prefer `.env.prod`).
+Note: mamusiabtw auto-loads an env file if present:
 
-Supported filenames:
+- dev commands load `.env.dev`
+- production-style runs load `.env.prod`
 
-- `.env.dev` / `.env.prod` (recommended)
-- `.env.local` / `.env.production` (legacy)
-- `.env.development` / `.env.production.local` (also accepted)
-- `.env`
-
-If you don’t want that behavior, set `MAMUSIABTW_DISABLE_DOTENV=1`.
-If you want to force a specific file, set `MAMUSIABTW_ENV_FILE=./path/to/.env`.
+No other dotenv filenames are supported. If you want to disable dotenv entirely,
+set `MAMUSIABTW_DISABLE_DOTENV=1`.
 
 For runtime build metadata, use:
 
@@ -61,7 +56,7 @@ For explicit migration control, use:
 - `go run ./cmd/mamusiabtw migrate down --steps 1`
 
 `migrate backup` writes a SQLite snapshot into `MAMUSIABTW_MIGRATION_BACKUPS_DIR`.
-Old local DB files from the legacy pre-plugin project are not supported for upgrade and should be recreated.
+Old local DB files from older pre-plugin versions are not supported for upgrade and should be recreated.
 
 ## Optional Servers
 
@@ -83,8 +78,7 @@ If you want the website/dashboard, you will run two things:
 
 Tip: for local dev, pick one origin and stick to it.
 
-- Recommended: `http://localhost:5173` for the Vite dev server
-- Also works: `http://127.0.0.1:5173`
+- Use: `http://127.0.0.1:5173` for the Vite dev server
 
 mamusiabtw is defensive about loopback origins (CORS + redirects treat
 `localhost` / `127.0.0.1` / `::1` as equivalent when possible), but consistency
@@ -159,7 +153,7 @@ bun run dev
 
 Open:
 
-- `http://localhost:5173`
+- `http://127.0.0.1:5173`
 
 ### Where Do I Get CLIENT_ID / CLIENT_SECRET / SESSION_SECRET?
 
@@ -197,7 +191,7 @@ Example:
 Checklist:
 
 1. Copy env examples:
-   - `.env.prod.example` -> `.env.prod` (or use the legacy `.env.production.example`)
+   - `.env.prod.example` -> `.env.prod`
    - `apps/dashboard/.env.prod.example` -> `apps/dashboard/.env.prod`
 2. Configure the bot/API:
    - `MAMUSIABTW_DASHBOARD_APP_ORIGIN=https://app.example.com`
@@ -216,11 +210,6 @@ Repo standard:
 - root prod bot/API: `.env.prod`
 - dashboard dev frontend: `apps/dashboard/.env.dev`
 - dashboard prod frontend: `apps/dashboard/.env.prod`
-
-Legacy files still work:
-
-- `.env.local` / `.env.production`
-- `apps/dashboard/.env.local` / `apps/dashboard/.env.production`
 
 ## Dashboard Routes
 
@@ -252,7 +241,7 @@ If the API is not reachable or the dashboard URLs are invalid, the app opens int
   - the bot/admin API is not running, or `MAMUSIABTW_ADMIN_ADDR` is wrong
   - run `go run ./cmd/mamusiabtw doctor` to see what config the bot thinks it has
 - Quick self-checks:
-  - `curl -I http://localhost:5173` (dashboard dev server)
+  - `curl -I http://127.0.0.1:5173` (dashboard dev server)
   - `curl -I http://127.0.0.1:8081/api/setup` (admin API)
 - Dashboard shows a CORS error mentioning `Access-Control-Allow-Origin` and `localhost:5173`:
   - you’re running the dashboard on `http://localhost:5173` but your config uses `http://127.0.0.1:5173` (or vice versa)
@@ -444,7 +433,7 @@ When `MAMUSIABTW_PROD_MODE=1`, plugins must include `signature.json` and be sign
 - Mixed dev mode: `MAMUSIABTW_PROD_MODE=0` and `MAMUSIABTW_ALLOW_UNSIGNED_PLUGINS=1`
 - Recommended release default: keep unsigned plugins off anywhere you treat as production
 
-## Legacy Parity Options
+## Compatibility Options
 
 ### Cooldowns
 

@@ -1,26 +1,34 @@
 import react from "@vitejs/plugin-react";
-import { defineConfig, loadEnv } from "vite";
+import fs from "node:fs";
+import path from "node:path";
+import { defineConfig } from "vite";
 
-function loadShortEnvAliases(mode: string) {
-	const alias =
-		mode === "development" ? "dev" : mode === "production" ? "prod" : "";
-	if (!alias) {
-		return;
-	}
-
-	// Vite supports .env.development/.env.production by default. We also support
-	// the short human-friendly forms (.env.dev/.env.prod) as an alias by loading
-	// them early and merging into process.env (without overriding).
-	const env = loadEnv(alias, process.cwd(), "VITE_");
-	for (const [key, value] of Object.entries(env)) {
-		if (process.env[key] === undefined) {
-			process.env[key] = value;
+function forbidNonStandardDotenv() {
+	const cwd = process.cwd();
+	const forbidden = [
+		".env",
+		".env.local",
+		".env.development",
+		".env.production",
+		".env.production.local",
+		".env.dev.local",
+		".env.prod.local",
+	];
+	for (const name of forbidden) {
+		const full = path.join(cwd, name);
+		if (fs.existsSync(full)) {
+			throw new Error(
+				`Forbidden env file ${name} detected. Use only .env.dev (dev) or .env.prod (prod).`,
+			);
 		}
 	}
 }
 
 export default defineConfig(({ mode }) => {
-	loadShortEnvAliases(mode);
+	if (mode !== "dev" && mode !== "prod") {
+		throw new Error(`Unsupported Vite mode ${JSON.stringify(mode)}. Use --mode dev or --mode prod.`);
+	}
+	forbidNonStandardDotenv();
 	return {
 		plugins: [react()],
 		build: {
@@ -51,8 +59,7 @@ export default defineConfig(({ mode }) => {
 			},
 		},
 		server: {
-			// Keep local dev deterministic: OAuth callback redirects use 127.0.0.1 by
-			// default, and binding Vite to localhost can be IPv6-only on some setups.
+			// Keep local dev deterministic: bind to IPv4 loopback.
 			host: "127.0.0.1",
 			port: 5173,
 			strictPort: true,

@@ -38,6 +38,11 @@ func runMain() int {
 	// to manually export variables before running.
 	if strings.TrimSpace(os.Getenv("MAMUSIABTW_DISABLE_DOTENV")) != "1" {
 		if explicit := strings.TrimSpace(os.Getenv("MAMUSIABTW_ENV_FILE")); explicit != "" {
+			base := filepath.Base(explicit)
+			if base != ".env.dev" && base != ".env.prod" {
+				_, _ = os.Stderr.WriteString("refusing to load non-standard env file " + base + "; use .env.dev or .env.prod instead\n")
+				return 1
+			}
 			_, _ = dotenv.LoadAuto([]string{explicit})
 		} else {
 			subcmd := ""
@@ -48,22 +53,17 @@ func runMain() int {
 			// command. This keeps "mamusiabtw" deterministic when both dev and prod
 			// env files exist locally.
 			if subcmd == "dev" || subcmd == "doctor" || subcmd == "init" {
-				_, _ = dotenv.LoadAuto([]string{
-					".env.dev",
-					".env.local",
-					".env.development",
-					".env",
-				})
+				if bad := forbiddenDotenvFile(); bad != "" {
+					_, _ = os.Stderr.WriteString("forbidden env file detected: " + bad + " (only .env.dev/.env.prod are allowed)\n")
+					return 1
+				}
+				_, _ = dotenv.LoadAuto([]string{".env.dev"})
 			} else {
-				_, _ = dotenv.LoadAuto([]string{
-					".env.prod",
-					".env.production",
-					".env.production.local",
-					".env.dev",
-					".env.local",
-					".env.development",
-					".env",
-				})
+				if bad := forbiddenDotenvFile(); bad != "" {
+					_, _ = os.Stderr.WriteString("forbidden env file detected: " + bad + " (only .env.dev/.env.prod are allowed)\n")
+					return 1
+				}
+				_, _ = dotenv.LoadAuto([]string{".env.prod"})
 			}
 		}
 	}
@@ -218,7 +218,7 @@ func runDevCommand(ctx context.Context) int {
 func runInitCommand(args []string) int {
 	fs := flag.NewFlagSet("init", flag.ContinueOnError)
 	fs.SetOutput(os.Stderr)
-	mode := fs.String("mode", "dev", "mode: dev|prod (aliases: local|production)")
+	mode := fs.String("mode", "dev", "mode: dev|prod")
 	force := fs.Bool("force", false, "overwrite existing files")
 	discordToken := fs.String("discord-token", "", "discord bot token")
 	clientID := fs.String("client-id", "", "discord oauth client id")
@@ -233,22 +233,13 @@ func runInitCommand(args []string) int {
 
 	rawMode := strings.ToLower(strings.TrimSpace(*mode))
 	modeKind := ""
-	fileStyle := ""
 	switch rawMode {
 	case "dev":
 		modeKind = "dev"
-		fileStyle = "short"
-	case "local":
-		modeKind = "dev"
-		fileStyle = "legacy"
 	case "prod":
 		modeKind = "prod"
-		fileStyle = "short"
-	case "production":
-		modeKind = "prod"
-		fileStyle = "legacy"
 	default:
-		_, _ = os.Stderr.WriteString("init: --mode must be dev|prod (aliases: local|production)\n")
+		_, _ = os.Stderr.WriteString("init: --mode must be dev|prod\n")
 		return 1
 	}
 
@@ -257,14 +248,6 @@ func runInitCommand(args []string) int {
 	if modeKind == "prod" {
 		rootEnv = ".env.prod"
 		dashEnv = filepath.Join("apps", "dashboard", ".env.prod")
-	}
-	if fileStyle == "legacy" {
-		rootEnv = ".env.local"
-		dashEnv = filepath.Join("apps", "dashboard", ".env.local")
-		if modeKind == "prod" {
-			rootEnv = ".env.production"
-			dashEnv = filepath.Join("apps", "dashboard", ".env.production")
-		}
 	}
 
 	if !*force {
@@ -282,7 +265,7 @@ func runInitCommand(args []string) int {
 		*adminAddr = "127.0.0.1:8081"
 	}
 	if strings.TrimSpace(*appOrigin) == "" && modeKind == "dev" {
-		*appOrigin = "http://localhost:5173"
+		*appOrigin = "http://127.0.0.1:5173"
 	}
 	if strings.TrimSpace(*redirectURL) == "" && modeKind == "dev" {
 		*redirectURL = "http://" + strings.TrimSpace(*adminAddr) + "/api/auth/callback"
@@ -353,6 +336,25 @@ func genHexSecret(nBytes int) string {
 		return strings.Repeat("x", nBytes)
 	}
 	return hex.EncodeToString(buf)
+}
+
+func forbiddenDotenvFile() string {
+	// Hardline policy: only .env.dev and .env.prod are permitted.
+	forbidden := []string{
+		".env.local",
+		".env.development",
+		".env.production",
+		".env.production.local",
+		".env.dev.local",
+		".env.prod.local",
+		".env",
+	}
+	for _, path := range forbidden {
+		if _, err := os.Stat(path); err == nil {
+			return path
+		}
+	}
+	return ""
 }
 
 func run(ctx context.Context, logger *slog.Logger, cfg config.Config) error {

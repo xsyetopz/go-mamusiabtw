@@ -71,9 +71,7 @@ const (
 	defaultSlashCooldownMS    = 5000
 	defaultComponentCooldown  = 750
 	defaultModalCooldownMS    = 1500
-	// Vite defaults to localhost:5173 in dev; use that as the least-surprising
-	// loopback origin and allow 127.0.0.1/::1 via CORS normalization.
-	defaultDashboardAppOrigin = "http://localhost:5173"
+	defaultDashboardAppOrigin = "http://127.0.0.1:5173"
 )
 
 func LoadFromEnv() (Config, error) {
