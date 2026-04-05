@@ -15,6 +15,8 @@ import { type BootstrapState, localSetup } from "../dashboard";
 import { badgeColor } from "../format";
 import type { SetupStatus, StatusResponse } from "../types";
 
+const TRAILING_SLASH_RE = /\/$/;
+
 type Props = {
 	bootstrap: BootstrapState;
 	setupStatus: SetupStatus | null;
@@ -172,9 +174,9 @@ function LocalSetupCard({ setupStatus }: { setupStatus: SetupStatus | null }) {
 			<Stack gap="sm">
 				<Text fw={700}>Local setup</Text>
 				<Text size="sm">Use these values for a normal local run:</Text>
-				<Code block={true}>{`MAMUSIABTW_ADMIN_ADDR=${localSetup.adminAddr}
-MAMUSIABTW_DASHBOARD_APP_ORIGIN=${localSetup.appOrigin}
-MAMUSIABTW_DASHBOARD_REDIRECT_URL=${localSetup.redirectURL}`}</Code>
+				<Code
+					block={true}
+				>{`MAMUSIABTW_ADMIN_ADDR=${localSetup.adminAddr}`}</Code>
 				{(setupStatus?.hints.length ?? 0) > 0 ? (
 					<Stack gap="xs">
 						<Text size="sm" fw={600}>
@@ -203,8 +205,11 @@ export function SetupPage({
 	onLogin,
 }: Props) {
 	const resolvedAdminAddr = setupStatus?.admin_addr || localSetup.adminAddr;
-	const resolvedOrigin = setupStatus?.app_origin || localSetup.appOrigin;
-	const resolvedRedirect = setupStatus?.redirect_url || localSetup.redirectURL;
+	const resolvedOrigin =
+		setupStatus?.app_origin || `http://${resolvedAdminAddr}`;
+	const resolvedRedirect =
+		setupStatus?.redirect_url ||
+		`${resolvedOrigin.replace(TRAILING_SLASH_RE, "")}/api/auth/callback`;
 
 	return (
 		<Stack gap="lg">

@@ -253,7 +253,6 @@ func (a *App) initAdminServer() error {
 	oauthClient := adminapi.NewDiscordOAuthClient(
 		a.cfg.DashboardClientID,
 		a.cfg.DashboardClientSecret,
-		a.cfg.DashboardRedirectURL,
 	)
 	ownerStatus := func() adminapi.OwnerStatus {
 		status := a.bot.OwnerStatus()
@@ -268,13 +267,11 @@ func (a *App) initAdminServer() error {
 	server, err := adminapi.New(adminapi.Options{
 		Addr:           a.cfg.AdminAddr,
 		Logger:         a.logger,
-		AppOrigin:      a.cfg.DashboardAppOrigin,
-		OwnerAppOrigin: a.cfg.DashboardAppOrigin,
 		SessionSecret:  a.cfg.DashboardSessionSecret,
 		ClientID:       a.cfg.DashboardClientID,
 		ClientSecret:   a.cfg.DashboardClientSecret,
-		RedirectURL:    a.cfg.DashboardRedirectURL,
 		OAuthClient:    oauthClient,
+		SessionStore:   a.store.AdminSessions(),
 		Service: adminapi.Service{
 			Logger:        a.logger,
 			Config:        a.cfg,

@@ -1,39 +1,7 @@
-const configuredAPIBase =
-	(import.meta.env["VITE_ADMIN_API_BASE_URL"] as string | undefined)?.trim() ||
-	"";
-const fallbackDevAPIBase = "http://127.0.0.1:8081";
-const isProductionBuild = import.meta.env.PROD;
-const TRAILING_SLASH_RE = /\/$/;
-
-function normalizeAPIBase(raw: string): { base: string; error: string | null } {
-	if (raw.trim() === "") {
-		return {
-			base: "",
-			error: isProductionBuild
-				? "VITE_ADMIN_API_BASE_URL is required for production builds."
-				: null,
-		};
-	}
-	try {
-		const url = new URL(raw);
-		if (url.protocol !== "http:" && url.protocol !== "https:") {
-			return { base: raw, error: "Admin API URL must use http or https." };
-		}
-		url.pathname = "";
-		url.search = "";
-		url.hash = "";
-		return { base: url.toString().replace(TRAILING_SLASH_RE, ""), error: null };
-	} catch {
-		return { base: raw, error: "Admin API URL is not a valid absolute URL." };
-	}
-}
-
-const normalized = normalizeAPIBase(
-	configuredAPIBase || (isProductionBuild ? "" : fallbackDevAPIBase),
-);
-
-export const apiBase = normalized.base;
-export const apiBaseError = normalized.error;
+// The dashboard is served from the admin API origin, so we always call relative
+// /api/... paths. This avoids all CORS and cookie host issues.
+export const apiBase = "";
+export const apiBaseError: string | null = null;
 
 export class APIError extends Error {
 	readonly status: number;
@@ -45,13 +13,9 @@ export class APIError extends Error {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-	if (apiBaseError) {
-		throw new APIError(apiBaseError, 0);
-	}
-
 	let response: Response;
 	try {
-		response = await fetch(apiBase + path, {
+		response = await fetch(path, {
 			credentials: "include",
 			...init,
 			headers: {
@@ -60,8 +24,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 			},
 		});
 	} catch {
-		const target = apiBase ? `${apiBase}${path}` : "admin API";
-		throw new APIError(`Could not reach the admin API (${target}).`, 0);
+		throw new APIError("Could not reach the admin API.", 0);
 	}
 
 	if (!response.ok) {

@@ -15,7 +15,6 @@ type discordOAuthClient struct {
 	client       *http.Client
 	clientID     string
 	clientSecret string
-	redirectURL  string
 }
 
 type OAuthToken struct {
@@ -61,26 +60,21 @@ type OAuthGuild struct {
 	Permissions OAuthPermissions `json:"permissions"`
 }
 
-func NewDiscordOAuthClient(clientID, clientSecret, redirectURL string) OAuthClient {
+func NewDiscordOAuthClient(clientID, clientSecret string) OAuthClient {
 	return &discordOAuthClient{
 		client:       &http.Client{Timeout: 10 * time.Second},
 		clientID:     strings.TrimSpace(clientID),
 		clientSecret: strings.TrimSpace(clientSecret),
-		redirectURL:  strings.TrimSpace(redirectURL),
 	}
 }
 
-func (c *discordOAuthClient) RedirectURL() string {
-	return c.redirectURL
-}
-
-func (c *discordOAuthClient) ExchangeCode(ctx context.Context, code string) (OAuthToken, error) {
+func (c *discordOAuthClient) ExchangeCode(ctx context.Context, code string, redirectURL string) (OAuthToken, error) {
 	form := url.Values{}
 	form.Set("client_id", c.clientID)
 	form.Set("client_secret", c.clientSecret)
 	form.Set("grant_type", "authorization_code")
 	form.Set("code", strings.TrimSpace(code))
-	form.Set("redirect_uri", c.redirectURL)
+	form.Set("redirect_uri", strings.TrimSpace(redirectURL))
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "https://discord.com/api/oauth2/token", strings.NewReader(form.Encode()))
 	if err != nil {

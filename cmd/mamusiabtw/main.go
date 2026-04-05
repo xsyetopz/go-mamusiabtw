@@ -135,8 +135,9 @@ func runDoctorCommand(args []string) int {
 	}
 
 	if strings.TrimSpace(cfg.AdminAddr) != "" {
-		writeLine("dashboard_app_origin: %s", cfg.DashboardAppOrigin)
-		writeLine("dashboard_redirect_url: %s", cfg.DashboardRedirectURL)
+		base := httpBaseFromAddr(cfg.AdminAddr)
+		writeLine("dashboard_base_url: %s", base)
+		writeLine("dashboard_oauth_redirect_url: %s/api/auth/callback", base)
 		writeLine("dashboard_client_id_set: %t", strings.TrimSpace(cfg.DashboardClientID) != "")
 		writeLine("dashboard_client_secret_set: %t", strings.TrimSpace(cfg.DashboardClientSecret) != "")
 		writeLine("dashboard_session_secret_set: %t", len(strings.TrimSpace(cfg.DashboardSessionSecret)) >= 32)
@@ -148,12 +149,10 @@ func runDoctorCommand(args []string) int {
 	if strings.TrimSpace(cfg.AdminAddr) != "" && cfg.ProdMode {
 		if strings.TrimSpace(cfg.DashboardClientID) == "" ||
 			strings.TrimSpace(cfg.DashboardClientSecret) == "" ||
-			strings.TrimSpace(cfg.DashboardAppOrigin) == "" ||
-			strings.TrimSpace(cfg.DashboardRedirectURL) == "" ||
 			len(strings.TrimSpace(cfg.DashboardSessionSecret)) < 32 {
 			writeLine("")
 			writeLine("next: admin api is enabled in prod mode but oauth/session config is incomplete")
-			writeLine("next: fill MAMUSIABTW_DASHBOARD_* vars (client id/secret/origin/redirect/session secret)")
+			writeLine("next: fill MAMUSIABTW_DASHBOARD_* vars (client id/secret/session secret)")
 			return 1
 		}
 	}
@@ -205,8 +204,11 @@ func runDevCommand(ctx context.Context) int {
 		_, _ = os.Stderr.WriteString(err.Error() + "\n")
 		return 1
 	}
-	_, _ = fmt.Fprintf(os.Stdout, "admin_setup_url: %s/api/setup\n", httpBaseFromAddr(cfg.AdminAddr))
+	base := httpBaseFromAddr(cfg.AdminAddr)
+	_, _ = fmt.Fprintf(os.Stdout, "admin_setup_url: %s/api/setup\n", base)
+	_, _ = fmt.Fprintf(os.Stdout, "dashboard_url: %s/\n", base)
 	_, _ = os.Stdout.WriteString("dashboard_dev: cd apps/dashboard && bun run dev\n")
+	_, _ = os.Stdout.WriteString("dashboard_dev_note: open dashboard_url (admin API proxies Vite; do not open :5173)\n")
 
 	if runErr := run(ctx, logger, cfg); runErr != nil {
 		logger.ErrorContext(ctx, "fatal", slog.String("err", runErr.Error()))
@@ -224,8 +226,6 @@ func runInitCommand(args []string) int {
 	clientID := fs.String("client-id", "", "discord oauth client id")
 	clientSecret := fs.String("client-secret", "", "discord oauth client secret")
 	adminAddr := fs.String("admin-addr", "", "admin api listen addr (host:port)")
-	appOrigin := fs.String("app-origin", "", "dashboard app origin")
-	redirectURL := fs.String("redirect-url", "", "oauth redirect url")
 	sessionSecret := fs.String("session-secret", "", "session secret (32+ chars)")
 	if err := fs.Parse(args); err != nil {
 		return 1
@@ -244,10 +244,8 @@ func runInitCommand(args []string) int {
 	}
 
 	rootEnv := ".env.dev"
-	dashEnv := filepath.Join("apps", "dashboard", ".env.dev")
 	if modeKind == "prod" {
 		rootEnv = ".env.prod"
-		dashEnv = filepath.Join("apps", "dashboard", ".env.prod")
 	}
 
 	if !*force {
@@ -255,20 +253,10 @@ func runInitCommand(args []string) int {
 			_, _ = os.Stderr.WriteString("init: " + rootEnv + " already exists (use --force to overwrite)\n")
 			return 1
 		}
-		if _, err := os.Stat(dashEnv); err == nil {
-			_, _ = os.Stderr.WriteString("init: " + dashEnv + " already exists (use --force to overwrite)\n")
-			return 1
-		}
 	}
 
 	if strings.TrimSpace(*adminAddr) == "" && modeKind == "dev" {
 		*adminAddr = "127.0.0.1:8081"
-	}
-	if strings.TrimSpace(*appOrigin) == "" && modeKind == "dev" {
-		*appOrigin = "http://127.0.0.1:5173"
-	}
-	if strings.TrimSpace(*redirectURL) == "" && modeKind == "dev" {
-		*redirectURL = "http://" + strings.TrimSpace(*adminAddr) + "/api/auth/callback"
 	}
 	if strings.TrimSpace(*sessionSecret) == "" {
 		*sessionSecret = genHexSecret(32)
@@ -287,12 +275,6 @@ func runInitCommand(args []string) int {
 	if strings.TrimSpace(*adminAddr) != "" {
 		root.WriteString("\n# Admin API + dashboard OAuth\n")
 		root.WriteString("MAMUSIABTW_ADMIN_ADDR=" + strings.TrimSpace(*adminAddr) + "\n")
-		if strings.TrimSpace(*appOrigin) != "" {
-			root.WriteString("MAMUSIABTW_DASHBOARD_APP_ORIGIN=" + strings.TrimSpace(*appOrigin) + "\n")
-		}
-		if strings.TrimSpace(*redirectURL) != "" {
-			root.WriteString("MAMUSIABTW_DASHBOARD_REDIRECT_URL=" + strings.TrimSpace(*redirectURL) + "\n")
-		}
 		root.WriteString("MAMUSIABTW_DASHBOARD_CLIENT_ID=" + strings.TrimSpace(*clientID) + "\n")
 		root.WriteString("MAMUSIABTW_DASHBOARD_CLIENT_SECRET=" + strings.TrimSpace(*clientSecret) + "\n")
 		root.WriteString("MAMUSIABTW_DASHBOARD_SESSION_SECRET=" + strings.TrimSpace(*sessionSecret) + "\n")
@@ -303,26 +285,7 @@ func runInitCommand(args []string) int {
 		return 1
 	}
 
-	if err := os.MkdirAll(filepath.Dir(dashEnv), 0o755); err != nil {
-		_, _ = os.Stderr.WriteString("init: mkdir apps/dashboard: " + err.Error() + "\n")
-		return 1
-	}
-
-	viteBase := "http://127.0.0.1:8081"
-	if modeKind == "prod" {
-		viteBase = "https://api.example.com"
-	}
-	if strings.TrimSpace(*adminAddr) != "" && modeKind == "dev" {
-		viteBase = "http://" + strings.TrimSpace(*adminAddr)
-	}
-	dash := "VITE_ADMIN_API_BASE_URL=" + viteBase + "\n"
-	if err := os.WriteFile(dashEnv, []byte(dash), 0o600); err != nil {
-		_, _ = os.Stderr.WriteString("init: write " + dashEnv + ": " + err.Error() + "\n")
-		return 1
-	}
-
 	_, _ = fmt.Fprintf(os.Stdout, "wrote: %s\n", rootEnv)
-	_, _ = fmt.Fprintf(os.Stdout, "wrote: %s\n", dashEnv)
 	if modeKind == "dev" {
 		_, _ = os.Stdout.WriteString("next: mamusiabtw dev\n")
 		_, _ = os.Stdout.WriteString("next: cd apps/dashboard && bun install && bun run dev\n")

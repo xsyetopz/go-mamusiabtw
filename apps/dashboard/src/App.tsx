@@ -712,15 +712,7 @@ function PublicSiteView({
 					onLogin={onLogin}
 					onRefresh={onRefreshGuilds}
 					onInviteBot={() => {
-						if (apiBaseError) {
-							notifications.show({
-								color: "red",
-								title: "Invite is unavailable",
-								message: apiBaseError,
-							});
-							return;
-						}
-						window.location.href = `${apiBase}/api/install/start`;
+						window.location.href = "/api/install/start";
 					}}
 					onOpenGuild={(guildID) =>
 						onNavigate({ kind: "server", guildID: String(guildID) })
@@ -740,15 +732,7 @@ function PublicSiteView({
 					onBack={() => onNavigate({ kind: "servers" })}
 					onRefresh={() => onRefreshGuildDashboard(route.guildID)}
 					onInstall={(guildID) => {
-						if (apiBaseError) {
-							notifications.show({
-								color: "red",
-								title: "Invite is unavailable",
-								message: apiBaseError,
-							});
-							return;
-						}
-						window.location.href = `${apiBase}/api/install/start?guild_id=${encodeURIComponent(
+						window.location.href = `/api/install/start?guild_id=${encodeURIComponent(
 							guildID,
 						)}`;
 					}}
@@ -1132,6 +1116,11 @@ async function bootstrapDashboardImpl({
 
 	try {
 		const meResp = await get<AuthMe>("/api/auth/me");
+		if (!meResp.authenticated) {
+			setMe(null);
+			setBootstrap({ kind: "unauthenticated" });
+			return;
+		}
 		setMe(meResp);
 		setBootstrap({ kind: "ready" });
 	} catch (error) {
@@ -1350,15 +1339,7 @@ export function App() {
 	);
 
 	function login() {
-		if (apiBaseError) {
-			notifications.show({
-				color: "red",
-				title: "Sign-in is unavailable",
-				message: apiBaseError,
-			});
-			return;
-		}
-		window.location.href = `${apiBase}/api/auth/login`;
+		window.location.href = "/api/auth/login";
 	}
 
 	async function logout() {

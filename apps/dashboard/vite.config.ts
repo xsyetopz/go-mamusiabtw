@@ -1,6 +1,6 @@
-import react from "@vitejs/plugin-react";
 import fs from "node:fs";
 import path from "node:path";
+import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
 function forbidNonStandardDotenv() {
@@ -26,7 +26,9 @@ function forbidNonStandardDotenv() {
 
 export default defineConfig(({ mode }) => {
 	if (mode !== "dev" && mode !== "prod") {
-		throw new Error(`Unsupported Vite mode ${JSON.stringify(mode)}. Use --mode dev or --mode prod.`);
+		throw new Error(
+			`Unsupported Vite mode ${JSON.stringify(mode)}. Use --mode dev or --mode prod.`,
+		);
 	}
 	forbidNonStandardDotenv();
 	return {

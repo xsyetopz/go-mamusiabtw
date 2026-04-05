@@ -70,7 +70,6 @@ export type StatusResponse = {
 		trusted_keys_file: string;
 		ops_addr: string;
 		admin_addr: string;
-		dashboard_app_origin: string;
 		dev_guild_id?: number;
 		command_registration_mode: string;
 		prod_mode: boolean;

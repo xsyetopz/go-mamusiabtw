@@ -11,7 +11,9 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -19,6 +21,7 @@ import (
 
 	"github.com/xsyetopz/go-mamusiabtw/internal/config"
 	"github.com/xsyetopz/go-mamusiabtw/internal/permissions"
+	store "github.com/xsyetopz/go-mamusiabtw/internal/storage"
 )
 
 const (
@@ -35,7 +38,7 @@ type OAuthUser struct {
 }
 
 type OAuthClient interface {
-	ExchangeCode(ctx context.Context, code string) (OAuthToken, error)
+	ExchangeCode(ctx context.Context, code string, redirectURL string) (OAuthToken, error)
 	FetchUser(ctx context.Context, accessToken string) (OAuthUser, error)
 	FetchGuilds(ctx context.Context, accessToken string) ([]OAuthGuild, error)
 }
@@ -44,14 +47,12 @@ type Options struct {
 	Addr           string
 	Logger         *slog.Logger
 	Service        Service
-	AppOrigin      string
-	OwnerAppOrigin string
 	SessionSecret  string
 	ClientID       string
 	ClientSecret   string
-	RedirectURL    string
 	OwnerStatus    func() OwnerStatus
 	OAuthClient    OAuthClient
+	SessionStore   store.AdminSessionStore
 }
 
 type Server struct {
@@ -59,23 +60,25 @@ type Server struct {
 	addr   string
 	svc    Service
 
-	appOrigin      string
-	ownerAppOrigin string
-	corsOrigins    map[string]struct{}
 	clientID       string
 	clientSecret   string
 	ownerStatus    func() OwnerStatus
 	oauth          OAuthClient
 	secret         []byte
-	cookieSecure   bool
-	cookieSameSite http.SameSite
 
-	sessionsMu sync.Mutex
-	sessions   map[string]session
+	sessions store.AdminSessionStore
+
+	stateMu    sync.Mutex
+	stateStore map[string]oauthState
 
 	mu       sync.Mutex
 	listener net.Listener
 	server   *http.Server
+}
+
+type oauthState struct {
+	RedirectURL string
+	ReturnBase  string
 }
 
 type session struct {
@@ -98,24 +101,23 @@ func New(opts Options) (*Server, error) {
 		return nil, errors.New("logger is required")
 	}
 	if opts.OAuthClient == nil {
-		opts.OAuthClient = NewDiscordOAuthClient(opts.ClientID, opts.ClientSecret, opts.RedirectURL)
+		opts.OAuthClient = NewDiscordOAuthClient(opts.ClientID, opts.ClientSecret)
 	}
-	cookieSecure, cookieSameSite := cookiePolicy(opts.AppOrigin, opts.RedirectURL)
+	sessionStore := opts.SessionStore
+	if sessionStore == nil {
+		sessionStore = newMemorySessionStore()
+	}
 	return &Server{
 		logger:         opts.Logger.With(slog.String("component", "admin_api")),
 		addr:           strings.TrimSpace(opts.Addr),
 		svc:            opts.Service,
-		appOrigin:      strings.TrimSpace(opts.AppOrigin),
-		ownerAppOrigin: strings.TrimSpace(opts.OwnerAppOrigin),
-		corsOrigins:    buildAllowedCORSOrigins(opts.AppOrigin),
 		clientID:       strings.TrimSpace(opts.ClientID),
 		clientSecret:   strings.TrimSpace(opts.ClientSecret),
 		ownerStatus:    opts.OwnerStatus,
 		oauth:          opts.OAuthClient,
 		secret:         []byte(opts.SessionSecret),
-		cookieSecure:   cookieSecure,
-		cookieSameSite: cookieSameSite,
-		sessions:       map[string]session{},
+		sessions:       sessionStore,
+		stateStore:     map[string]oauthState{},
 	}, nil
 }
 
@@ -170,59 +172,62 @@ func (s *Server) Close(ctx context.Context) error {
 }
 
 func (s *Server) handler() http.Handler {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/api/setup", s.handleSetup)
-	mux.HandleFunc("/api/auth/login", s.handleLogin)
-	mux.HandleFunc("/api/auth/callback", s.handleCallback)
-	mux.HandleFunc("/api/auth/me", s.handleMe)
-	mux.HandleFunc("/api/auth/logout", s.handleLogout)
-	mux.HandleFunc("/api/guilds", s.withAuth(s.handleGuilds))
-	mux.HandleFunc("/api/guilds/dashboard", s.withAuth(s.handleGuildDashboard))
-	mux.HandleFunc("/api/guilds/config", s.withAuth(s.withCSRF(s.handleGuildConfig)))
-	mux.HandleFunc("/api/guilds/channels", s.withAuth(s.handleGuildChannels))
-	mux.HandleFunc("/api/guilds/roles", s.withAuth(s.handleGuildRoles))
-	mux.HandleFunc("/api/guilds/members", s.withAuth(s.handleGuildMembers))
-	mux.HandleFunc("/api/guilds/emojis", s.withAuth(s.handleGuildEmojis))
-	mux.HandleFunc("/api/guilds/stickers", s.withAuth(s.handleGuildStickers))
-	mux.HandleFunc("/api/guilds/moderation/warnings", s.withAuth(s.handleGuildWarnings))
-	mux.HandleFunc("/api/guilds/moderation/warn", s.withAuth(s.withCSRF(s.handleGuildWarn)))
-	mux.HandleFunc("/api/guilds/moderation/unwarn", s.withAuth(s.withCSRF(s.handleGuildUnwarn)))
-	mux.HandleFunc("/api/guilds/manager/slowmode", s.withAuth(s.withCSRF(s.handleGuildSlowmode)))
-	mux.HandleFunc("/api/guilds/manager/nick", s.withAuth(s.withCSRF(s.handleGuildNickname)))
-	mux.HandleFunc("/api/guilds/manager/roles/create", s.withAuth(s.withCSRF(s.handleGuildRoleCreate)))
-	mux.HandleFunc("/api/guilds/manager/roles/edit", s.withAuth(s.withCSRF(s.handleGuildRoleEdit)))
-	mux.HandleFunc("/api/guilds/manager/roles/delete", s.withAuth(s.withCSRF(s.handleGuildRoleDelete)))
-	mux.HandleFunc("/api/guilds/manager/roles/member", s.withAuth(s.withCSRF(s.handleGuildRoleMember)))
-	mux.HandleFunc("/api/guilds/manager/purge", s.withAuth(s.withCSRF(s.handleGuildPurge)))
-	mux.HandleFunc("/api/guilds/manager/emojis/create", s.withAuth(s.withCSRF(s.handleGuildEmojiCreate)))
-	mux.HandleFunc("/api/guilds/manager/emojis/edit", s.withAuth(s.withCSRF(s.handleGuildEmojiEdit)))
-	mux.HandleFunc("/api/guilds/manager/emojis/delete", s.withAuth(s.withCSRF(s.handleGuildEmojiDelete)))
-	mux.HandleFunc("/api/guilds/manager/stickers/create", s.withAuth(s.withCSRF(s.handleGuildStickerCreate)))
-	mux.HandleFunc("/api/guilds/manager/stickers/edit", s.withAuth(s.withCSRF(s.handleGuildStickerEdit)))
-	mux.HandleFunc("/api/guilds/manager/stickers/delete", s.withAuth(s.withCSRF(s.handleGuildStickerDelete)))
-	mux.HandleFunc("/api/install/start", s.withAuth(s.handleInstallStart))
-	mux.HandleFunc("/api/install/callback", s.withAuth(s.handleInstallCallback))
+	api := http.NewServeMux()
+	api.HandleFunc("/api/setup", s.handleSetup)
+	api.HandleFunc("/api/auth/login", s.handleLogin)
+	api.HandleFunc("/api/auth/callback", s.handleCallback)
+	api.HandleFunc("/api/auth/me", s.handleMe)
+	api.HandleFunc("/api/auth/logout", s.handleLogout)
+	api.HandleFunc("/api/guilds", s.withAuth(s.handleGuilds))
+	api.HandleFunc("/api/guilds/dashboard", s.withAuth(s.handleGuildDashboard))
+	api.HandleFunc("/api/guilds/config", s.withAuth(s.withCSRF(s.handleGuildConfig)))
+	api.HandleFunc("/api/guilds/channels", s.withAuth(s.handleGuildChannels))
+	api.HandleFunc("/api/guilds/roles", s.withAuth(s.handleGuildRoles))
+	api.HandleFunc("/api/guilds/members", s.withAuth(s.handleGuildMembers))
+	api.HandleFunc("/api/guilds/emojis", s.withAuth(s.handleGuildEmojis))
+	api.HandleFunc("/api/guilds/stickers", s.withAuth(s.handleGuildStickers))
+	api.HandleFunc("/api/guilds/moderation/warnings", s.withAuth(s.handleGuildWarnings))
+	api.HandleFunc("/api/guilds/moderation/warn", s.withAuth(s.withCSRF(s.handleGuildWarn)))
+	api.HandleFunc("/api/guilds/moderation/unwarn", s.withAuth(s.withCSRF(s.handleGuildUnwarn)))
+	api.HandleFunc("/api/guilds/manager/slowmode", s.withAuth(s.withCSRF(s.handleGuildSlowmode)))
+	api.HandleFunc("/api/guilds/manager/nick", s.withAuth(s.withCSRF(s.handleGuildNickname)))
+	api.HandleFunc("/api/guilds/manager/roles/create", s.withAuth(s.withCSRF(s.handleGuildRoleCreate)))
+	api.HandleFunc("/api/guilds/manager/roles/edit", s.withAuth(s.withCSRF(s.handleGuildRoleEdit)))
+	api.HandleFunc("/api/guilds/manager/roles/delete", s.withAuth(s.withCSRF(s.handleGuildRoleDelete)))
+	api.HandleFunc("/api/guilds/manager/roles/member", s.withAuth(s.withCSRF(s.handleGuildRoleMember)))
+	api.HandleFunc("/api/guilds/manager/purge", s.withAuth(s.withCSRF(s.handleGuildPurge)))
+	api.HandleFunc("/api/guilds/manager/emojis/create", s.withAuth(s.withCSRF(s.handleGuildEmojiCreate)))
+	api.HandleFunc("/api/guilds/manager/emojis/edit", s.withAuth(s.withCSRF(s.handleGuildEmojiEdit)))
+	api.HandleFunc("/api/guilds/manager/emojis/delete", s.withAuth(s.withCSRF(s.handleGuildEmojiDelete)))
+	api.HandleFunc("/api/guilds/manager/stickers/create", s.withAuth(s.withCSRF(s.handleGuildStickerCreate)))
+	api.HandleFunc("/api/guilds/manager/stickers/edit", s.withAuth(s.withCSRF(s.handleGuildStickerEdit)))
+	api.HandleFunc("/api/guilds/manager/stickers/delete", s.withAuth(s.withCSRF(s.handleGuildStickerDelete)))
+	api.HandleFunc("/api/install/start", s.withAuth(s.handleInstallStart))
+	api.HandleFunc("/api/install/callback", s.withAuth(s.handleInstallCallback))
 
-	mux.HandleFunc("/api/owner/status", s.withOwner(s.handleStatus))
-	mux.HandleFunc("/api/owner/modules", s.withOwner(s.handleModules))
-	mux.HandleFunc("/api/owner/modules/set", s.withOwner(s.withCSRF(s.handleSetModule)))
-	mux.HandleFunc("/api/owner/modules/reset", s.withOwner(s.withCSRF(s.handleResetModule)))
-	mux.HandleFunc("/api/owner/modules/reload", s.withOwner(s.withCSRF(s.handleReloadModules)))
+	api.HandleFunc("/api/owner/status", s.withOwner(s.handleStatus))
+	api.HandleFunc("/api/owner/modules", s.withOwner(s.handleModules))
+	api.HandleFunc("/api/owner/modules/set", s.withOwner(s.withCSRF(s.handleSetModule)))
+	api.HandleFunc("/api/owner/modules/reset", s.withOwner(s.withCSRF(s.handleResetModule)))
+	api.HandleFunc("/api/owner/modules/reload", s.withOwner(s.withCSRF(s.handleReloadModules)))
 
-	mux.HandleFunc("/api/owner/plugins", s.withOwner(s.handlePlugins))
-	mux.HandleFunc("/api/owner/plugins/reload", s.withOwner(s.withCSRF(s.handleReloadPlugins)))
-	mux.HandleFunc("/api/owner/plugins/scaffold", s.withOwner(s.withCSRF(s.handleScaffoldPlugin)))
-	mux.HandleFunc("/api/owner/plugins/sign", s.withOwner(s.withCSRF(s.handleSignPlugin)))
+	api.HandleFunc("/api/owner/plugins", s.withOwner(s.handlePlugins))
+	api.HandleFunc("/api/owner/plugins/reload", s.withOwner(s.withCSRF(s.handleReloadPlugins)))
+	api.HandleFunc("/api/owner/plugins/scaffold", s.withOwner(s.withCSRF(s.handleScaffoldPlugin)))
+	api.HandleFunc("/api/owner/plugins/sign", s.withOwner(s.withCSRF(s.handleSignPlugin)))
 
-	mux.HandleFunc("/api/owner/config/modules", s.withOwner(s.handleModulesConfig))
-	mux.HandleFunc("/api/owner/config/permissions", s.withOwner(s.handlePermissionsConfig))
-	mux.HandleFunc("/api/owner/config/trusted-keys", s.withOwner(s.handleTrustedKeys))
+	api.HandleFunc("/api/owner/config/modules", s.withOwner(s.handleModulesConfig))
+	api.HandleFunc("/api/owner/config/permissions", s.withOwner(s.handlePermissionsConfig))
+	api.HandleFunc("/api/owner/config/trusted-keys", s.withOwner(s.handleTrustedKeys))
 
-	mux.HandleFunc("/api/owner/migrations/status", s.withOwner(s.handleMigrationStatus))
-	mux.HandleFunc("/api/owner/migrations/backup", s.withOwner(s.withCSRF(s.handleMigrationBackup)))
-	mux.HandleFunc("/api/owner/migrations/up", s.withOwner(s.withCSRF(s.handleMigrationUp)))
+	api.HandleFunc("/api/owner/migrations/status", s.withOwner(s.handleMigrationStatus))
+	api.HandleFunc("/api/owner/migrations/backup", s.withOwner(s.withCSRF(s.handleMigrationBackup)))
+	api.HandleFunc("/api/owner/migrations/up", s.withOwner(s.withCSRF(s.handleMigrationUp)))
 
-	return s.withCORS(mux)
+	root := http.NewServeMux()
+	root.Handle("/api/", api)
+	root.Handle("/", s.dashboardHandler())
+	return root
 }
 
 func (s *Server) handleSetup(w http.ResponseWriter, r *http.Request) {
@@ -231,129 +236,16 @@ func (s *Server) handleSetup(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+	base := requestBaseURL(r)
+	resp.AppOrigin = strings.TrimRight(base, "/")
+	resp.RedirectURL = strings.TrimRight(base, "/") + "/api/auth/callback"
 	writeJSON(w, http.StatusOK, resp)
-}
-
-func (s *Server) withCORS(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		origin := strings.TrimSpace(r.Header.Get("Origin"))
-		if origin != "" && s.isAllowedCORSOrigin(origin) {
-			w.Header().Set("Access-Control-Allow-Origin", origin)
-			w.Header().Set("Vary", "Origin")
-			w.Header().Set("Access-Control-Allow-Credentials", "true")
-			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-CSRF-Token")
-			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS")
-		}
-		if r.Method == http.MethodOptions {
-			w.WriteHeader(http.StatusNoContent)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
-}
-
-func (s *Server) isAllowedCORSOrigin(origin string) bool {
-	if s == nil {
-		return false
-	}
-	origin = normalizeOrigin(origin)
-	if origin == "" {
-		return false
-	}
-	if _, ok := s.corsOrigins[origin]; ok {
-		return true
-	}
-	return false
 }
 
 func normalizeOrigin(raw string) string {
 	raw = strings.TrimSpace(raw)
 	raw = strings.TrimRight(raw, "/")
 	return raw
-}
-
-func canonicalLoopbackOrigin(origin string) string {
-	origin = normalizeOrigin(origin)
-	if origin == "" {
-		return ""
-	}
-
-	u, err := url.Parse(origin)
-	if err != nil {
-		return origin
-	}
-	if strings.TrimSpace(u.Scheme) == "" {
-		return origin
-	}
-
-	host := strings.TrimSpace(u.Hostname())
-	if host == "" {
-		return origin
-	}
-
-	// Prefer localhost for redirects. It "just works" in browsers even when the
-	// dev server is bound to localhost and the config uses 127.0.0.1.
-	if host != "127.0.0.1" && host != "::1" {
-		return origin
-	}
-
-	port := strings.TrimSpace(u.Port())
-	targetHost := "localhost"
-	if port != "" {
-		targetHost = net.JoinHostPort(targetHost, port)
-	}
-	u.Host = targetHost
-	return normalizeOrigin(u.String())
-}
-
-func buildAllowedCORSOrigins(appOrigin string) map[string]struct{} {
-	appOrigin = normalizeOrigin(appOrigin)
-	if appOrigin == "" {
-		// Local dev defaults: allow Vite's default origin even if the config is
-		// missing. Production remains strict via config validation.
-		return map[string]struct{}{
-			"http://localhost:5173":   {},
-			"http://127.0.0.1:5173":   {},
-			"http://[::1]:5173":       {},
-		}
-	}
-
-	out := map[string]struct{}{appOrigin: {}}
-
-	u, err := url.Parse(appOrigin)
-	if err != nil {
-		return out
-	}
-
-	host := strings.TrimSpace(u.Hostname())
-	port := strings.TrimSpace(u.Port())
-	scheme := strings.TrimSpace(u.Scheme)
-	if host == "" || scheme == "" {
-		return out
-	}
-
-	// Reduce dev friction: treat localhost / 127.0.0.1 / ::1 as equivalent for the
-	// same port when the configured origin is loopback. This avoids confusing CORS
-	// failures when Vite uses localhost but the config uses 127.0.0.1.
-	isLoopback := host == "localhost" || host == "127.0.0.1" || host == "::1"
-	if !isLoopback {
-		return out
-	}
-
-	variants := []string{"localhost", "127.0.0.1", "::1"}
-	for _, v := range variants {
-		if v == host {
-			continue
-		}
-		targetHost := v
-		if port != "" {
-			targetHost = net.JoinHostPort(v, port)
-		}
-		origin := scheme + "://" + targetHost
-		out[normalizeOrigin(origin)] = struct{}{}
-	}
-
-	return out
 }
 
 func (s *Server) withAuth(next func(http.ResponseWriter, *http.Request, session)) http.HandlerFunc {
@@ -401,13 +293,23 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, "failed to start login")
 		return
 	}
-	http.SetCookie(w, s.cookie(stateCookieName, state, 10*time.Minute, true))
+	base := requestBaseURL(r)
+	redirectURL := base + "/api/auth/callback"
+
+	s.stateMu.Lock()
+	s.stateStore[state] = oauthState{
+		RedirectURL: redirectURL,
+		ReturnBase:  base,
+	}
+	s.stateMu.Unlock()
+
+	http.SetCookie(w, s.cookie(r, stateCookieName, state, 10*time.Minute, true))
 
 	values := url.Values{}
 	values.Set("client_id", s.clientID)
 	values.Set("response_type", "code")
 	values.Set("scope", "identify guilds")
-	values.Set("redirect_uri", s.oauthRedirectURL())
+	values.Set("redirect_uri", redirectURL)
 	values.Set("state", state)
 	http.Redirect(w, r, "https://discord.com/oauth2/authorize?"+values.Encode(), http.StatusFound)
 }
@@ -428,12 +330,22 @@ func (s *Server) handleCallback(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "invalid oauth state")
 		return
 	}
+
+	s.stateMu.Lock()
+	stateData, ok := s.stateStore[state]
+	delete(s.stateStore, state)
+	s.stateMu.Unlock()
+	if !ok {
+		writeError(w, http.StatusBadRequest, "invalid oauth state")
+		return
+	}
+
 	code := strings.TrimSpace(r.URL.Query().Get("code"))
 	if code == "" {
 		writeError(w, http.StatusBadRequest, "missing oauth code")
 		return
 	}
-	token, err := s.oauth.ExchangeCode(r.Context(), code)
+	token, err := s.oauth.ExchangeCode(r.Context(), code, stateData.RedirectURL)
 	if err != nil {
 		writeError(w, http.StatusBadGateway, "oauth token exchange failed")
 		return
@@ -474,14 +386,17 @@ func (s *Server) handleCallback(w http.ResponseWriter, r *http.Request) {
 		IsOwner:     isOwner,
 		ExpiresAt:   time.Now().Add(sessionTTL).Unix(),
 	}
-	s.putSession(sess)
-	http.SetCookie(w, s.cookie(sessionCookieName, sessionID, sessionTTL, true))
-	http.SetCookie(w, s.cookie(stateCookieName, "", -time.Hour, true))
-	redirectOrigin := canonicalLoopbackOrigin(s.appOrigin)
-	ownerOrigin := canonicalLoopbackOrigin(s.ownerAppOrigin)
-	redirectTarget := strings.TrimRight(redirectOrigin, "/") + "/#/servers"
-	if isOwner && strings.TrimSpace(s.ownerAppOrigin) != "" {
-		redirectTarget = strings.TrimRight(ownerOrigin, "/") + "/#/owner"
+	if err := s.putSession(r.Context(), sess); err != nil {
+		writeError(w, http.StatusInternalServerError, "failed to create session")
+		return
+	}
+
+	http.SetCookie(w, s.cookie(r, sessionCookieName, sessionID, sessionTTL, true))
+	http.SetCookie(w, s.cookie(r, stateCookieName, "", -time.Hour, true))
+
+	redirectTarget := strings.TrimRight(stateData.ReturnBase, "/") + "/#/servers"
+	if isOwner {
+		redirectTarget = strings.TrimRight(stateData.ReturnBase, "/") + "/#/owner"
 	}
 	http.Redirect(w, r, redirectTarget, http.StatusFound)
 }
@@ -489,7 +404,10 @@ func (s *Server) handleCallback(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleMe(w http.ResponseWriter, r *http.Request) {
 	sess, err := s.readSession(r)
 	if err != nil {
-		writeError(w, http.StatusUnauthorized, "unauthorized")
+		// Beginner-friendly: /api/auth/me is diagnostic, not a hard 401.
+		writeJSON(w, http.StatusOK, SessionResponse{
+			Authenticated: false,
+		})
 		return
 	}
 	resp := SessionResponse{
@@ -507,10 +425,10 @@ func (s *Server) handleMe(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleLogout(w http.ResponseWriter, r *http.Request) {
 	if cookie, err := r.Cookie(sessionCookieName); err == nil {
 		if sessionID, ok := s.unsignCookieValue(sessionCookieName, cookie.Value); ok {
-			s.deleteSession(sessionID)
+			_ = s.deleteSession(r.Context(), sessionID)
 		}
 	}
-	http.SetCookie(w, s.cookie(sessionCookieName, "", -time.Hour, true))
+	http.SetCookie(w, s.cookie(r, sessionCookieName, "", -time.Hour, true))
 	writeJSON(w, http.StatusOK, map[string]any{"ok": true})
 }
 
@@ -546,15 +464,16 @@ func (s *Server) handleInstallStart(w http.ResponseWriter, r *http.Request, sess
 		url string
 		err error
 	)
+	base := requestBaseURL(r)
 	if guildIDRaw == "" {
-		url, err = s.svc.InstallURLAnyGuild()
+		url, err = s.svc.InstallURLAnyGuild(base)
 	} else {
 		guildID, parseErr := strconv.ParseUint(guildIDRaw, 10, 64)
 		if parseErr != nil || guildID == 0 {
 			writeError(w, http.StatusBadRequest, "invalid guild_id")
 			return
 		}
-		url, err = s.svc.InstallURL(guildID)
+		url, err = s.svc.InstallURL(guildID, base)
 	}
 	if err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
@@ -581,7 +500,8 @@ func (s *Server) handleInstallCallback(w http.ResponseWriter, r *http.Request, s
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	http.Redirect(w, r, strings.TrimRight(s.appOrigin, "/")+"/#/servers/"+guildIDRaw, http.StatusFound)
+	base := requestBaseURL(r)
+	http.Redirect(w, r, strings.TrimRight(base, "/")+"/#/servers/"+guildIDRaw, http.StatusFound)
 }
 
 func (s *Server) handleStatus(w http.ResponseWriter, r *http.Request, _ session) {
@@ -780,16 +700,24 @@ func (s *Server) handleMigrationUp(w http.ResponseWriter, r *http.Request, sess 
 }
 
 func (s *Server) oauthRedirectURL() string {
-	if impl, ok := s.oauth.(interface{ RedirectURL() string }); ok {
-		return impl.RedirectURL()
-	}
 	return ""
 }
 
-func (s *Server) putSession(sess session) {
-	s.sessionsMu.Lock()
-	defer s.sessionsMu.Unlock()
-	s.sessions[sess.ID] = sess
+func (s *Server) putSession(ctx context.Context, sess session) error {
+	if s.sessions == nil {
+		return errors.New("session store is not configured")
+	}
+	return s.sessions.PutAdminSession(ctx, store.AdminSession{
+		ID:          sess.ID,
+		UserID:      sess.UserID,
+		Username:    sess.Username,
+		Name:        sess.Name,
+		AvatarURL:   sess.AvatarURL,
+		CSRFToken:   sess.CSRFToken,
+		AccessToken: sess.AccessToken,
+		IsOwner:     sess.IsOwner,
+		ExpiresAt:   sess.ExpiresAt,
+	})
 }
 
 func (s *Server) readSession(r *http.Request) (session, error) {
@@ -801,36 +729,52 @@ func (s *Server) readSession(r *http.Request) (session, error) {
 	if !ok {
 		return session{}, errors.New("invalid session")
 	}
-	s.sessionsMu.Lock()
-	sess, ok := s.sessions[sessionID]
-	s.sessionsMu.Unlock()
+	if s.sessions == nil {
+		return session{}, errors.New("invalid session")
+	}
+	stored, ok, err := s.sessions.GetAdminSession(r.Context(), sessionID)
+	if err != nil {
+		return session{}, err
+	}
 	if !ok {
 		return session{}, errors.New("invalid session")
 	}
-	if time.Now().Unix() >= sess.ExpiresAt {
-		s.deleteSession(sessionID)
+	if time.Now().Unix() >= stored.ExpiresAt {
+		_, _ = s.sessions.DeleteExpiredAdminSessions(r.Context(), time.Now().Unix())
 		return session{}, errors.New("session expired")
 	}
-	return sess, nil
+	return session{
+		ID:          stored.ID,
+		UserID:      stored.UserID,
+		Username:    stored.Username,
+		Name:        stored.Name,
+		AvatarURL:   stored.AvatarURL,
+		CSRFToken:   stored.CSRFToken,
+		AccessToken: stored.AccessToken,
+		IsOwner:     stored.IsOwner,
+		ExpiresAt:   stored.ExpiresAt,
+	}, nil
 }
 
-func (s *Server) deleteSession(id string) {
-	s.sessionsMu.Lock()
-	defer s.sessionsMu.Unlock()
-	delete(s.sessions, id)
+func (s *Server) deleteSession(ctx context.Context, id string) error {
+	if s.sessions == nil {
+		return nil
+	}
+	return s.sessions.DeleteAdminSession(ctx, id)
 }
 
-func (s *Server) cookie(name, value string, ttl time.Duration, httpOnly bool) *http.Cookie {
+func (s *Server) cookie(r *http.Request, name, value string, ttl time.Duration, httpOnly bool) *http.Cookie {
 	if ttl > 0 && value != "" && (name == sessionCookieName || name == stateCookieName) {
 		value = s.signCookieValue(name, value)
 	}
+	secure, sameSite := cookiePolicyFromRequest(r)
 	return &http.Cookie{
 		Name:     name,
 		Value:    value,
 		Path:     "/",
 		HttpOnly: httpOnly,
-		SameSite: s.cookieSameSite,
-		Secure:   s.cookieSecure,
+		SameSite: sameSite,
+		Secure:   secure,
 		MaxAge:   int(ttl.Seconds()),
 	}
 }
@@ -867,16 +811,13 @@ func subtleTokenCompare(a, b string) bool {
 
 func (s *Server) authConfigured() bool {
 	// Keep this strict: in production we want missing config to be obvious.
-	if strings.TrimSpace(s.appOrigin) == "" {
-		return false
-	}
 	if strings.TrimSpace(s.clientID) == "" || strings.TrimSpace(s.clientSecret) == "" {
 		return false
 	}
 	if len(s.secret) < 32 {
 		return false
 	}
-	return strings.TrimSpace(s.oauthRedirectURL()) != ""
+	return true
 }
 
 func (s *Server) signCookieValue(name, value string) string {
@@ -930,19 +871,13 @@ func writeError(w http.ResponseWriter, status int, message string) {
 	writeJSON(w, status, map[string]any{"error": strings.TrimSpace(message)})
 }
 
-func cookiePolicy(appOrigin, redirectURL string) (bool, http.SameSite) {
-	app, err := url.Parse(strings.TrimSpace(appOrigin))
+func cookiePolicyFromRequest(r *http.Request) (bool, http.SameSite) {
+	base := requestBaseURL(r)
+	u, err := url.Parse(base)
 	if err != nil {
 		return false, http.SameSiteLaxMode
 	}
-	redirect, err := url.Parse(strings.TrimSpace(redirectURL))
-	if err != nil {
-		return false, http.SameSiteLaxMode
-	}
-	secure := app.Scheme == "https" || redirect.Scheme == "https"
-	if secure && !sameOrigin(app, redirect) {
-		return true, http.SameSiteNoneMode
-	}
+	secure := strings.EqualFold(strings.TrimSpace(u.Scheme), "https")
 	if secure {
 		return true, http.SameSiteLaxMode
 	}
@@ -954,4 +889,89 @@ func sameOrigin(a, b *url.URL) bool {
 		return false
 	}
 	return strings.EqualFold(a.Scheme, b.Scheme) && strings.EqualFold(a.Host, b.Host)
+}
+
+type memorySessionStore struct {
+	mu       sync.Mutex
+	sessions map[string]store.AdminSession
+}
+
+func newMemorySessionStore() *memorySessionStore {
+	return &memorySessionStore{sessions: map[string]store.AdminSession{}}
+}
+
+func (s *memorySessionStore) GetAdminSession(_ context.Context, id string) (store.AdminSession, bool, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	sess, ok := s.sessions[id]
+	return sess, ok, nil
+}
+
+func (s *memorySessionStore) PutAdminSession(_ context.Context, sess store.AdminSession) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.sessions[sess.ID] = sess
+	return nil
+}
+
+func (s *memorySessionStore) DeleteAdminSession(_ context.Context, id string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	delete(s.sessions, id)
+	return nil
+}
+
+func (s *memorySessionStore) DeleteExpiredAdminSessions(_ context.Context, nowUnix int64) (int64, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	var n int64
+	for id, sess := range s.sessions {
+		if sess.ExpiresAt <= nowUnix {
+			delete(s.sessions, id)
+			n++
+		}
+	}
+	return n, nil
+}
+
+func requestBaseURL(r *http.Request) string {
+	if r == nil {
+		return "http://127.0.0.1:8081"
+	}
+	// Trust reverse proxy headers when present.
+	scheme := strings.TrimSpace(r.Header.Get("X-Forwarded-Proto"))
+	if scheme == "" {
+		if r.TLS != nil {
+			scheme = "https"
+		} else {
+			scheme = "http"
+		}
+	}
+	host := strings.TrimSpace(r.Header.Get("X-Forwarded-Host"))
+	if host == "" {
+		host = strings.TrimSpace(r.Host)
+	}
+	if host == "" {
+		host = "127.0.0.1:8081"
+	}
+	return scheme + "://" + host
+}
+
+func (s *Server) dashboardHandler() http.Handler {
+	// If dist exists, prefer it (single-process dev works after `bun run build`).
+	dist := filepath.Join("apps", "dashboard", "dist")
+	if fileExists(filepath.Join(dist, "index.html")) {
+		return http.FileServer(http.Dir(dist))
+	}
+
+	// Otherwise, proxy to Vite for dev HMR. Browser still stays on this origin.
+	targetURL, _ := url.Parse("http://127.0.0.1:5173")
+	proxy := httputil.NewSingleHostReverseProxy(targetURL)
+	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
+		s.logger.Error("dashboard proxy failed", slog.String("err", err.Error()))
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.WriteHeader(http.StatusBadGateway)
+		_, _ = w.Write([]byte("Dashboard dev server is not running.\n\nRun:\n  cd apps/dashboard && bun run dev\n\nOr build once:\n  cd apps/dashboard && bun run build\n"))
+	}
+	return proxy
 }

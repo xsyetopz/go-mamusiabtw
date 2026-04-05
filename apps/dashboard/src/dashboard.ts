@@ -88,8 +88,6 @@ export const emptyScaffold: ScaffoldState = {
 
 export const localSetup = {
 	adminAddr: "127.0.0.1:8081",
-	appOrigin: "http://127.0.0.1:5173",
-	redirectURL: "http://127.0.0.1:8081/api/auth/callback",
 };
 
 const LEADING_HASH_RE = /^#/;

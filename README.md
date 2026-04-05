@@ -74,15 +74,14 @@ The frontend lives in `apps/dashboard/` and uses Discord OAuth against that API.
 If you want the website/dashboard, you will run two things:
 
 - Terminal A: the bot + admin API (`go run ...`)
-- Terminal B: the dashboard frontend (`bun run dev`)
+- Terminal B (optional): the dashboard frontend dev server for HMR (`bun run dev`)
 
-Tip: for local dev, pick one origin and stick to it.
+Important: you always open the dashboard at the admin API origin:
 
-- Use: `http://127.0.0.1:5173` for the Vite dev server
+- `http://127.0.0.1:8081/`
 
-mamusiabtw is defensive about loopback origins (CORS + redirects treat
-`localhost` / `127.0.0.1` / `::1` as equivalent when possible), but consistency
-still avoids weird cookie/redirect confusion.
+Even if Vite is running, the admin API proxies to it so cookies and auth stay
+simple. You do not open `:5173` in the browser.
 
 ### Step 1: Configure The Bot/API Env
 
@@ -92,7 +91,7 @@ Preferred (zero thinking):
 go run ./cmd/mamusiabtw init
 ```
 
-That writes `.env.dev` and `apps/dashboard/.env.dev` with sane defaults.
+That writes `.env.dev` with sane defaults.
 
 If you want to do it manually, copy:
 
@@ -108,7 +107,9 @@ To enable Discord sign-in (OAuth) you also need:
 - `MAMUSIABTW_DASHBOARD_CLIENT_ID=...`
 - `MAMUSIABTW_DASHBOARD_CLIENT_SECRET=...`
 
-Everything else has dev defaults (origin/redirect/session secret).
+In dev, `MAMUSIABTW_DASHBOARD_SESSION_SECRET` is generated automatically if you
+don’t set it (sessions will reset on restart). For stable sessions, set it to a
+32+ character random string.
 
 ### Step 2: Tell Discord About The Redirect URL (One-Time)
 
@@ -119,8 +120,6 @@ In the Discord Developer Portal, your application must allow the callback URL:
 If you prefer `localhost`, you can use:
 
 - `http://localhost:8081/api/auth/callback`
-
-Just make sure `MAMUSIABTW_DASHBOARD_REDIRECT_URL` matches exactly.
 
 The admin API requests OAuth2 scopes `identify` and `guilds` during login.
 
@@ -140,20 +139,19 @@ go run ./cmd/mamusiabtw
 
 ### Step 4: Run The Dashboard Frontend
 
-1. In another terminal:
-   - `cd apps/dashboard`
-2. Copy:
-   - `.env.dev.example` -> `.env.dev`
-3. Install + run:
+If you want HMR while developing the UI:
+
+1. In another terminal: `cd apps/dashboard`
+2. Install + run:
 
 ```bash
 bun install
 bun run dev
 ```
 
-Open:
+Then open:
 
-- `http://127.0.0.1:5173`
+- `http://127.0.0.1:8081/`
 
 ### Where Do I Get CLIENT_ID / CLIENT_SECRET / SESSION_SECRET?
 
@@ -178,29 +176,24 @@ openssl rand -base64 48
 
 ## Website + Dashboard (Production)
 
-This split matters:
+The recommended production shape is still single-origin:
 
-- website origin (where the frontend lives)
-- API origin (where the bot’s admin API listens)
-
-Example:
-
-- website: `https://app.example.com`
-- API: `https://api.example.com`
+- the admin API serves the dashboard files
+- the browser talks to `/api/...` on the same origin
 
 Checklist:
 
-1. Copy env examples:
-   - `.env.prod.example` -> `.env.prod`
-   - `apps/dashboard/.env.prod.example` -> `apps/dashboard/.env.prod`
-2. Configure the bot/API:
-   - `MAMUSIABTW_DASHBOARD_APP_ORIGIN=https://app.example.com`
-   - `MAMUSIABTW_DASHBOARD_REDIRECT_URL=https://api.example.com/api/auth/callback`
-3. Configure the dashboard build:
-   - `VITE_ADMIN_API_BASE_URL=https://api.example.com`
+1. Copy `.env.prod.example` -> `.env.prod`
+2. Set at least:
+   - `DISCORD_TOKEN=...`
+   - `MAMUSIABTW_ADMIN_ADDR=0.0.0.0:8081` (or behind a reverse proxy)
+   - `MAMUSIABTW_DASHBOARD_CLIENT_ID=...`
+   - `MAMUSIABTW_DASHBOARD_CLIENT_SECRET=...`
+   - `MAMUSIABTW_DASHBOARD_SESSION_SECRET=...` (32+ chars)
+3. Build the dashboard once:
+   - `cd apps/dashboard && bun install && bun run build`
 
-Production frontend builds do not fall back to `127.0.0.1:8081`.
-If `VITE_ADMIN_API_BASE_URL` is missing or invalid, the site opens into setup diagnostics and blocks sign-in/install redirects.
+If `apps/dashboard/dist/index.html` exists, the admin API serves it automatically.
 
 ## Env Convention
 
@@ -208,8 +201,6 @@ Repo standard:
 
 - root dev bot/API: `.env.dev`
 - root prod bot/API: `.env.prod`
-- dashboard dev frontend: `apps/dashboard/.env.dev`
-- dashboard prod frontend: `apps/dashboard/.env.prod`
 
 ## Dashboard Routes
 
@@ -241,11 +232,11 @@ If the API is not reachable or the dashboard URLs are invalid, the app opens int
   - the bot/admin API is not running, or `MAMUSIABTW_ADMIN_ADDR` is wrong
   - run `go run ./cmd/mamusiabtw doctor` to see what config the bot thinks it has
 - Quick self-checks:
-  - `curl -I http://127.0.0.1:5173` (dashboard dev server)
+  - `curl -I http://127.0.0.1:8081/` (dashboard HTML, via admin API)
   - `curl -I http://127.0.0.1:8081/api/setup` (admin API)
-- Dashboard shows a CORS error mentioning `Access-Control-Allow-Origin` and `localhost:5173`:
-  - you’re running the dashboard on `http://localhost:5173` but your config uses `http://127.0.0.1:5173` (or vice versa)
-  - mamusiabtw treats `localhost` and `127.0.0.1` as equivalent loopback origins now, so a restart should fix it
+- Dashboard loads on `:5173` but login/session never “sticks”:
+  - you opened the Vite dev server directly
+  - open `http://127.0.0.1:8081/` instead (the admin API proxies Vite so cookies/auth work)
 - Bot exits with `failed to open gateway connection: websocket: close 4014: Disallowed intent(s).`:
   - Discord is rejecting privileged gateway intents your bot requests
   - fix: Discord Developer Portal -> your application -> Bot -> Privileged Gateway Intents

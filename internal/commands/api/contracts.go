@@ -21,6 +21,7 @@ type Store interface {
 	Warnings() store.WarningStore
 	Audit() store.AuditStore
 	TrustedSigners() store.TrustedSignerStore
+	AdminSessions() store.AdminSessionStore
 	PluginKV() store.PluginKVStore
 	ModuleStates() store.ModuleStateStore
 	Users() store.UserStore

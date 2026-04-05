@@ -127,7 +127,6 @@ type StatusConfig struct {
 	TrustedKeysFile         string  `json:"trusted_keys_file"`
 	OpsAddr                 string  `json:"ops_addr"`
 	AdminAddr               string  `json:"admin_addr"`
-	DashboardAppOrigin      string  `json:"dashboard_app_origin"`
 	DevGuildID              *uint64 `json:"dev_guild_id,omitempty"`
 	CommandRegistrationMode string  `json:"command_registration_mode"`
 	ProdMode                bool    `json:"prod_mode"`
@@ -358,7 +357,6 @@ func (s Service) Status(ctx context.Context) (StatusResponse, error) {
 			TrustedKeysFile:         s.Config.TrustedKeysFile,
 			OpsAddr:                 s.Config.OpsAddr,
 			AdminAddr:               s.Config.AdminAddr,
-			DashboardAppOrigin:      s.Config.DashboardAppOrigin,
 			DevGuildID:              s.Config.DevGuildID,
 			CommandRegistrationMode: s.Config.CommandRegistrationMode,
 			ProdMode:                s.Config.ProdMode,
@@ -441,10 +439,7 @@ func (s Service) GuildDashboard(ctx context.Context, accessToken string, guildID
 	if !found {
 		return GuildDashboardResponse{}, errors.New("guild is not accessible to this user")
 	}
-	installURL, err := s.InstallURL(guildID)
-	if err != nil {
-		return GuildDashboardResponse{}, err
-	}
+	installURL := fmt.Sprintf("/api/install/start?guild_id=%d", guildID)
 
 	managerCfg, err := guildconfig.Load(ctx, s.Store, guildID, "manager")
 	if err != nil {
@@ -511,18 +506,17 @@ func (s Service) GuildDashboard(ctx context.Context, accessToken string, guildID
 	}, nil
 }
 
-func (s Service) InstallURL(guildID uint64) (string, error) {
+func (s Service) InstallURL(guildID uint64, baseURL string) (string, error) {
 	clientID := strings.TrimSpace(s.Config.DashboardClientID)
 	if clientID == "" {
 		return "", errors.New("dashboard client id is not configured")
 	}
-	redirectURL := strings.TrimSpace(s.Config.DashboardRedirectURL)
-	if redirectURL == "" {
-		return "", errors.New("dashboard redirect url is not configured")
-	}
-	callbackURL, err := url.Parse(redirectURL)
+	callbackURL, err := url.Parse(strings.TrimRight(strings.TrimSpace(baseURL), "/"))
 	if err != nil {
 		return "", err
+	}
+	if callbackURL.Scheme == "" || callbackURL.Host == "" {
+		return "", errors.New("invalid base url")
 	}
 	callbackURL.Path = "/api/install/callback"
 	callbackURL.RawQuery = ""
@@ -539,18 +533,17 @@ func (s Service) InstallURL(guildID uint64) (string, error) {
 	return "https://discord.com/oauth2/authorize?" + values.Encode(), nil
 }
 
-func (s Service) InstallURLAnyGuild() (string, error) {
+func (s Service) InstallURLAnyGuild(baseURL string) (string, error) {
 	clientID := strings.TrimSpace(s.Config.DashboardClientID)
 	if clientID == "" {
 		return "", errors.New("dashboard client id is not configured")
 	}
-	redirectURL := strings.TrimSpace(s.Config.DashboardRedirectURL)
-	if redirectURL == "" {
-		return "", errors.New("dashboard redirect url is not configured")
-	}
-	callbackURL, err := url.Parse(redirectURL)
+	callbackURL, err := url.Parse(strings.TrimRight(strings.TrimSpace(baseURL), "/"))
 	if err != nil {
 		return "", err
+	}
+	if callbackURL.Scheme == "" || callbackURL.Host == "" {
+		return "", errors.New("invalid base url")
 	}
 	callbackURL.Path = "/api/install/callback"
 	callbackURL.RawQuery = ""
@@ -968,8 +961,9 @@ func (s Service) setupResponse(includeHints bool) SetupResponse {
 		EffectiveOwnerUserID: cloneOptionalUint64(ownerStatus.EffectiveUserID),
 		SigningConfigured:    signingReady(s.Config),
 		AdminAddr:            strings.TrimSpace(s.Config.AdminAddr),
-		AppOrigin:            strings.TrimSpace(s.Config.DashboardAppOrigin),
-		RedirectURL:          strings.TrimSpace(s.Config.DashboardRedirectURL),
+		// Filled by the HTTP layer from requestBaseURL(r).
+		AppOrigin:       "",
+		RedirectURL:     "",
 		HasClientID:          strings.TrimSpace(s.Config.DashboardClientID) != "",
 		HasClientSecret:      strings.TrimSpace(s.Config.DashboardClientSecret) != "",
 		HasSessionSecret:     len(strings.TrimSpace(s.Config.DashboardSessionSecret)) >= 32,
@@ -993,12 +987,6 @@ func setupHints(resp SetupResponse) []string {
 	}
 	if !resp.HasSessionSecret {
 		hints = append(hints, "Set MAMUSIABTW_DASHBOARD_SESSION_SECRET to at least 32 characters.")
-	}
-	if strings.TrimSpace(resp.AppOrigin) == "" {
-		hints = append(hints, "Set MAMUSIABTW_DASHBOARD_APP_ORIGIN to the dashboard URL, for example http://127.0.0.1:5173.")
-	}
-	if strings.TrimSpace(resp.RedirectURL) == "" {
-		hints = append(hints, "Set MAMUSIABTW_DASHBOARD_REDIRECT_URL to the OAuth callback URL, for example http://127.0.0.1:8081/api/auth/callback.")
 	}
 	if !resp.OwnerResolved {
 		hints = append(hints, "Owner access is unavailable. Discord owner lookup did not resolve an owner, and no OWNER_USER_ID fallback is configured.")
@@ -1114,10 +1102,8 @@ func boolMessage(value bool, okMessage, noMessage string) string {
 
 func dashboardAuthReady(cfg config.Config) bool {
 	return cfg.AdminAddr != "" &&
-		cfg.DashboardAppOrigin != "" &&
 		cfg.DashboardClientID != "" &&
 		cfg.DashboardClientSecret != "" &&
-		cfg.DashboardRedirectURL != "" &&
 		len(cfg.DashboardSessionSecret) >= 32
 }
 
