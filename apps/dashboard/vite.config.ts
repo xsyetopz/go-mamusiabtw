@@ -51,6 +51,9 @@ export default defineConfig(({ mode }) => {
 			},
 		},
 		server: {
+			// Keep local dev deterministic: OAuth callback redirects use 127.0.0.1 by
+			// default, and binding Vite to localhost can be IPv6-only on some setups.
+			host: "127.0.0.1",
 			port: 5173,
 			strictPort: true,
 		},

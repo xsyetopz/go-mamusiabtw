@@ -81,6 +81,9 @@ If you want the website/dashboard, you will run two things:
 - Terminal A: the bot + admin API (`go run ...`)
 - Terminal B: the dashboard frontend (`bun run dev`)
 
+Tip: for local dev, prefer `127.0.0.1` everywhere (not `localhost`).
+Mixing them can cause confusing issues with redirects, cookies, and CORS checks.
+
 ### Step 1: Configure The Bot/API Env
 
 Preferred (zero thinking):
@@ -141,6 +144,10 @@ go run ./cmd/mamusiabtw
 bun install
 bun run dev
 ```
+
+Open:
+
+- `http://127.0.0.1:5173`
 
 ### Where Do I Get CLIENT_ID / CLIENT_SECRET / SESSION_SECRET?
 
@@ -232,6 +239,9 @@ If the API is not reachable or the dashboard URLs are invalid, the app opens int
 - Dashboard shows `127.0.0.1:8081/api/auth/me ... ERR_CONNECTION_REFUSED`:
   - the bot/admin API is not running, or `MAMUSIABTW_ADMIN_ADDR` is wrong
   - run `go run ./cmd/mamusiabtw doctor` to see what config the bot thinks it has
+- Quick self-checks:
+  - `curl -I http://127.0.0.1:5173` (dashboard dev server)
+  - `curl -I http://127.0.0.1:8081/api/setup` (admin API)
 - Dashboard shows a CORS error mentioning `Access-Control-Allow-Origin` and `localhost:5173`:
   - you’re running the dashboard on `http://localhost:5173` but your config uses `http://127.0.0.1:5173` (or vice versa)
   - mamusiabtw treats `localhost` and `127.0.0.1` as equivalent loopback origins now, so a restart should fix it
