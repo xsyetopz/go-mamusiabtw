@@ -61,6 +61,7 @@ type Server struct {
 
 	appOrigin      string
 	ownerAppOrigin string
+	corsOrigins    map[string]struct{}
 	clientID       string
 	clientSecret   string
 	ownerStatus    func() OwnerStatus
@@ -106,6 +107,7 @@ func New(opts Options) (*Server, error) {
 		svc:            opts.Service,
 		appOrigin:      strings.TrimSpace(opts.AppOrigin),
 		ownerAppOrigin: strings.TrimSpace(opts.OwnerAppOrigin),
+		corsOrigins:    buildAllowedCORSOrigins(opts.AppOrigin),
 		clientID:       strings.TrimSpace(opts.ClientID),
 		clientSecret:   strings.TrimSpace(opts.ClientSecret),
 		ownerStatus:    opts.OwnerStatus,
@@ -235,7 +237,7 @@ func (s *Server) handleSetup(w http.ResponseWriter, r *http.Request) {
 func (s *Server) withCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		origin := strings.TrimSpace(r.Header.Get("Origin"))
-		if origin != "" && origin == s.appOrigin {
+		if origin != "" && s.isAllowedCORSOrigin(origin) {
 			w.Header().Set("Access-Control-Allow-Origin", origin)
 			w.Header().Set("Vary", "Origin")
 			w.Header().Set("Access-Control-Allow-Credentials", "true")
@@ -248,6 +250,70 @@ func (s *Server) withCORS(next http.Handler) http.Handler {
 		}
 		next.ServeHTTP(w, r)
 	})
+}
+
+func (s *Server) isAllowedCORSOrigin(origin string) bool {
+	if s == nil {
+		return false
+	}
+	origin = normalizeOrigin(origin)
+	if origin == "" {
+		return false
+	}
+	if _, ok := s.corsOrigins[origin]; ok {
+		return true
+	}
+	return false
+}
+
+func normalizeOrigin(raw string) string {
+	raw = strings.TrimSpace(raw)
+	raw = strings.TrimRight(raw, "/")
+	return raw
+}
+
+func buildAllowedCORSOrigins(appOrigin string) map[string]struct{} {
+	appOrigin = normalizeOrigin(appOrigin)
+	if appOrigin == "" {
+		return map[string]struct{}{}
+	}
+
+	out := map[string]struct{}{appOrigin: {}}
+
+	u, err := url.Parse(appOrigin)
+	if err != nil {
+		return out
+	}
+
+	host := strings.TrimSpace(u.Hostname())
+	port := strings.TrimSpace(u.Port())
+	scheme := strings.TrimSpace(u.Scheme)
+	if host == "" || scheme == "" {
+		return out
+	}
+
+	// Reduce dev friction: treat localhost / 127.0.0.1 / ::1 as equivalent for the
+	// same port when the configured origin is loopback. This avoids confusing CORS
+	// failures when Vite uses localhost but the config uses 127.0.0.1.
+	isLoopback := host == "localhost" || host == "127.0.0.1" || host == "::1"
+	if !isLoopback {
+		return out
+	}
+
+	variants := []string{"localhost", "127.0.0.1", "::1"}
+	for _, v := range variants {
+		if v == host {
+			continue
+		}
+		targetHost := v
+		if port != "" {
+			targetHost = net.JoinHostPort(v, port)
+		}
+		origin := scheme + "://" + targetHost
+		out[normalizeOrigin(origin)] = struct{}{}
+	}
+
+	return out
 }
 
 func (s *Server) withAuth(next func(http.ResponseWriter, *http.Request, session)) http.HandlerFunc {

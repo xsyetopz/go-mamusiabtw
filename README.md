@@ -232,6 +232,9 @@ If the API is not reachable or the dashboard URLs are invalid, the app opens int
 - Dashboard shows `127.0.0.1:8081/api/auth/me ... ERR_CONNECTION_REFUSED`:
   - the bot/admin API is not running, or `MAMUSIABTW_ADMIN_ADDR` is wrong
   - run `go run ./cmd/mamusiabtw doctor` to see what config the bot thinks it has
+- Dashboard shows a CORS error mentioning `Access-Control-Allow-Origin` and `localhost:5173`:
+  - you’re running the dashboard on `http://localhost:5173` but your config uses `http://127.0.0.1:5173` (or vice versa)
+  - mamusiabtw treats `localhost` and `127.0.0.1` as equivalent loopback origins now, so a restart should fix it
 - Bot exits with `failed to open gateway connection: websocket: close 4014: Disallowed intent(s).`:
   - Discord is rejecting privileged gateway intents your bot requests
   - fix: Discord Developer Portal -> your application -> Bot -> Privileged Gateway Intents

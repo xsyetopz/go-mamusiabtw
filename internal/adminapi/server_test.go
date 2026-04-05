@@ -244,3 +244,76 @@ func TestHandleSetupWithoutSession(t *testing.T) {
 		t.Fatalf("expected owner_source=discord, got %#v", payload["owner_source"])
 	}
 }
+
+func TestCORSAllowsLocalhostWhenConfiguredFor127(t *testing.T) {
+	t.Parallel()
+
+	server, err := New(Options{
+		Addr:          "127.0.0.1:0",
+		Logger:        slog.New(slog.NewTextHandler(io.Discard, nil)),
+		Service:       Service{},
+		AppOrigin:     "http://127.0.0.1:5173",
+		SessionSecret: strings.Repeat("x", 32),
+		ClientID:      "cid",
+		ClientSecret:  "secret",
+		RedirectURL:   "http://127.0.0.1:8081/api/auth/callback",
+		OwnerStatus: func() OwnerStatus {
+			return OwnerStatus{Resolved: false, Source: "unresolved"}
+		},
+		OAuthClient: fakeOAuthClient{},
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodOptions, "/api/setup", nil)
+	req.Header.Set("Origin", "http://localhost:5173")
+	req.Header.Set("Access-Control-Request-Method", "GET")
+	server.handler().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusNoContent {
+		t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())
+	}
+	if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "http://localhost:5173" {
+		t.Fatalf("expected allow-origin=%q, got %q", "http://localhost:5173", got)
+	}
+	if got := rec.Header().Get("Access-Control-Allow-Credentials"); got != "true" {
+		t.Fatalf("expected allow-credentials=true, got %q", got)
+	}
+}
+
+func TestCORSDoesNotAllowUnknownOrigin(t *testing.T) {
+	t.Parallel()
+
+	server, err := New(Options{
+		Addr:          "127.0.0.1:0",
+		Logger:        slog.New(slog.NewTextHandler(io.Discard, nil)),
+		Service:       Service{},
+		AppOrigin:     "http://127.0.0.1:5173",
+		SessionSecret: strings.Repeat("x", 32),
+		ClientID:      "cid",
+		ClientSecret:  "secret",
+		RedirectURL:   "http://127.0.0.1:8081/api/auth/callback",
+		OwnerStatus: func() OwnerStatus {
+			return OwnerStatus{Resolved: false, Source: "unresolved"}
+		},
+		OAuthClient: fakeOAuthClient{},
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodOptions, "/api/setup", nil)
+	req.Header.Set("Origin", "https://evil.example")
+	req.Header.Set("Access-Control-Request-Method", "GET")
+	server.handler().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusNoContent {
+		t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())
+	}
+	if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "" {
+		t.Fatalf("expected allow-origin empty, got %q", got)
+	}
+}
