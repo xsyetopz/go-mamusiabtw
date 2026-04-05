@@ -17,6 +17,27 @@ const (
 	commandRegistrationModeHybrid = "hybrid"
 )
 
+func requestedGatewayIntents() []gateway.Intents {
+	// Keep this list in one place so we can:
+	// 1) configure disgo gateway intents, and
+	// 2) print accurate, actionable diagnostics when Discord rejects intents (4014).
+	return []gateway.Intents{
+		gateway.IntentGuilds,
+		gateway.IntentGuildMembers, // privileged
+		gateway.IntentGuildModeration,
+		gateway.IntentGuildInvites,
+		gateway.IntentDirectMessages,
+	}
+}
+
+func requestedGatewayIntentsMask() gateway.Intents {
+	mask := gateway.IntentsNone
+	for _, intent := range requestedGatewayIntents() {
+		mask |= intent
+	}
+	return mask
+}
+
 func (b *Bot) initPlugins(deps Dependencies) error {
 	if strings.TrimSpace(deps.PluginsDir) != "" {
 		host, err := pluginhost.NewHost(pluginhost.Options{
@@ -46,11 +67,7 @@ func (b *Bot) newClient(token string) (*bot.Client, error) {
 	return disgo.New(token,
 		bot.WithLogger(b.logger),
 		bot.WithGatewayConfigOpts(gateway.WithIntents(
-			gateway.IntentGuilds,
-			gateway.IntentGuildMembers,
-			gateway.IntentGuildModeration,
-			gateway.IntentGuildInvites,
-			gateway.IntentDirectMessages,
+			requestedGatewayIntents()...,
 		)),
 		bot.WithEventListenerFunc(b.onCommand),
 		bot.WithEventListenerFunc(b.onAutocomplete),

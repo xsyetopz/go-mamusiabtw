@@ -10,7 +10,7 @@ func (b *Bot) Start(ctx context.Context) error {
 	}
 
 	if err := b.client.OpenGateway(ctx); err != nil {
-		return err
+		return decorateGatewayOpenError(err, requestedGatewayIntentsMask())
 	}
 
 	if b.pluginAuto != nil {
