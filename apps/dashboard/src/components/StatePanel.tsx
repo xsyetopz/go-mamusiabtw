@@ -41,7 +41,9 @@ type PathProps = {
 
 export function CodeLine({ label, value }: PathProps) {
 	return (
-		<Text size="sm">
+		// Mantine Text defaults to <p>, which cannot contain some Mantine components
+		// that render block-level <div> under the hood (hydration warning).
+		<Text size="sm" component="div">
 			{label}: <Code>{value}</Code>
 		</Text>
 	);

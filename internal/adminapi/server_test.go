@@ -124,7 +124,10 @@ func TestHandleModulesWithSession(t *testing.T) {
 
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/api/owner/status", nil)
-	req.AddCookie(&http.Cookie{Name: sessionCookieName, Value: "session-token"})
+	req.AddCookie(&http.Cookie{
+		Name:  sessionCookieName,
+		Value: server.signCookieValue(sessionCookieName, "session-token"),
+	})
 	server.handler().ServeHTTP(rec, req)
 	if rec.Code != http.StatusOK {
 		t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())
@@ -136,6 +139,35 @@ func TestHandleModulesWithSession(t *testing.T) {
 	}
 	if _, ok := payload["snapshot"]; !ok {
 		t.Fatalf("expected snapshot in response")
+	}
+}
+
+func TestHandleLoginReturns503WhenAuthNotConfigured(t *testing.T) {
+	t.Parallel()
+
+	server, err := New(Options{
+		Addr:          "127.0.0.1:0",
+		Logger:        slog.New(slog.NewTextHandler(io.Discard, nil)),
+		Service:       Service{},
+		AppOrigin:     "http://127.0.0.1:5173",
+		SessionSecret: strings.Repeat("x", 32),
+		ClientID:      "",
+		ClientSecret:  "",
+		RedirectURL:   "http://127.0.0.1:8081/api/auth/callback",
+		OwnerStatus: func() OwnerStatus {
+			return OwnerStatus{Resolved: false, Source: "unresolved"}
+		},
+		OAuthClient: fakeOAuthClient{},
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/api/auth/login", nil)
+	server.handler().ServeHTTP(rec, req)
+	if rec.Code != http.StatusServiceUnavailable {
+		t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())
 	}
 }
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/hmac"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -61,6 +62,7 @@ type Server struct {
 	appOrigin      string
 	ownerAppOrigin string
 	clientID       string
+	clientSecret   string
 	ownerStatus    func() OwnerStatus
 	oauth          OAuthClient
 	secret         []byte
@@ -105,6 +107,7 @@ func New(opts Options) (*Server, error) {
 		appOrigin:      strings.TrimSpace(opts.AppOrigin),
 		ownerAppOrigin: strings.TrimSpace(opts.OwnerAppOrigin),
 		clientID:       strings.TrimSpace(opts.ClientID),
+		clientSecret:   strings.TrimSpace(opts.ClientSecret),
 		ownerStatus:    opts.OwnerStatus,
 		oauth:          opts.OAuthClient,
 		secret:         []byte(opts.SessionSecret),
@@ -283,6 +286,10 @@ func (s *Server) withCSRF(next func(http.ResponseWriter, *http.Request, session)
 }
 
 func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
+	if !s.authConfigured() {
+		writeError(w, http.StatusServiceUnavailable, "dashboard auth is not configured")
+		return
+	}
 	state, err := randomToken(24)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to start login")
@@ -301,8 +308,17 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleCallback(w http.ResponseWriter, r *http.Request) {
 	queryState := strings.TrimSpace(r.URL.Query().Get("state"))
+	if !s.authConfigured() {
+		writeError(w, http.StatusServiceUnavailable, "dashboard auth is not configured")
+		return
+	}
 	cookie, err := r.Cookie(stateCookieName)
-	if err != nil || !subtleTokenCompare(cookie.Value, queryState) {
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid oauth state")
+		return
+	}
+	state, ok := s.unsignCookieValue(stateCookieName, cookie.Value)
+	if !ok || !subtleTokenCompare(state, queryState) {
 		writeError(w, http.StatusBadRequest, "invalid oauth state")
 		return
 	}
@@ -382,7 +398,9 @@ func (s *Server) handleMe(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleLogout(w http.ResponseWriter, r *http.Request) {
 	if cookie, err := r.Cookie(sessionCookieName); err == nil {
-		s.deleteSession(cookie.Value)
+		if sessionID, ok := s.unsignCookieValue(sessionCookieName, cookie.Value); ok {
+			s.deleteSession(sessionID)
+		}
 	}
 	http.SetCookie(w, s.cookie(sessionCookieName, "", -time.Hour, true))
 	writeJSON(w, http.StatusOK, map[string]any{"ok": true})
@@ -657,14 +675,18 @@ func (s *Server) readSession(r *http.Request) (session, error) {
 	if err != nil {
 		return session{}, err
 	}
+	sessionID, ok := s.unsignCookieValue(sessionCookieName, cookie.Value)
+	if !ok {
+		return session{}, errors.New("invalid session")
+	}
 	s.sessionsMu.Lock()
-	sess, ok := s.sessions[cookie.Value]
+	sess, ok := s.sessions[sessionID]
 	s.sessionsMu.Unlock()
 	if !ok {
 		return session{}, errors.New("invalid session")
 	}
 	if time.Now().Unix() >= sess.ExpiresAt {
-		s.deleteSession(cookie.Value)
+		s.deleteSession(sessionID)
 		return session{}, errors.New("session expired")
 	}
 	return sess, nil
@@ -677,6 +699,9 @@ func (s *Server) deleteSession(id string) {
 }
 
 func (s *Server) cookie(name, value string, ttl time.Duration, httpOnly bool) *http.Cookie {
+	if ttl > 0 && value != "" && (name == sessionCookieName || name == stateCookieName) {
+		value = s.signCookieValue(name, value)
+	}
 	return &http.Cookie{
 		Name:     name,
 		Value:    value,
@@ -716,6 +741,47 @@ func subtleTokenCompare(a, b string) bool {
 		return false
 	}
 	return hmac.Equal([]byte(a), []byte(b))
+}
+
+func (s *Server) authConfigured() bool {
+	// Keep this strict: in production we want missing config to be obvious.
+	if strings.TrimSpace(s.appOrigin) == "" {
+		return false
+	}
+	if strings.TrimSpace(s.clientID) == "" || strings.TrimSpace(s.clientSecret) == "" {
+		return false
+	}
+	if len(s.secret) < 32 {
+		return false
+	}
+	return strings.TrimSpace(s.oauthRedirectURL()) != ""
+}
+
+func (s *Server) signCookieValue(name, value string) string {
+	if len(s.secret) == 0 {
+		return value
+	}
+	mac := hmac.New(sha256.New, s.secret)
+	_, _ = mac.Write([]byte(name))
+	_, _ = mac.Write([]byte{':'})
+	_, _ = mac.Write([]byte(value))
+	sum := mac.Sum(nil)
+	// Keep cookie value compact: 16 bytes is plenty for tamper detection here.
+	sig := base64.RawURLEncoding.EncodeToString(sum[:16])
+	return value + "." + sig
+}
+
+func (s *Server) unsignCookieValue(name, signed string) (string, bool) {
+	if len(s.secret) == 0 {
+		return "", false
+	}
+	parts := strings.Split(signed, ".")
+	if len(parts) != 2 {
+		return "", false
+	}
+	value := parts[0]
+	want := s.signCookieValue(name, value)
+	return value, subtleTokenCompare(want, signed)
 }
 
 func avatarURL(user OAuthUser) string {

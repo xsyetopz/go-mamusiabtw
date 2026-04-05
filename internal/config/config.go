@@ -1,8 +1,11 @@
 package config
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"errors"
 	"fmt"
+	"net"
 	"net/url"
 	"os"
 	"strconv"
@@ -34,13 +37,16 @@ type Config struct {
 	AllowUnsignedPlugins bool
 	TrustedKeysFile      string
 
-	DashboardAppOrigin      string
-	DashboardClientID       string
-	DashboardClientSecret   string
-	DashboardRedirectURL    string
-	DashboardSessionSecret  string
-	DashboardSigningKeyID   string
-	DashboardSigningKeyFile string
+	DashboardAppOrigin     string
+	DashboardClientID      string
+	DashboardClientSecret  string
+	DashboardRedirectURL   string
+	DashboardSessionSecret string
+	// DashboardSessionSecretGenerated is true when running in dev mode and an
+	// ephemeral session secret was generated at startup (not read from env).
+	DashboardSessionSecretGenerated bool
+	DashboardSigningKeyID           string
+	DashboardSigningKeyFile         string
 
 	SlashCooldown          time.Duration
 	ComponentCooldown      time.Duration
@@ -50,25 +56,33 @@ type Config struct {
 }
 
 const (
-	defaultSQLitePath        = "./data/mamusiabtw.sqlite"
-	defaultMigrationsDir     = "./migrations/sqlite"
-	defaultMigrationBackups  = "./data/migration_backups"
-	defaultOpsAddr           = ""
-	defaultAdminAddr         = ""
-	defaultLocalesDir        = "./locales"
-	defaultPluginsDir        = "./plugins"
-	defaultPermissionsFile   = "./config/permissions.json"
-	defaultModulesFile       = "./config/modules.json"
-	defaultTrustedKeysFile   = "./config/trusted_keys.json"
-	defaultLogLevel          = "info"
-	defaultCommandRegMode    = "global"
-	defaultSlashCooldownMS   = 5000
-	defaultComponentCooldown = 750
-	defaultModalCooldownMS   = 1500
+	defaultSQLitePath         = "./data/mamusiabtw.sqlite"
+	defaultMigrationsDir      = "./migrations/sqlite"
+	defaultMigrationBackups   = "./data/migration_backups"
+	defaultOpsAddr            = ""
+	defaultAdminAddr          = ""
+	defaultLocalesDir         = "./locales"
+	defaultPluginsDir         = "./plugins"
+	defaultPermissionsFile    = "./config/permissions.json"
+	defaultModulesFile        = "./config/modules.json"
+	defaultTrustedKeysFile    = "./config/trusted_keys.json"
+	defaultLogLevel           = "info"
+	defaultCommandRegMode     = "global"
+	defaultSlashCooldownMS    = 5000
+	defaultComponentCooldown  = 750
+	defaultModalCooldownMS    = 1500
+	defaultDashboardAppOrigin = "http://127.0.0.1:5173"
 )
 
 func LoadFromEnv() (Config, error) {
 	return loadFromEnv(true)
+}
+
+// LoadFromEnvOptionalDiscordToken loads configuration from environment variables,
+// but does not require DISCORD_TOKEN to be set. This is intended for helper
+// commands like "doctor" and "init".
+func LoadFromEnvOptionalDiscordToken() (Config, error) {
+	return loadFromEnv(false)
 }
 
 func LoadStorageFromEnv() (Config, error) {
@@ -108,6 +122,7 @@ func loadFromEnv(requireDiscordToken bool) (Config, error) {
 	dashboardSessionSecret := envDefault("MAMUSIABTW_DASHBOARD_SESSION_SECRET", "")
 	dashboardSigningKeyID := envDefault("MAMUSIABTW_DASHBOARD_SIGNING_KEY_ID", "")
 	dashboardSigningKeyFile := envDefault("MAMUSIABTW_DASHBOARD_SIGNING_KEY_FILE", "")
+	dashboardSessionSecretGenerated := false
 
 	ownerUserID, err := parseOwnerID(os.Getenv("OWNER_USER_ID"))
 	if err != nil {
@@ -159,21 +174,37 @@ func loadFromEnv(requireDiscordToken bool) (Config, error) {
 		return Config{}, err
 	}
 	if strings.TrimSpace(adminAddr) != "" {
-		if strings.TrimSpace(dashboardAppOrigin) == "" {
-			return Config{}, errors.New("MAMUSIABTW_DASHBOARD_APP_ORIGIN is required when MAMUSIABTW_ADMIN_ADDR is set")
+		// Production stays strict, but dev should still start the admin API so the
+		// dashboard can show setup diagnostics instead of "connection refused".
+		if prodMode {
+			if strings.TrimSpace(dashboardAppOrigin) == "" {
+				return Config{}, errors.New("MAMUSIABTW_DASHBOARD_APP_ORIGIN is required when MAMUSIABTW_ADMIN_ADDR is set")
+			}
+			if strings.TrimSpace(dashboardClientID) == "" {
+				return Config{}, errors.New("MAMUSIABTW_DASHBOARD_CLIENT_ID is required when MAMUSIABTW_ADMIN_ADDR is set")
+			}
+			if strings.TrimSpace(dashboardClientSecret) == "" {
+				return Config{}, errors.New("MAMUSIABTW_DASHBOARD_CLIENT_SECRET is required when MAMUSIABTW_ADMIN_ADDR is set")
+			}
+			if strings.TrimSpace(dashboardRedirectURL) == "" {
+				return Config{}, errors.New("MAMUSIABTW_DASHBOARD_REDIRECT_URL is required when MAMUSIABTW_ADMIN_ADDR is set")
+			}
+			if len(strings.TrimSpace(dashboardSessionSecret)) < 32 {
+				return Config{}, errors.New("MAMUSIABTW_DASHBOARD_SESSION_SECRET must be at least 32 characters when MAMUSIABTW_ADMIN_ADDR is set")
+			}
+		} else {
+			if strings.TrimSpace(dashboardAppOrigin) == "" {
+				dashboardAppOrigin = defaultDashboardAppOrigin
+			}
+			if strings.TrimSpace(dashboardRedirectURL) == "" {
+				dashboardRedirectURL = defaultDashboardRedirectURL(adminAddr)
+			}
+			if len(strings.TrimSpace(dashboardSessionSecret)) < 32 {
+				dashboardSessionSecret = randomDevSecret()
+				dashboardSessionSecretGenerated = true
+			}
 		}
-		if strings.TrimSpace(dashboardClientID) == "" {
-			return Config{}, errors.New("MAMUSIABTW_DASHBOARD_CLIENT_ID is required when MAMUSIABTW_ADMIN_ADDR is set")
-		}
-		if strings.TrimSpace(dashboardClientSecret) == "" {
-			return Config{}, errors.New("MAMUSIABTW_DASHBOARD_CLIENT_SECRET is required when MAMUSIABTW_ADMIN_ADDR is set")
-		}
-		if strings.TrimSpace(dashboardRedirectURL) == "" {
-			return Config{}, errors.New("MAMUSIABTW_DASHBOARD_REDIRECT_URL is required when MAMUSIABTW_ADMIN_ADDR is set")
-		}
-		if len(strings.TrimSpace(dashboardSessionSecret)) < 32 {
-			return Config{}, errors.New("MAMUSIABTW_DASHBOARD_SESSION_SECRET must be at least 32 characters when MAMUSIABTW_ADMIN_ADDR is set")
-		}
+
 		if err := validateDashboardOrigin(dashboardAppOrigin); err != nil {
 			return Config{}, err
 		}
@@ -202,15 +233,16 @@ func loadFromEnv(requireDiscordToken bool) (Config, error) {
 		CommandGuildIDs:          cmdGuildIDs,
 		CommandRegisterAllGuilds: cmdRegisterAllGuilds,
 
-		AllowUnsignedPlugins:    allowUnsigned,
-		TrustedKeysFile:         trustedKeysFile,
-		DashboardAppOrigin:      dashboardAppOrigin,
-		DashboardClientID:       dashboardClientID,
-		DashboardClientSecret:   dashboardClientSecret,
-		DashboardRedirectURL:    dashboardRedirectURL,
-		DashboardSessionSecret:  dashboardSessionSecret,
-		DashboardSigningKeyID:   dashboardSigningKeyID,
-		DashboardSigningKeyFile: dashboardSigningKeyFile,
+		AllowUnsignedPlugins:            allowUnsigned,
+		TrustedKeysFile:                 trustedKeysFile,
+		DashboardAppOrigin:              dashboardAppOrigin,
+		DashboardClientID:               dashboardClientID,
+		DashboardClientSecret:           dashboardClientSecret,
+		DashboardRedirectURL:            dashboardRedirectURL,
+		DashboardSessionSecret:          dashboardSessionSecret,
+		DashboardSessionSecretGenerated: dashboardSessionSecretGenerated,
+		DashboardSigningKeyID:           dashboardSigningKeyID,
+		DashboardSigningKeyFile:         dashboardSigningKeyFile,
 
 		SlashCooldown:          slashCooldown,
 		ComponentCooldown:      componentCooldown,
@@ -218,6 +250,45 @@ func loadFromEnv(requireDiscordToken bool) (Config, error) {
 		SlashCooldownBypass:    slashBypass,
 		SlashCooldownOverrides: slashOverrides,
 	}, nil
+}
+
+func defaultDashboardRedirectURL(adminAddr string) string {
+	host, port, err := splitHostPortLoose(strings.TrimSpace(adminAddr))
+	if err != nil || port == "" {
+		return "http://127.0.0.1:8081/api/auth/callback"
+	}
+	// Normalize common "listen on all interfaces" values into a safe local callback.
+	switch strings.TrimSpace(host) {
+	case "", "0.0.0.0", "::", "[::]":
+		host = "127.0.0.1"
+	}
+	return "http://" + host + ":" + port + "/api/auth/callback"
+}
+
+func splitHostPortLoose(addr string) (host string, port string, err error) {
+	if strings.TrimSpace(addr) == "" {
+		return "", "", errors.New("empty addr")
+	}
+	// net.SplitHostPort requires a port, but admin addr might be ":8081".
+	if strings.HasPrefix(addr, ":") {
+		return "", strings.TrimPrefix(addr, ":"), nil
+	}
+	h, p, err := net.SplitHostPort(addr)
+	if err == nil {
+		return h, p, nil
+	}
+	// Last resort: if the user passed "host:port" without IPv6 brackets but with extra colons,
+	// this is likely invalid; keep it as an error.
+	return "", "", err
+}
+
+func randomDevSecret() string {
+	buf := make([]byte, 32)
+	if _, err := rand.Read(buf); err != nil {
+		// Not expected; fallback keeps behavior deterministic.
+		return strings.Repeat("x", 32)
+	}
+	return base64.RawURLEncoding.EncodeToString(buf)
 }
 
 func parseOwnerID(raw string) (*uint64, error) {

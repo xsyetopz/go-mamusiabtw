@@ -60,7 +60,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 			},
 		});
 	} catch {
-		throw new APIError("Could not reach the admin API.", 0);
+		const target = apiBase ? `${apiBase}${path}` : "admin API";
+		throw new APIError(`Could not reach the admin API (${target}).`, 0);
 	}
 
 	if (!response.ok) {

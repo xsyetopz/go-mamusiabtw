@@ -9,13 +9,44 @@ Important: the repo’s stable internal name is `mamusiabtw` (env vars, IDs, and
 - Scripting / plugins: `Lua` (embedded via `yuin/gopher-lua`)
 - Storage: SQLite (migrations in `migrations/sqlite`)
 
-## Running
+## Quick Start (Local, No Dashboard)
 
-1. Copy `.env.local.example` to `.env.local` and fill in `DISCORD_TOKEN`.
-2. (Recommended) Set `DISCORD_DEV_GUILD_ID` for quicker command registration.
-3. Start: `go run ./cmd/mamusiabtw`
+If you only want the bot running in Discord, start here.
+
+Fastest path:
+
+```bash
+go run ./cmd/mamusiabtw init
+go run ./cmd/mamusiabtw dev
+```
+
+Manual path:
+
+1. Copy the env example:
+   - `.env.dev.example` -> `.env.dev` (or legacy: `.env.local.example` -> `.env.local`)
+2. Fill in:
+   - `DISCORD_TOKEN` (from the Discord Developer Portal, Bot page)
+3. Optional but recommended for fast iteration:
+   - set `DISCORD_DEV_GUILD_ID` (register commands to one guild)
+4. Run:
+   - `go run ./cmd/mamusiabtw`
 
 mamusiabtw creates or opens the SQLite database at `SQLITE_PATH` and applies pending `up` migrations automatically on startup.
+
+If you see migration output: that is expected on first run.
+
+Note: mamusiabtw auto-loads an env file if present (dev commands prefer `.env.dev`,
+production-style runs prefer `.env.prod`).
+
+Supported filenames:
+
+- `.env.dev` / `.env.prod` (recommended)
+- `.env.local` / `.env.production` (legacy)
+- `.env.development` / `.env.production.local` (also accepted)
+- `.env`
+
+If you don’t want that behavior, set `MAMUSIABTW_DISABLE_DOTENV=1`.
+If you want to force a specific file, set `MAMUSIABTW_ENV_FILE=./path/to/.env`.
 
 For runtime build metadata, use:
 
@@ -32,6 +63,8 @@ For explicit migration control, use:
 `migrate backup` writes a SQLite snapshot into `MAMUSIABTW_MIGRATION_BACKUPS_DIR`.
 Old local DB files from the legacy pre-plugin project are not supported for upgrade and should be recreated.
 
+## Optional Servers
+
 If `MAMUSIABTW_OPS_ADDR` is set, mamusiabtw also starts a small HTTP ops server with:
 
 - `/healthz`
@@ -40,6 +73,171 @@ If `MAMUSIABTW_OPS_ADDR` is set, mamusiabtw also starts a small HTTP ops server 
 
 If `MAMUSIABTW_ADMIN_ADDR` is set, mamusiabtw also starts the website/dashboard API.
 The frontend lives in `apps/dashboard/` and uses Discord OAuth against that API.
+
+## Website + Dashboard (Local)
+
+If you want the website/dashboard, you will run two things:
+
+- Terminal A: the bot + admin API (`go run ...`)
+- Terminal B: the dashboard frontend (`bun run dev`)
+
+### Step 1: Configure The Bot/API Env
+
+Preferred (zero thinking):
+
+```bash
+go run ./cmd/mamusiabtw init
+```
+
+That writes `.env.dev` and `apps/dashboard/.env.dev` with sane defaults.
+
+If you want to do it manually, copy:
+
+- `.env.dev.example` -> `.env.dev`
+
+Minimum to start the admin API in dev:
+
+- `DISCORD_TOKEN=...`
+- `MAMUSIABTW_ADMIN_ADDR=127.0.0.1:8081`
+
+To enable Discord sign-in (OAuth) you also need:
+
+- `MAMUSIABTW_DASHBOARD_CLIENT_ID=...`
+- `MAMUSIABTW_DASHBOARD_CLIENT_SECRET=...`
+
+Everything else has dev defaults (origin/redirect/session secret).
+
+### Step 2: Tell Discord About The Redirect URL (One-Time)
+
+In the Discord Developer Portal, your application must allow the callback URL:
+
+- `http://127.0.0.1:8081/api/auth/callback`
+
+The admin API requests OAuth2 scopes `identify` and `guilds` during login.
+
+### Step 3: Run The Bot/API
+
+Preferred:
+
+```bash
+go run ./cmd/mamusiabtw dev
+```
+
+You can also run the plain command:
+
+```bash
+go run ./cmd/mamusiabtw
+```
+
+### Step 4: Run The Dashboard Frontend
+
+1. In another terminal:
+   - `cd apps/dashboard`
+2. Copy:
+   - `.env.dev.example` -> `.env.dev`
+3. Install + run:
+
+```bash
+bun install
+bun run dev
+```
+
+### Where Do I Get CLIENT_ID / CLIENT_SECRET / SESSION_SECRET?
+
+`MAMUSIABTW_DASHBOARD_CLIENT_ID` and `MAMUSIABTW_DASHBOARD_CLIENT_SECRET`:
+
+1. Discord Developer Portal -> your application
+2. OAuth2
+3. Copy:
+   - Client ID -> `MAMUSIABTW_DASHBOARD_CLIENT_ID`
+   - Client Secret (you may need to reset/reveal it) -> `MAMUSIABTW_DASHBOARD_CLIENT_SECRET`
+
+`MAMUSIABTW_DASHBOARD_SESSION_SECRET`:
+
+- generate a random secret and paste it
+- examples:
+
+```bash
+openssl rand -hex 32
+# or
+openssl rand -base64 48
+```
+
+## Website + Dashboard (Production)
+
+This split matters:
+
+- website origin (where the frontend lives)
+- API origin (where the bot’s admin API listens)
+
+Example:
+
+- website: `https://app.example.com`
+- API: `https://api.example.com`
+
+Checklist:
+
+1. Copy env examples:
+   - `.env.prod.example` -> `.env.prod` (or use the legacy `.env.production.example`)
+   - `apps/dashboard/.env.prod.example` -> `apps/dashboard/.env.prod`
+2. Configure the bot/API:
+   - `MAMUSIABTW_DASHBOARD_APP_ORIGIN=https://app.example.com`
+   - `MAMUSIABTW_DASHBOARD_REDIRECT_URL=https://api.example.com/api/auth/callback`
+3. Configure the dashboard build:
+   - `VITE_ADMIN_API_BASE_URL=https://api.example.com`
+
+Production frontend builds do not fall back to `127.0.0.1:8081`.
+If `VITE_ADMIN_API_BASE_URL` is missing or invalid, the site opens into setup diagnostics and blocks sign-in/install redirects.
+
+## Env Convention
+
+Repo standard:
+
+- root dev bot/API: `.env.dev`
+- root prod bot/API: `.env.prod`
+- dashboard dev frontend: `apps/dashboard/.env.dev`
+- dashboard prod frontend: `apps/dashboard/.env.prod`
+
+Legacy files still work:
+
+- `.env.local` / `.env.production`
+- `apps/dashboard/.env.local` / `apps/dashboard/.env.production`
+
+## Dashboard Routes
+
+- `#/` home
+- `#/servers` server picker
+- `#/servers/<guild_id>` server dashboard
+- `#/owner` owner-only control area
+
+## Dashboard Coverage (Today)
+
+- sign in with Discord
+- server picker for guilds the user can manage
+- per-server install/setup status
+- server settings (plugin config per guild)
+- server manager actions: slowmode, nick, roles, purge, emojis, stickers
+- moderation actions: warn/unwarn
+- owner overview / runtime state
+- owner module enable / disable / reset / reload
+- owner plugin list / reload / signing state
+- owner plugin scaffolding
+- owner setup diagnostics for API + OAuth wiring
+- owner migration status / backup
+
+If the API is not reachable or the dashboard URLs are invalid, the app opens into setup diagnostics (instead of a blank login failure).
+
+## Common Setup Problems (Fast Checks)
+
+- Dashboard shows `127.0.0.1:8081/api/auth/me ... ERR_CONNECTION_REFUSED`:
+  - the bot/admin API is not running, or `MAMUSIABTW_ADMIN_ADDR` is wrong
+  - run `go run ./cmd/mamusiabtw doctor` to see what config the bot thinks it has
+- Login redirects but Discord errors:
+  - your OAuth Redirect URI does not match exactly
+  - make sure it’s `http://127.0.0.1:8081/api/auth/callback` for local
+- Owner page denies access:
+  - the bot must be able to resolve the Discord application owner
+  - fallback: set `OWNER_USER_ID=...`
 
 ## Release Builds
 
@@ -62,76 +260,10 @@ The bot also supports runtime module toggles from `config/modules.json`, with of
 
 ## Docker
 
-1. Copy `.env.local.example` to `.env.local` and fill in at least `DISCORD_TOKEN`.
+1. Copy `.env.dev.example` to `.env` and fill in at least `DISCORD_TOKEN`.
 2. Start: `docker compose up --build`
 
 `compose.yml` bind-mounts `./data`, `./plugins`, and `./config` into the container for a dev-friendly workflow.
-
-## Website + Dashboard
-
-The repo includes a Mantine web app in `apps/dashboard/`.
-It is designed to serve two audiences through the same frontend:
-
-- public/server-admin routes for signing in, listing manageable servers, and opening a server dashboard
-- owner-only routes under `#/owner` for bot-global controls such as modules, plugins, setup, and migrations
-
-Local setup:
-
-1. Copy the root bot example:
-   - `.env.local.example` -> `.env.local`
-2. Make sure the Discord OAuth application allows the redirect URL.
-3. If you want to use the owner area, the bot must be able to resolve the Discord application owner. You can also set `OWNER_USER_ID` as a fallback.
-4. Start the bot: `go run ./cmd/mamusiabtw`
-5. In another terminal:
-   - `cd apps/dashboard`
-   - `cp .env.local.example .env.local`
-   - `bun install`
-   - `bun run dev`
-
-Production website build:
-
-1. Copy the production examples:
-   - `.env.production.example` -> your production bot env file
-   - `apps/dashboard/.env.production.example` -> `apps/dashboard/.env.production`
-2. Set the public website origin and API origin as separate domains, for example:
-   - website: `https://app.example.com`
-   - API: `https://api.example.com`
-3. Configure the bot with:
-   - `MAMUSIABTW_DASHBOARD_APP_ORIGIN=https://app.example.com`
-   - `MAMUSIABTW_DASHBOARD_REDIRECT_URL=https://api.example.com/api/auth/callback`
-4. Build the frontend with:
-   - `VITE_ADMIN_API_BASE_URL=https://api.example.com`
-5. Production frontend builds do not fall back to `127.0.0.1:8081`. If `VITE_ADMIN_API_BASE_URL` is missing or invalid, the site opens into setup diagnostics and blocks sign-in/install redirects.
-
-Env-file convention:
-
-- root local bot/API: `.env.local`
-- root production bot/API: `.env.production`
-- dashboard local frontend: `apps/dashboard/.env.local`
-- dashboard production frontend: `apps/dashboard/.env.production`
-
-`.env` is still fine for a personal workflow if you prefer it, but the documented repo standard is now `local` and `production`.
-
-Current routes:
-
-- `#/` home
-- `#/servers` server picker
-- `#/servers/<guild_id>` server dashboard
-- `#/owner` owner-only control area
-
-Current website/dashboard coverage:
-
-- Discord sign-in
-- server picker for guilds the user can manage
-- per-server install/setup status
-- owner overview / runtime state
-- owner module enable / disable / reset / reload
-- owner plugin list / reload / signing state
-- owner plugin scaffolding
-- owner setup diagnostics for API and OAuth wiring
-- owner migration status / backup
-
-If the API is not reachable or the dashboard URLs are invalid, the app opens into setup diagnostics instead of a blank login failure.
 
 ## Built-in Commands
 
@@ -224,7 +356,7 @@ If a plugin has `plugins/<id>/locales/<locale>/messages.json`, the host loads it
 - `bot.i18n.t(message_id, data?, plural_count?)` inside Lua handlers.
 - `description_id` in descriptor-defined commands/options/subcommands/groups to localize slash command descriptions.
 
-Locale folders must use official Discord locale codes (the same ones shipped under `./locales/`, like `en-US`, `fr`, `ja`, `zh-CN`)... anything else is ignored.~
+Locale folders must use official Discord locale codes (the same ones shipped under `./locales/`, like `en-US`, `fr`, `ja`, `zh-CN`)... anything else is ignored.
 
 ### Plugin Entry Points
 

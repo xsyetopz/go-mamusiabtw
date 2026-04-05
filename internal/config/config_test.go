@@ -203,6 +203,7 @@ func TestLoadFromEnv_RejectsInvalidInputs(t *testing.T) {
 	t.Run("admin config", func(t *testing.T) {
 		resetConfigEnv(t)
 		t.Setenv("DISCORD_TOKEN", "discord-token")
+		t.Setenv("MAMUSIABTW_PROD_MODE", "1")
 		t.Setenv("MAMUSIABTW_ADMIN_ADDR", ":8081")
 		t.Setenv("MAMUSIABTW_DASHBOARD_APP_ORIGIN", "http://127.0.0.1:5173")
 		t.Setenv("MAMUSIABTW_DASHBOARD_CLIENT_ID", "client-id")
