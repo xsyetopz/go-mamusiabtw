@@ -24,12 +24,41 @@ type OAuthToken struct {
 	Scope       string
 }
 
+// OAuthPermissions is a defensive wrapper around the `permissions` value returned
+// by Discord in the `/users/@me/guilds` response. Discord typically returns it
+// as a string, but some clients/environments may surface it as a JSON number.
+//
+// We normalize to a decimal string so downstream permission parsing stays the
+// same.
+type OAuthPermissions string
+
+func (p *OAuthPermissions) UnmarshalJSON(data []byte) error {
+	if string(data) == "null" {
+		*p = ""
+		return nil
+	}
+
+	var s string
+	if err := json.Unmarshal(data, &s); err == nil {
+		*p = OAuthPermissions(strings.TrimSpace(s))
+		return nil
+	}
+
+	var n json.Number
+	if err := json.Unmarshal(data, &n); err == nil {
+		*p = OAuthPermissions(strings.TrimSpace(n.String()))
+		return nil
+	}
+
+	return fmt.Errorf("invalid oauth guild permissions %q", strings.TrimSpace(string(data)))
+}
+
 type OAuthGuild struct {
 	ID          string `json:"id"`
 	Name        string `json:"name"`
 	Icon        string `json:"icon"`
 	Owner       bool   `json:"owner"`
-	Permissions string `json:"permissions"`
+	Permissions OAuthPermissions `json:"permissions"`
 }
 
 func NewDiscordOAuthClient(clientID, clientSecret, redirectURL string) OAuthClient {

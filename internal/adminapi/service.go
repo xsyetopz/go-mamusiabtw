@@ -405,7 +405,7 @@ func (s Service) UserGuilds(ctx context.Context, accessToken string) ([]UserGuil
 		if err != nil {
 			continue
 		}
-		canManage := guild.Owner || hasManageGuildPermissions(guild.Permissions)
+		canManage := guild.Owner || hasManageGuildPermissions(string(guild.Permissions))
 		if !canManage {
 			continue
 		}
@@ -534,6 +534,32 @@ func (s Service) InstallURL(guildID uint64) (string, error) {
 	values.Set("permissions", "8")
 	values.Set("guild_id", fmt.Sprintf("%d", guildID))
 	values.Set("disable_guild_select", "true")
+	values.Set("response_type", "code")
+	values.Set("redirect_uri", callbackURL.String())
+	return "https://discord.com/oauth2/authorize?" + values.Encode(), nil
+}
+
+func (s Service) InstallURLAnyGuild() (string, error) {
+	clientID := strings.TrimSpace(s.Config.DashboardClientID)
+	if clientID == "" {
+		return "", errors.New("dashboard client id is not configured")
+	}
+	redirectURL := strings.TrimSpace(s.Config.DashboardRedirectURL)
+	if redirectURL == "" {
+		return "", errors.New("dashboard redirect url is not configured")
+	}
+	callbackURL, err := url.Parse(redirectURL)
+	if err != nil {
+		return "", err
+	}
+	callbackURL.Path = "/api/install/callback"
+	callbackURL.RawQuery = ""
+	callbackURL.Fragment = ""
+
+	values := url.Values{}
+	values.Set("client_id", clientID)
+	values.Set("scope", "bot applications.commands")
+	values.Set("permissions", "8")
 	values.Set("response_type", "code")
 	values.Set("redirect_uri", callbackURL.String())
 	return "https://discord.com/oauth2/authorize?" + values.Encode(), nil

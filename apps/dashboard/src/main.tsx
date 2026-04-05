@@ -1,4 +1,8 @@
-import { createTheme, MantineProvider } from "@mantine/core";
+import {
+	createTheme,
+	localStorageColorSchemeManager,
+	MantineProvider,
+} from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import React from "react";
 import ReactDOM from "react-dom/client";
@@ -7,8 +11,24 @@ import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
 import "./styles.css";
 
+const goBlue = [
+	"#e6f7fc",
+	"#cceff8",
+	"#a2e3f2",
+	"#79d6eb",
+	"#4fc9e4",
+	"#2abde0",
+	"#00add8", // Go blue anchor
+	"#0096bc",
+	"#007a99",
+	"#005c73",
+] as const;
+
 const theme = createTheme({
-	primaryColor: "teal",
+	colors: {
+		goblue: goBlue,
+	},
+	primaryColor: "goblue",
 	defaultRadius: "md",
 	fontFamily:
 		'"Iosevka Aile", "IBM Plex Sans", "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif',
@@ -44,6 +64,10 @@ const theme = createTheme({
 	},
 });
 
+const colorSchemeManager = localStorageColorSchemeManager({
+	key: "mamusiabtw-color-scheme",
+});
+
 const root = document.getElementById("root");
 if (!root) {
 	throw new Error('Missing root element with id="root".');
@@ -51,7 +75,11 @@ if (!root) {
 
 ReactDOM.createRoot(root).render(
 	<React.StrictMode>
-		<MantineProvider theme={theme} defaultColorScheme="light">
+		<MantineProvider
+			theme={theme}
+			colorSchemeManager={colorSchemeManager}
+			defaultColorScheme="auto"
+		>
 			<Notifications />
 			<App />
 		</MantineProvider>

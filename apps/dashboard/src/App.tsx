@@ -1,25 +1,34 @@
 import {
+	ActionIcon,
 	AppShell,
 	Avatar,
 	Badge,
 	Box,
+	Burger,
 	Button,
 	Card,
 	Divider,
+	Drawer,
 	Group,
 	Loader,
+	Menu,
 	NavLink,
 	Stack,
 	Text,
 	Title,
+	useMantineColorScheme,
 } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import {
 	IconBolt,
+	IconDeviceDesktop,
 	IconLayoutDashboard,
+	IconMoon,
 	IconPlugConnected,
 	IconPlus,
 	IconServer,
+	IconSun,
 	IconTool,
 } from "@tabler/icons-react";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
@@ -122,6 +131,57 @@ function notifyAsyncError(title: string, error: unknown) {
 	});
 }
 
+function ThemeMenu() {
+	const { colorScheme, setColorScheme } = useMantineColorScheme();
+	const current = colorScheme ?? "auto";
+	const icon =
+		current === "dark" ? (
+			<IconMoon size={16} />
+		) : current === "light" ? (
+			<IconSun size={16} />
+		) : (
+			<IconDeviceDesktop size={16} />
+		);
+
+	return (
+		<Menu position="bottom-end" withinPortal={true}>
+			<Menu.Target>
+				<ActionIcon
+					variant="subtle"
+					aria-label="Theme"
+					title="Theme"
+					radius="md"
+				>
+					{icon}
+				</ActionIcon>
+			</Menu.Target>
+			<Menu.Dropdown>
+				<Menu.Item
+					leftSection={<IconDeviceDesktop size={16} />}
+					onClick={() => setColorScheme("auto")}
+					data-active={current === "auto" ? "true" : undefined}
+				>
+					Auto
+				</Menu.Item>
+				<Menu.Item
+					leftSection={<IconSun size={16} />}
+					onClick={() => setColorScheme("light")}
+					data-active={current === "light" ? "true" : undefined}
+				>
+					Light
+				</Menu.Item>
+				<Menu.Item
+					leftSection={<IconMoon size={16} />}
+					onClick={() => setColorScheme("dark")}
+					data-active={current === "dark" ? "true" : undefined}
+				>
+					Dark
+				</Menu.Item>
+			</Menu.Dropdown>
+		</Menu>
+	);
+}
+
 function fireAndNotify(title: string, promise: Promise<unknown>) {
 	promise.catch((error: unknown) => {
 		notifyAsyncError(title, error);
@@ -218,6 +278,8 @@ function OwnerShell({
 	resetScaffold: () => void;
 	csrfToken: string;
 }) {
+	const [navOpened, nav] = useDisclosure(false);
+
 	let ownerContent = ownerStatus ? (
 		<OverviewPage status={ownerStatus} />
 	) : (
@@ -386,27 +448,42 @@ function OwnerShell({
 	return (
 		<AppShell
 			header={{ height: 68 }}
-			navbar={{ width: 280, breakpoint: "sm" }}
+			navbar={{
+				width: 280,
+				breakpoint: "sm",
+				collapsed: { mobile: !navOpened },
+			}}
 			padding="lg"
 		>
 			<AppShell.Header className="owner-header">
 				<Group justify="space-between" h="100%" px="lg">
 					<Group gap="sm">
+						<Burger
+							opened={navOpened}
+							onClick={nav.toggle}
+							hiddenFrom="sm"
+							aria-label="Toggle navigation"
+						/>
 						<Text fw={800}>mamusiabtw</Text>
 						<Badge variant="light" color="teal">
 							Owner
 						</Badge>
 					</Group>
 					<Group gap="sm">
+						<ThemeMenu />
 						<Button
 							variant="subtle"
-							onClick={() => onNavigate({ kind: "servers" })}
+							onClick={() => {
+								nav.close();
+								onNavigate({ kind: "servers" });
+							}}
 						>
 							Servers
 						</Button>
 						<Button
 							variant="default"
 							onClick={() => {
+								nav.close();
 								onLogout().catch(() => undefined);
 							}}
 						>
@@ -439,7 +516,10 @@ function OwnerShell({
 								active={view === item.key}
 								label={item.label}
 								leftSection={<item.icon size={16} />}
-								onClick={() => onNavigate({ kind: "owner", view: item.key })}
+								onClick={() => {
+									nav.close();
+									onNavigate({ kind: "owner", view: item.key });
+								}}
 							/>
 						))}
 					</Stack>
@@ -620,6 +700,7 @@ function PublicSiteView({
 	onRefreshGuildDashboard: (guildID: string) => void;
 }) {
 	let publicContent: ReactNode;
+	const [navOpened, nav] = useDisclosure(false);
 
 	switch (route.kind) {
 		case "servers":
@@ -630,6 +711,17 @@ function PublicSiteView({
 					loading={guildsLoading}
 					onLogin={onLogin}
 					onRefresh={onRefreshGuilds}
+					onInviteBot={() => {
+						if (apiBaseError) {
+							notifications.show({
+								color: "red",
+								title: "Invite is unavailable",
+								message: apiBaseError,
+							});
+							return;
+						}
+						window.location.href = `${apiBase}/api/install/start`;
+					}}
 					onOpenGuild={(guildID) =>
 						onNavigate({ kind: "server", guildID: String(guildID) })
 					}
@@ -678,8 +770,83 @@ function PublicSiteView({
 	return (
 		<Box className="site-shell">
 			<Box component="header" className="site-header">
+				<Drawer
+					opened={navOpened}
+					onClose={nav.close}
+					title="Navigation"
+					padding="md"
+					size="xs"
+					hiddenFrom="sm"
+				>
+					<Stack gap="xs">
+						<Button
+							variant="subtle"
+							justify="flex-start"
+							onClick={() => {
+								nav.close();
+								onNavigate({ kind: "home" });
+							}}
+						>
+							Home
+						</Button>
+						<Button
+							variant="subtle"
+							justify="flex-start"
+							onClick={() => {
+								nav.close();
+								onNavigate({ kind: "servers" });
+							}}
+						>
+							Servers
+						</Button>
+						{me?.is_owner ? (
+							<Button
+								variant="subtle"
+								justify="flex-start"
+								onClick={() => {
+									nav.close();
+									onNavigate({ kind: "owner", view: "overview" });
+								}}
+							>
+								Owner
+							</Button>
+						) : null}
+						<Divider my="sm" />
+						<Group justify="space-between">
+							<Text fw={700}>Theme</Text>
+							<ThemeMenu />
+						</Group>
+						<Divider my="sm" />
+						{me ? (
+							<Button
+								variant="default"
+								onClick={() => {
+									nav.close();
+									onLogoutClick();
+								}}
+							>
+								Sign out
+							</Button>
+						) : (
+							<Button
+								onClick={() => {
+									nav.close();
+									onLogin();
+								}}
+							>
+								Sign in with Discord
+							</Button>
+						)}
+					</Stack>
+				</Drawer>
 				<Group justify="space-between" className="site-header-inner">
-					<Group gap="lg">
+					<Group gap="lg" className="site-header-left">
+						<Burger
+							opened={navOpened}
+							onClick={nav.toggle}
+							hiddenFrom="sm"
+							aria-label="Toggle navigation"
+						/>
 						<Button
 							variant="subtle"
 							className="brand-button"
@@ -687,7 +854,7 @@ function PublicSiteView({
 						>
 							mamusiabtw
 						</Button>
-						<Group gap="xs" className="site-nav">
+						<Group gap="xs" className="site-nav" visibleFrom="sm">
 							<Button
 								variant="subtle"
 								onClick={() => onNavigate({ kind: "home" })}
@@ -713,6 +880,7 @@ function PublicSiteView({
 						</Group>
 					</Group>
 					<Group gap="sm">
+						<ThemeMenu />
 						{me ? (
 							<>
 								<Group gap="sm" className="session-chip">
@@ -752,6 +920,12 @@ function PublicSiteView({
 				>
 					{publicContent}
 				</Suspense>
+			</Box>
+			<Box component="footer" className="site-footer">
+				<Text size="xs" c="dimmed">
+					Theme uses Go blue (#00ADD8) for the primary palette. Go is a
+					trademark of Google LLC.
+				</Text>
 			</Box>
 		</Box>
 	);

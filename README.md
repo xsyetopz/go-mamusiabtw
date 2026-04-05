@@ -81,8 +81,14 @@ If you want the website/dashboard, you will run two things:
 - Terminal A: the bot + admin API (`go run ...`)
 - Terminal B: the dashboard frontend (`bun run dev`)
 
-Tip: for local dev, prefer `127.0.0.1` everywhere (not `localhost`).
-Mixing them can cause confusing issues with redirects, cookies, and CORS checks.
+Tip: for local dev, pick one origin and stick to it.
+
+- Recommended: `http://localhost:5173` for the Vite dev server
+- Also works: `http://127.0.0.1:5173`
+
+mamusiabtw is defensive about loopback origins (CORS + redirects treat
+`localhost` / `127.0.0.1` / `::1` as equivalent when possible), but consistency
+still avoids weird cookie/redirect confusion.
 
 ### Step 1: Configure The Bot/API Env
 
@@ -116,6 +122,12 @@ In the Discord Developer Portal, your application must allow the callback URL:
 
 - `http://127.0.0.1:8081/api/auth/callback`
 
+If you prefer `localhost`, you can use:
+
+- `http://localhost:8081/api/auth/callback`
+
+Just make sure `MAMUSIABTW_DASHBOARD_REDIRECT_URL` matches exactly.
+
 The admin API requests OAuth2 scopes `identify` and `guilds` during login.
 
 ### Step 3: Run The Bot/API
@@ -147,7 +159,7 @@ bun run dev
 
 Open:
 
-- `http://127.0.0.1:5173`
+- `http://localhost:5173`
 
 ### Where Do I Get CLIENT_ID / CLIENT_SECRET / SESSION_SECRET?
 
@@ -240,7 +252,7 @@ If the API is not reachable or the dashboard URLs are invalid, the app opens int
   - the bot/admin API is not running, or `MAMUSIABTW_ADMIN_ADDR` is wrong
   - run `go run ./cmd/mamusiabtw doctor` to see what config the bot thinks it has
 - Quick self-checks:
-  - `curl -I http://127.0.0.1:5173` (dashboard dev server)
+  - `curl -I http://localhost:5173` (dashboard dev server)
   - `curl -I http://127.0.0.1:8081/api/setup` (admin API)
 - Dashboard shows a CORS error mentioning `Access-Control-Allow-Origin` and `localhost:5173`:
   - you’re running the dashboard on `http://localhost:5173` but your config uses `http://127.0.0.1:5173` (or vice versa)
@@ -249,6 +261,8 @@ If the API is not reachable or the dashboard URLs are invalid, the app opens int
   - Discord is rejecting privileged gateway intents your bot requests
   - fix: Discord Developer Portal -> your application -> Bot -> Privileged Gateway Intents
   - enable: `Server Members Intent` (mamusiabtw requests guild member events by default)
+  - dev note: `mamusiabtw dev` keeps the admin API running even if the bot cannot connect,
+    so the dashboard setup page stays reachable while you fix intents/tokens
 - Login redirects but Discord errors:
   - your OAuth Redirect URI does not match exactly
   - make sure it’s `http://127.0.0.1:8081/api/auth/callback` for local

@@ -9,7 +9,11 @@ import {
 	Stack,
 	Text,
 } from "@mantine/core";
-import { IconArrowRight, IconRefresh } from "@tabler/icons-react";
+import {
+	IconArrowRight,
+	IconExternalLink,
+	IconRefresh,
+} from "@tabler/icons-react";
 import { PageHeader } from "../components/PageHeader";
 import { badgeColor } from "../format";
 import type { AuthMe, GuildSummary } from "../types";
@@ -20,6 +24,7 @@ type Props = {
 	loading: boolean;
 	onLogin: () => void;
 	onRefresh: () => void;
+	onInviteBot: () => void;
 	onOpenGuild: (guildID: number) => void;
 };
 
@@ -29,6 +34,7 @@ export function ServersPage({
 	loading,
 	onLogin,
 	onRefresh,
+	onInviteBot,
 	onOpenGuild,
 }: Props) {
 	if (!me) {
@@ -60,14 +66,22 @@ export function ServersPage({
 				title="Servers"
 				subtitle="Choose a server to check install state and setup status."
 				action={
-					<Button
-						variant="default"
-						leftSection={<IconRefresh size={16} />}
-						loading={loading}
-						onClick={onRefresh}
-					>
-						Refresh
-					</Button>
+					<Group gap="xs">
+						<Button
+							variant="default"
+							leftSection={<IconRefresh size={16} />}
+							loading={loading}
+							onClick={onRefresh}
+						>
+							Refresh
+						</Button>
+						<Button
+							rightSection={<IconExternalLink size={16} />}
+							onClick={onInviteBot}
+						>
+							Invite bot
+						</Button>
+					</Group>
 				}
 			/>
 			{loading ? (

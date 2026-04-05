@@ -16,12 +16,6 @@ local function create_subcommand()
         min_length = 2,
         max_length = 30,
       }),
-      option.string("description", {
-        description = "Sticker description.",
-        description_id = "cmd.stickers.opt.description.desc",
-        min_length = 2,
-        max_length = 100,
-      }),
       option.string("emoji_tag", {
         description = "Sticker emoji tag.",
         description_id = "cmd.stickers.opt.emoji_tag.desc",
@@ -33,6 +27,12 @@ local function create_subcommand()
         description = "Sticker file.",
         description_id = "cmd.stickers.opt.file.desc",
         required = true,
+      }),
+      option.string("description", {
+        description = "Sticker description.",
+        description_id = "cmd.stickers.opt.description.desc",
+        min_length = 2,
+        max_length = 100,
       }),
     },
   }

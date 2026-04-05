@@ -282,7 +282,7 @@ func runInitCommand(args []string) int {
 		*adminAddr = "127.0.0.1:8081"
 	}
 	if strings.TrimSpace(*appOrigin) == "" && modeKind == "dev" {
-		*appOrigin = "http://127.0.0.1:5173"
+		*appOrigin = "http://localhost:5173"
 	}
 	if strings.TrimSpace(*redirectURL) == "" && modeKind == "dev" {
 		*redirectURL = "http://" + strings.TrimSpace(*adminAddr) + "/api/auth/callback"

@@ -87,7 +87,15 @@ func (a *App) Start(ctx context.Context) error {
 	}
 
 	if err := a.bot.Start(ctx); err != nil {
-		return err
+		// Dev ergonomics: keep the admin API up even if Discord rejects our gateway
+		// connection (missing intents, bad token, etc). Production should still
+		// fail fast so the process restarts and the error is visible.
+		if a.cfg.ProdMode {
+			return err
+		}
+		a.logger.ErrorContext(ctx, "discord bot failed to start; keeping admin API running", slog.String("err", err.Error()))
+		<-ctx.Done()
+		return ctx.Err()
 	}
 
 	<-ctx.Done()

@@ -40,7 +40,7 @@ func (fakeOAuthClient) FetchGuilds(context.Context, string) ([]OAuthGuild, error
 			ID:          "1",
 			Name:        "Guild",
 			Owner:       true,
-			Permissions: "8",
+			Permissions: OAuthPermissions("8"),
 		},
 	}, nil
 }

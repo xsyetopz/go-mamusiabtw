@@ -72,3 +72,63 @@ func TestCommandToCreate_ByType(t *testing.T) {
 		t.Fatalf("expected message command create, got %T", message)
 	}
 }
+
+func TestCommandToCreate_NormalizesRequiredOptionsFirst(t *testing.T) {
+	t.Parallel()
+
+	createAny := commandToCreate("plugin", Command{
+		Type:        CommandTypeSlash,
+		Name:        "stickers",
+		Description: "Manage stickers",
+		Subcommands: []Subcommand{{
+			Name:        "create",
+			Description: "Create",
+			Options: []CommandOption{
+				// Bad order on purpose: optional first, required later.
+				{Name: "description", Type: "string", Description: "Sticker description", Required: false},
+				{Name: "name", Type: "string", Description: "Sticker name", Required: true},
+				{Name: "emoji_tag", Type: "string", Description: "Emoji tag", Required: true},
+			},
+		}},
+	}, nil, nil)
+
+	create, ok := createAny.(discord.SlashCommandCreate)
+	if !ok {
+		t.Fatalf("expected slash create, got %T", createAny)
+	}
+	if len(create.Options) != 1 {
+		t.Fatalf("expected 1 top-level option, got %d", len(create.Options))
+	}
+
+	sub, ok := create.Options[0].(discord.ApplicationCommandOptionSubCommand)
+	if !ok {
+		t.Fatalf("expected subcommand option, got %T", create.Options[0])
+	}
+	if len(sub.Options) != 3 {
+		t.Fatalf("expected 3 sub options, got %d", len(sub.Options))
+	}
+
+	first, ok := sub.Options[0].(discord.ApplicationCommandOptionString)
+	if !ok {
+		t.Fatalf("expected first option to be string, got %T", sub.Options[0])
+	}
+	if !first.Required || first.Name != "name" {
+		t.Fatalf("expected first option to be required name, got name=%q required=%v", first.Name, first.Required)
+	}
+
+	second, ok := sub.Options[1].(discord.ApplicationCommandOptionString)
+	if !ok {
+		t.Fatalf("expected second option to be string, got %T", sub.Options[1])
+	}
+	if !second.Required || second.Name != "emoji_tag" {
+		t.Fatalf("expected second option to be required emoji_tag, got name=%q required=%v", second.Name, second.Required)
+	}
+
+	third, ok := sub.Options[2].(discord.ApplicationCommandOptionString)
+	if !ok {
+		t.Fatalf("expected third option to be string, got %T", sub.Options[2])
+	}
+	if third.Required || third.Name != "description" {
+		t.Fatalf("expected third option to be optional description, got name=%q required=%v", third.Name, third.Required)
+	}
+}

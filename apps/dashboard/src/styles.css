@@ -1,10 +1,44 @@
 body {
   margin: 0;
-  background: #edf1f4;
-  color: #16202a;
+  background: var(--app-bg);
+  color: var(--app-text);
   font-family:
     "Iosevka Aile", "IBM Plex Sans", "Segoe UI", -apple-system, BlinkMacSystemFont,
     sans-serif;
+}
+
+:root {
+  --app-bg: #edf1f4;
+  --app-text: #16202a;
+  --app-border: rgba(22, 32, 42, 0.08);
+  --app-header-bg: rgba(237, 241, 244, 0.82);
+  --app-surface: rgba(255, 255, 255, 0.9);
+  --app-surface-strong: rgba(255, 255, 255, 0.95);
+  --app-grid-line: rgba(22, 32, 42, 0.03);
+  --app-grid-line-subtle: rgba(22, 32, 42, 0.025);
+  --app-navbar-bg: #16202a;
+  --app-navbar-text: #f5f7fa;
+  --app-navbar-border: rgba(255, 255, 255, 0.08);
+  --app-muted: #51606d;
+  --app-panel-label: #607080;
+  --app-nested-bg: #f8fbfc;
+}
+
+html[data-mantine-color-scheme="dark"] {
+  --app-bg: #0b1016;
+  --app-text: #e8f0f6;
+  --app-border: rgba(232, 240, 246, 0.12);
+  --app-header-bg: rgba(11, 16, 22, 0.78);
+  --app-surface: rgba(14, 20, 28, 0.92);
+  --app-surface-strong: rgba(14, 20, 28, 0.96);
+  --app-grid-line: rgba(232, 240, 246, 0.05);
+  --app-grid-line-subtle: rgba(232, 240, 246, 0.04);
+  --app-navbar-bg: #0f1720;
+  --app-navbar-text: #e8f0f6;
+  --app-navbar-border: rgba(232, 240, 246, 0.1);
+  --app-muted: rgba(232, 240, 246, 0.7);
+  --app-panel-label: rgba(232, 240, 246, 0.7);
+  --app-nested-bg: rgba(255, 255, 255, 0.03);
 }
 
 #root {
@@ -14,10 +48,20 @@ body {
 .site-shell {
   min-height: 100vh;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.55)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.35)),
     repeating-linear-gradient(0deg,
-      rgba(22, 32, 42, 0.03),
-      rgba(22, 32, 42, 0.03) 1px,
+      var(--app-grid-line),
+      var(--app-grid-line) 1px,
+      transparent 1px,
+      transparent 32px);
+}
+
+html[data-mantine-color-scheme="dark"] .site-shell {
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)),
+    repeating-linear-gradient(0deg,
+      var(--app-grid-line),
+      var(--app-grid-line) 1px,
       transparent 1px,
       transparent 32px);
 }
@@ -27,8 +71,8 @@ body {
   top: 0;
   z-index: 20;
   backdrop-filter: blur(14px);
-  background: rgba(237, 241, 244, 0.82);
-  border-bottom: 1px solid rgba(22, 32, 42, 0.08);
+  background: var(--app-header-bg);
+  border-bottom: 1px solid var(--app-border);
 }
 
 .site-header-inner {
@@ -38,10 +82,20 @@ body {
   padding: 0 20px;
 }
 
+.site-header-left {
+  min-width: 0;
+}
+
 .site-main {
   max-width: 1180px;
   margin: 0 auto;
   padding: 28px 20px 48px;
+}
+
+.site-footer {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 20px 28px;
 }
 
 .brand-button {
@@ -52,7 +106,7 @@ body {
 }
 
 .site-nav .mantine-Button-root {
-  color: #51606d;
+  color: var(--app-muted);
 }
 
 .session-chip {
@@ -60,13 +114,20 @@ body {
 }
 
 .hero-panel {
-  border: 1px solid rgba(22, 32, 42, 0.08);
+  border: 1px solid var(--app-border);
   border-radius: 20px;
   padding: 28px;
   background:
-    linear-gradient(130deg, rgba(255, 255, 255, 0.95), rgba(246, 249, 251, 0.9)),
+    linear-gradient(130deg, var(--app-surface-strong), rgba(246, 249, 251, 0.72)),
     linear-gradient(180deg, rgba(10, 154, 132, 0.08), rgba(10, 154, 132, 0));
-  box-shadow: 0 16px 48px rgba(22, 32, 42, 0.06);
+  box-shadow: 0 16px 48px rgba(22, 32, 42, 0.08);
+}
+
+html[data-mantine-color-scheme="dark"] .hero-panel {
+  background:
+    linear-gradient(130deg, var(--app-surface-strong), rgba(255, 255, 255, 0.04)),
+    linear-gradient(180deg, rgba(0, 173, 216, 0.16), rgba(0, 173, 216, 0));
+  box-shadow: 0 18px 54px rgba(0, 0, 0, 0.46);
 }
 
 .hero-title {
@@ -85,30 +146,40 @@ body {
 }
 
 .nested-panel {
-  background: #f8fbfc;
-  border-color: rgba(22, 32, 42, 0.08);
+  background: var(--app-nested-bg);
+  border-color: var(--app-border);
 }
 
 .mantine-AppShell-main {
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0.45)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.28)),
     repeating-linear-gradient(0deg,
-      rgba(22, 32, 42, 0.025),
-      rgba(22, 32, 42, 0.025) 1px,
+      var(--app-grid-line-subtle),
+      var(--app-grid-line-subtle) 1px,
+      transparent 1px,
+      transparent 28px);
+}
+
+html[data-mantine-color-scheme="dark"] .mantine-AppShell-main {
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.22)),
+    repeating-linear-gradient(0deg,
+      var(--app-grid-line-subtle),
+      var(--app-grid-line-subtle) 1px,
       transparent 1px,
       transparent 28px);
 }
 
 .owner-header {
-  background: rgba(245, 247, 250, 0.92);
+  background: var(--app-header-bg);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(22, 32, 42, 0.08);
+  border-bottom: 1px solid var(--app-border);
 }
 
 .mantine-AppShell-navbar {
-  background: #16202a;
-  color: #f5f7fa;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--app-navbar-bg);
+  color: var(--app-navbar-text);
+  border-right: 1px solid var(--app-navbar-border);
 }
 
 .mantine-AppShell-navbar .mantine-Text-root,
@@ -125,8 +196,8 @@ body {
 }
 
 .panel-card {
-  background: rgba(255, 255, 255, 0.9);
-  border-color: rgba(22, 32, 42, 0.08);
+  background: var(--app-surface);
+  border-color: var(--app-border);
   box-shadow: 0 1px 2px rgba(22, 32, 42, 0.05);
 }
 
@@ -135,7 +206,7 @@ body {
   font-weight: 600;
   letter-spacing: 0.02em;
   text-transform: uppercase;
-  color: #607080;
+  color: var(--app-panel-label);
 }
 
 .metric-value {
@@ -148,7 +219,7 @@ body {
   font-size: 0.76rem;
   text-transform: uppercase;
   letter-spacing: 0.02em;
-  color: #607080;
+  color: var(--app-panel-label);
 }
 
 .compact-table td {

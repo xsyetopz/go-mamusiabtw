@@ -1165,6 +1165,11 @@ func buildOptions(
 	locales []string,
 	localize CommandLocalizer,
 ) []discord.ApplicationCommandOption {
+	// Discord requires required options to be listed before non-required options.
+	// Plugin authors will naturally write "nice" human ordering; we normalize so
+	// that one plugin cannot brick command registration.
+	opts = normalizeRequiredOptionsFirst(opts)
+
 	out := make([]discord.ApplicationCommandOption, 0, len(opts))
 	for _, opt := range opts {
 		if o, ok := buildOption(pluginID, opt, locales, localize); ok {
@@ -1172,6 +1177,40 @@ func buildOptions(
 		}
 	}
 	return out
+}
+
+func normalizeRequiredOptionsFirst(opts []CommandOption) []CommandOption {
+	if len(opts) < 2 {
+		return opts
+	}
+
+	// Fast-path: already valid ordering.
+	seenOptional := false
+	needsFix := false
+	for _, opt := range opts {
+		if !opt.Required {
+			seenOptional = true
+			continue
+		}
+		if seenOptional {
+			needsFix = true
+			break
+		}
+	}
+	if !needsFix {
+		return opts
+	}
+
+	required := make([]CommandOption, 0, len(opts))
+	optional := make([]CommandOption, 0, len(opts))
+	for _, opt := range opts {
+		if opt.Required {
+			required = append(required, opt)
+		} else {
+			optional = append(optional, opt)
+		}
+	}
+	return append(required, optional...)
 }
 
 func buildOption(

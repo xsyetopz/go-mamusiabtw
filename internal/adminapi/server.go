@@ -272,10 +272,50 @@ func normalizeOrigin(raw string) string {
 	return raw
 }
 
+func canonicalLoopbackOrigin(origin string) string {
+	origin = normalizeOrigin(origin)
+	if origin == "" {
+		return ""
+	}
+
+	u, err := url.Parse(origin)
+	if err != nil {
+		return origin
+	}
+	if strings.TrimSpace(u.Scheme) == "" {
+		return origin
+	}
+
+	host := strings.TrimSpace(u.Hostname())
+	if host == "" {
+		return origin
+	}
+
+	// Prefer localhost for redirects. It "just works" in browsers even when the
+	// dev server is bound to localhost and the config uses 127.0.0.1.
+	if host != "127.0.0.1" && host != "::1" {
+		return origin
+	}
+
+	port := strings.TrimSpace(u.Port())
+	targetHost := "localhost"
+	if port != "" {
+		targetHost = net.JoinHostPort(targetHost, port)
+	}
+	u.Host = targetHost
+	return normalizeOrigin(u.String())
+}
+
 func buildAllowedCORSOrigins(appOrigin string) map[string]struct{} {
 	appOrigin = normalizeOrigin(appOrigin)
 	if appOrigin == "" {
-		return map[string]struct{}{}
+		// Local dev defaults: allow Vite's default origin even if the config is
+		// missing. Production remains strict via config validation.
+		return map[string]struct{}{
+			"http://localhost:5173":   {},
+			"http://127.0.0.1:5173":   {},
+			"http://[::1]:5173":       {},
+		}
 	}
 
 	out := map[string]struct{}{appOrigin: {}}
@@ -437,9 +477,11 @@ func (s *Server) handleCallback(w http.ResponseWriter, r *http.Request) {
 	s.putSession(sess)
 	http.SetCookie(w, s.cookie(sessionCookieName, sessionID, sessionTTL, true))
 	http.SetCookie(w, s.cookie(stateCookieName, "", -time.Hour, true))
-	redirectTarget := strings.TrimRight(s.appOrigin, "/") + "/#/servers"
+	redirectOrigin := canonicalLoopbackOrigin(s.appOrigin)
+	ownerOrigin := canonicalLoopbackOrigin(s.ownerAppOrigin)
+	redirectTarget := strings.TrimRight(redirectOrigin, "/") + "/#/servers"
 	if isOwner && strings.TrimSpace(s.ownerAppOrigin) != "" {
-		redirectTarget = strings.TrimRight(s.ownerAppOrigin, "/") + "/#/owner"
+		redirectTarget = strings.TrimRight(ownerOrigin, "/") + "/#/owner"
 	}
 	http.Redirect(w, r, redirectTarget, http.StatusFound)
 }
@@ -500,17 +542,31 @@ func (s *Server) handleGuildDashboard(w http.ResponseWriter, r *http.Request, se
 
 func (s *Server) handleInstallStart(w http.ResponseWriter, r *http.Request, sess session) {
 	guildIDRaw := strings.TrimSpace(r.URL.Query().Get("guild_id"))
-	guildID, err := strconv.ParseUint(guildIDRaw, 10, 64)
-	if err != nil || guildID == 0 {
-		writeError(w, http.StatusBadRequest, "invalid guild_id")
-		return
+	var (
+		url string
+		err error
+	)
+	if guildIDRaw == "" {
+		url, err = s.svc.InstallURLAnyGuild()
+	} else {
+		guildID, parseErr := strconv.ParseUint(guildIDRaw, 10, 64)
+		if parseErr != nil || guildID == 0 {
+			writeError(w, http.StatusBadRequest, "invalid guild_id")
+			return
+		}
+		url, err = s.svc.InstallURL(guildID)
 	}
-	url, err := s.svc.InstallURL(guildID)
 	if err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	s.logger.Info("bot install started", slog.Uint64("actor_id", sess.UserID), slog.Uint64("guild_id", guildID))
+	attrs := []any{slog.Uint64("actor_id", sess.UserID)}
+	if guildIDRaw != "" {
+		if guildID, parseErr := strconv.ParseUint(guildIDRaw, 10, 64); parseErr == nil {
+			attrs = append(attrs, slog.Uint64("guild_id", guildID))
+		}
+	}
+	s.logger.Info("bot install started", attrs...)
 	http.Redirect(w, r, url, http.StatusFound)
 }
 
