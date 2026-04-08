@@ -481,7 +481,7 @@ func (s *Server) handleMe(w http.ResponseWriter, r *http.Request) {
 		IsOwner:       s.isOwnerUser(sess.UserID),
 		CSRFToken:     sess.CSRFToken,
 	}
-	resp.User.ID = sess.UserID
+	resp.User.ID = Snowflake(sess.UserID)
 	resp.User.Username = sess.Username
 	resp.User.Name = sess.Name
 	resp.User.AvatarURL = sess.AvatarURL
@@ -518,6 +518,10 @@ func (s *Server) handleGuildDashboard(w http.ResponseWriter, r *http.Request, se
 	}
 	dashboard, err := s.svc.GuildDashboard(r.Context(), sess.AccessToken, guildID)
 	if err != nil {
+		if errors.Is(err, ErrGuildNotAccessible) {
+			writeError(w, http.StatusForbidden, err.Error())
+			return
+		}
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}

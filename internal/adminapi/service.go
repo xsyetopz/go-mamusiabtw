@@ -81,6 +81,14 @@ func cloneOptionalUint64(value *uint64) *uint64 {
 	return &cloned
 }
 
+func optionalSnowflake(value *uint64) *Snowflake {
+	if value == nil {
+		return nil
+	}
+	v := Snowflake(*value)
+	return &v
+}
+
 type StatusResponse struct {
 	Snapshot SnapshotResponse `json:"snapshot"`
 	Build    BuildResponse    `json:"build"`
@@ -119,40 +127,40 @@ type BuildResponse struct {
 }
 
 type StatusConfig struct {
-	SQLitePath              string  `json:"sqlite_path"`
-	MigrationsDir           string  `json:"migrations_dir"`
-	MigrationBackupsDir     string  `json:"migration_backups_dir"`
-	LocalesDir              string  `json:"locales_dir"`
-	PluginsDir              string  `json:"plugins_dir"`
-	PermissionsFile         string  `json:"permissions_file"`
-	ModulesFile             string  `json:"modules_file"`
-	TrustedKeysFile         string  `json:"trusted_keys_file"`
-	OpsAddr                 string  `json:"ops_addr"`
-	AdminAddr               string  `json:"admin_addr"`
-	DevGuildID              *uint64 `json:"dev_guild_id,omitempty"`
-	CommandRegistrationMode string  `json:"command_registration_mode"`
-	ProdMode                bool    `json:"prod_mode"`
-	AllowUnsignedPlugins    bool    `json:"allow_unsigned_plugins"`
+	SQLitePath              string     `json:"sqlite_path"`
+	MigrationsDir           string     `json:"migrations_dir"`
+	MigrationBackupsDir     string     `json:"migration_backups_dir"`
+	LocalesDir              string     `json:"locales_dir"`
+	PluginsDir              string     `json:"plugins_dir"`
+	PermissionsFile         string     `json:"permissions_file"`
+	ModulesFile             string     `json:"modules_file"`
+	TrustedKeysFile         string     `json:"trusted_keys_file"`
+	OpsAddr                 string     `json:"ops_addr"`
+	AdminAddr               string     `json:"admin_addr"`
+	DevGuildID              *Snowflake `json:"dev_guild_id,omitempty"`
+	CommandRegistrationMode string     `json:"command_registration_mode"`
+	ProdMode                bool       `json:"prod_mode"`
+	AllowUnsignedPlugins    bool       `json:"allow_unsigned_plugins"`
 }
 
 type SetupResponse struct {
-	AdminEnabled          bool     `json:"admin_enabled"`
-	AuthConfigured        bool     `json:"auth_configured"`
-	LoginReady            bool     `json:"login_ready"`
-	OwnerConfigured       bool     `json:"owner_configured"`
-	OwnerResolved         bool     `json:"owner_resolved"`
-	OwnerSource           string   `json:"owner_source"`
-	EffectiveOwnerUserID  *uint64  `json:"effective_owner_user_id,omitempty"`
-	SigningConfigured     bool     `json:"signing_configured"`
-	TrustedKeysConfigured bool     `json:"trusted_keys_configured"`
-	AdminAddr             string   `json:"admin_addr"`
-	AppOrigin             string   `json:"app_origin"`
-	RedirectURL           string   `json:"redirect_url"`
-	InstallRedirectURL    string   `json:"install_redirect_url"`
-	HasClientID           bool     `json:"has_client_id"`
-	HasClientSecret       bool     `json:"has_client_secret"`
-	HasSessionSecret      bool     `json:"has_session_secret"`
-	Hints                 []string `json:"hints"`
+	AdminEnabled          bool       `json:"admin_enabled"`
+	AuthConfigured        bool       `json:"auth_configured"`
+	LoginReady            bool       `json:"login_ready"`
+	OwnerConfigured       bool       `json:"owner_configured"`
+	OwnerResolved         bool       `json:"owner_resolved"`
+	OwnerSource           string     `json:"owner_source"`
+	EffectiveOwnerUserID  *Snowflake `json:"effective_owner_user_id,omitempty"`
+	SigningConfigured     bool       `json:"signing_configured"`
+	TrustedKeysConfigured bool       `json:"trusted_keys_configured"`
+	AdminAddr             string     `json:"admin_addr"`
+	AppOrigin             string     `json:"app_origin"`
+	RedirectURL           string     `json:"redirect_url"`
+	InstallRedirectURL    string     `json:"install_redirect_url"`
+	HasClientID           bool       `json:"has_client_id"`
+	HasClientSecret       bool       `json:"has_client_secret"`
+	HasSessionSecret      bool       `json:"has_session_secret"`
+	Hints                 []string   `json:"hints"`
 }
 
 type ModuleResponse struct {
@@ -229,22 +237,22 @@ type PluginScaffoldResponse struct {
 type SessionResponse struct {
 	Authenticated bool `json:"authenticated"`
 	User          struct {
-		ID        uint64 `json:"id"`
-		Username  string `json:"username"`
-		Name      string `json:"name"`
-		AvatarURL string `json:"avatar_url,omitempty"`
+		ID        Snowflake `json:"id"`
+		Username  string    `json:"username"`
+		Name      string    `json:"name"`
+		AvatarURL string    `json:"avatar_url,omitempty"`
 	} `json:"user"`
 	IsOwner   bool   `json:"is_owner"`
 	CSRFToken string `json:"csrf_token"`
 }
 
 type UserGuildSummary struct {
-	ID           uint64 `json:"id"`
-	Name         string `json:"name"`
-	IconURL      string `json:"icon_url,omitempty"`
-	Owner        bool   `json:"owner"`
-	CanManage    bool   `json:"can_manage"`
-	BotInstalled bool   `json:"bot_installed"`
+	ID           Snowflake `json:"id"`
+	Name         string    `json:"name"`
+	IconURL      string    `json:"icon_url,omitempty"`
+	Owner        bool      `json:"owner"`
+	CanManage    bool      `json:"can_manage"`
+	BotInstalled bool      `json:"bot_installed"`
 }
 
 type GuildDashboardResponse struct {
@@ -296,58 +304,63 @@ type ModerationSection struct {
 
 type WellnessSection struct {
 	PluginSection
-	AllowChannelReminders    bool   `json:"allow_channel_reminders"`
-	DefaultReminderChannelID uint64 `json:"default_reminder_channel_id,omitempty"`
+	AllowChannelReminders    bool      `json:"allow_channel_reminders"`
+	DefaultReminderChannelID Snowflake `json:"default_reminder_channel_id,omitempty"`
 }
 
 type GuildChannelInfo struct {
-	ID       uint64 `json:"id"`
-	Name     string `json:"name"`
-	Type     string `json:"type"`
-	ParentID uint64 `json:"parent_id,omitempty"`
+	ID       Snowflake `json:"id"`
+	Name     string    `json:"name"`
+	Type     string    `json:"type"`
+	ParentID Snowflake `json:"parent_id,omitempty"`
 }
 
 type GuildRoleInfo struct {
-	ID          uint64 `json:"id"`
-	Name        string `json:"name"`
-	Color       int    `json:"color"`
-	Position    int    `json:"position"`
-	Managed     bool   `json:"managed"`
-	Mentionable bool   `json:"mentionable"`
+	ID          Snowflake `json:"id"`
+	Name        string    `json:"name"`
+	Color       int       `json:"color"`
+	Position    int       `json:"position"`
+	Managed     bool      `json:"managed"`
+	Mentionable bool      `json:"mentionable"`
 }
 
 type GuildMemberInfo struct {
-	UserID      uint64   `json:"user_id"`
-	Username    string   `json:"username"`
-	DisplayName string   `json:"display_name"`
-	AvatarURL   string   `json:"avatar_url,omitempty"`
-	Bot         bool     `json:"bot"`
-	JoinedAt    int64    `json:"joined_at,omitempty"`
-	RoleIDs     []uint64 `json:"role_ids"`
+	UserID      Snowflake   `json:"user_id"`
+	Username    string      `json:"username"`
+	DisplayName string      `json:"display_name"`
+	AvatarURL   string      `json:"avatar_url,omitempty"`
+	Bot         bool        `json:"bot"`
+	JoinedAt    int64       `json:"joined_at,omitempty"`
+	RoleIDs     []Snowflake `json:"role_ids"`
 }
 
 type GuildEmojiInfo struct {
-	ID       uint64 `json:"id"`
-	Name     string `json:"name"`
-	Animated bool   `json:"animated"`
+	ID       Snowflake `json:"id"`
+	Name     string    `json:"name"`
+	Animated bool      `json:"animated"`
 }
 
 type GuildStickerInfo struct {
-	ID          uint64 `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description,omitempty"`
-	Tags        string `json:"tags,omitempty"`
+	ID          Snowflake `json:"id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description,omitempty"`
+	Tags        string    `json:"tags,omitempty"`
 }
 
 type WarningInfo struct {
-	ID          string `json:"id"`
-	UserID      uint64 `json:"user_id"`
-	ModeratorID uint64 `json:"moderator_id"`
-	Reason      string `json:"reason"`
-	CreatedAt   string `json:"created_at"`
+	ID          string    `json:"id"`
+	UserID      Snowflake `json:"user_id"`
+	ModeratorID Snowflake `json:"moderator_id"`
+	Reason      string    `json:"reason"`
+	CreatedAt   string    `json:"created_at"`
 }
 
 func (s Service) Status(ctx context.Context) (StatusResponse, error) {
+	var devGuildID *Snowflake
+	if s.Config.DevGuildID != nil {
+		v := Snowflake(*s.Config.DevGuildID)
+		devGuildID = &v
+	}
 	resp := StatusResponse{
 		Config: StatusConfig{
 			SQLitePath:              s.Config.SQLitePath,
@@ -360,7 +373,7 @@ func (s Service) Status(ctx context.Context) (StatusResponse, error) {
 			TrustedKeysFile:         s.Config.TrustedKeysFile,
 			OpsAddr:                 s.Config.OpsAddr,
 			AdminAddr:               s.Config.AdminAddr,
-			DevGuildID:              s.Config.DevGuildID,
+			DevGuildID:              devGuildID,
 			CommandRegistrationMode: s.Config.CommandRegistrationMode,
 			ProdMode:                s.Config.ProdMode,
 			AllowUnsignedPlugins:    s.Config.AllowUnsignedPlugins,
@@ -430,7 +443,7 @@ func (s Service) UserGuilds(ctx context.Context, accessToken string) ([]UserGuil
 		}
 
 		out = append(out, UserGuildSummary{
-			ID:           id,
+			ID:           Snowflake(id),
 			Name:         strings.TrimSpace(guild.Name),
 			IconURL:      guildIconURL(guild),
 			Owner:        guild.Owner,
@@ -449,17 +462,18 @@ func (s Service) GuildDashboard(ctx context.Context, accessToken string, guildID
 	if err != nil {
 		return GuildDashboardResponse{}, err
 	}
+	target := Snowflake(guildID)
 	var guild UserGuildSummary
 	found := false
 	for _, item := range guilds {
-		if item.ID == guildID {
+		if item.ID == target {
 			guild = item
 			found = true
 			break
 		}
 	}
 	if !found {
-		return GuildDashboardResponse{}, errors.New("guild is not accessible to this user")
+		return GuildDashboardResponse{}, ErrGuildNotAccessible
 	}
 	installURL := fmt.Sprintf("/api/install/start?guild_id=%d", guildID)
 
@@ -523,7 +537,7 @@ func (s Service) GuildDashboard(ctx context.Context, accessToken string, guildID
 		Wellness: WellnessSection{
 			PluginSection:            s.pluginSection("wellness", "Wellness", wellnessCfg),
 			AllowChannelReminders:    wellnessCfg.AllowChannelReminders,
-			DefaultReminderChannelID: wellnessCfg.DefaultReminderChannelID,
+			DefaultReminderChannelID: Snowflake(wellnessCfg.DefaultReminderChannelID),
 		},
 	}, nil
 }
@@ -958,7 +972,7 @@ func (s Service) setupResponse(includeHints bool) SetupResponse {
 		OwnerConfigured:      ownerStatus.Configured,
 		OwnerResolved:        ownerStatus.Resolved,
 		OwnerSource:          strings.TrimSpace(ownerStatus.Source),
-		EffectiveOwnerUserID: cloneOptionalUint64(ownerStatus.EffectiveUserID),
+		EffectiveOwnerUserID: optionalSnowflake(ownerStatus.EffectiveUserID),
 		SigningConfigured:    signingReady(s.Config),
 		AdminAddr:            strings.TrimSpace(s.Config.AdminAddr),
 		// Filled by the HTTP layer based on configured public origins.

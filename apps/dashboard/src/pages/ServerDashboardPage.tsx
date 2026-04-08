@@ -324,7 +324,7 @@ export function ServerDashboardPage({
 			await post(
 				"/api/guilds/config",
 				{
-					guild_id: Number(guildID),
+					guild_id: guildID,
 					plugin_id: pluginID,
 					config,
 				},
@@ -351,8 +351,8 @@ export function ServerDashboardPage({
 			await post(
 				"/api/guilds/moderation/warn",
 				{
-					guild_id: Number(guildID),
-					user_id: Number(selectedMemberID),
+					guild_id: guildID,
+					user_id: selectedMemberID,
 					reason: warnReason,
 				},
 				csrfToken,
@@ -375,7 +375,7 @@ export function ServerDashboardPage({
 			await post(
 				"/api/guilds/moderation/unwarn",
 				{
-					guild_id: Number(guildID),
+					guild_id: guildID,
 					warning_id: warningID,
 				},
 				csrfToken,
@@ -419,7 +419,7 @@ export function ServerDashboardPage({
 			"Emoji created.",
 			"/api/guilds/manager/emojis/create",
 			{
-				guild_id: Number(guildID),
+				guild_id: guildID,
 				name: emojiName.trim(),
 				filename: payload.filename,
 				content_b64: payload.contentB64,
@@ -445,7 +445,7 @@ export function ServerDashboardPage({
 			"Sticker created.",
 			"/api/guilds/manager/stickers/create",
 			{
-				guild_id: Number(guildID),
+				guild_id: guildID,
 				name: stickerName.trim(),
 				description: stickerDescription.trim(),
 				emoji_tag: stickerEmojiTag.trim(),
@@ -631,8 +631,8 @@ export function ServerDashboardPage({
 														"Slowmode updated.",
 														"/api/guilds/manager/slowmode",
 														{
-															guild_id: Number(guildID),
-															channel_id: Number(slowmodeChannelID),
+															guild_id: guildID,
+															channel_id: slowmodeChannelID,
 															seconds: Number(slowmodeSeconds) || 0,
 														},
 													)
@@ -686,8 +686,8 @@ export function ServerDashboardPage({
 													"Nickname updated.",
 													"/api/guilds/manager/nick",
 													{
-														guild_id: Number(guildID),
-														user_id: Number(nicknameMemberID),
+														guild_id: guildID,
+														user_id: nicknameMemberID,
 														nickname: nicknameValue,
 													},
 												)
@@ -728,7 +728,7 @@ export function ServerDashboardPage({
 																"Role created.",
 																"/api/guilds/manager/roles/create",
 																{
-																	guild_id: Number(guildID),
+																	guild_id: guildID,
 																	name: roleName,
 																	color: parseHexColor(roleColor),
 																},
@@ -772,8 +772,8 @@ export function ServerDashboardPage({
 																	"Role updated.",
 																	"/api/guilds/manager/roles/edit",
 																	{
-																		guild_id: Number(guildID),
-																		role_id: Number(roleEditID),
+																		guild_id: guildID,
+																		role_id: roleEditID,
 																		name: roleName,
 																		color: parseHexColor(roleColor),
 																	},
@@ -791,8 +791,8 @@ export function ServerDashboardPage({
 																	"Role deleted.",
 																	"/api/guilds/manager/roles/delete",
 																	{
-																		guild_id: Number(guildID),
-																		role_id: Number(roleEditID),
+																		guild_id: guildID,
+																		role_id: roleEditID,
 																	},
 																	refreshAssets,
 																)
@@ -842,9 +842,9 @@ export function ServerDashboardPage({
 															"/api/guilds/manager/roles/member",
 															{
 																add: roleMode === "add",
-																guild_id: Number(guildID),
-																user_id: Number(roleMemberID),
-																role_id: Number(roleMemberRoleID),
+																guild_id: guildID,
+																user_id: roleMemberID,
+																role_id: roleMemberRoleID,
 															},
 														)
 													}
@@ -904,8 +904,8 @@ export function ServerDashboardPage({
 													"Messages purged.",
 													"/api/guilds/manager/purge",
 													{
-														guild_id: Number(guildID),
-														channel_id: Number(purgeChannelID),
+														guild_id: guildID,
+														channel_id: purgeChannelID,
 														mode: purgeMode,
 														anchor_raw: purgeAnchor,
 														count: Number(purgeCount) || 1,
@@ -968,7 +968,7 @@ export function ServerDashboardPage({
 																"Emoji updated.",
 																"/api/guilds/manager/emojis/edit",
 																{
-																	guild_id: Number(guildID),
+																	guild_id: guildID,
 																	raw_emoji: emojiEditID,
 																	name: emojiEditName,
 																},
@@ -997,7 +997,7 @@ export function ServerDashboardPage({
 																"Emoji deleted.",
 																"/api/guilds/manager/emojis/delete",
 																{
-																	guild_id: Number(guildID),
+																	guild_id: guildID,
 																	raw_emoji: emojiDeleteID,
 																},
 																refreshAssets,
@@ -1085,7 +1085,7 @@ export function ServerDashboardPage({
 																"Sticker updated.",
 																"/api/guilds/manager/stickers/edit",
 																{
-																	guild_id: Number(guildID),
+																	guild_id: guildID,
 																	raw_id: stickerEditID,
 																	name: stickerEditName,
 																	description: stickerEditDescription,
@@ -1117,7 +1117,7 @@ export function ServerDashboardPage({
 																"Sticker deleted.",
 																"/api/guilds/manager/stickers/delete",
 																{
-																	guild_id: Number(guildID),
+																	guild_id: guildID,
 																	raw_id: stickerDeleteID,
 																},
 																refreshAssets,
@@ -1349,17 +1349,11 @@ export function ServerDashboardPage({
 									label="Default reminder channel"
 									clearable={true}
 									data={channelOptions}
-									value={
-										wellnessConfig.default_reminder_channel_id
-											? String(wellnessConfig.default_reminder_channel_id)
-											: null
-									}
+									value={wellnessConfig.default_reminder_channel_id ?? null}
 									onChange={(value) =>
 										setWellnessConfig((current) => ({
 											...current,
-											default_reminder_channel_id: value
-												? Number(value)
-												: undefined,
+											default_reminder_channel_id: value ?? undefined,
 										}))
 									}
 								/>

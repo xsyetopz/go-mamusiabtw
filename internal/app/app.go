@@ -297,10 +297,10 @@ func (a *App) initAdminServer() error {
 				out := make([]adminapi.GuildChannelInfo, 0, len(items))
 				for _, item := range items {
 					out = append(out, adminapi.GuildChannelInfo{
-						ID:       item.ID,
+						ID:       adminapi.Snowflake(item.ID),
 						Name:     item.Name,
 						Type:     item.Type,
-						ParentID: item.ParentID,
+						ParentID: adminapi.Snowflake(item.ParentID),
 					})
 				}
 				return out, nil
@@ -313,7 +313,7 @@ func (a *App) initAdminServer() error {
 				out := make([]adminapi.GuildRoleInfo, 0, len(items))
 				for _, item := range items {
 					out = append(out, adminapi.GuildRoleInfo{
-						ID:          item.ID,
+						ID:          adminapi.Snowflake(item.ID),
 						Name:        item.Name,
 						Color:       item.Color,
 						Position:    item.Position,
@@ -330,14 +330,18 @@ func (a *App) initAdminServer() error {
 				}
 				out := make([]adminapi.GuildMemberInfo, 0, len(items))
 				for _, item := range items {
+					roleIDs := make([]adminapi.Snowflake, 0, len(item.RoleIDs))
+					for _, roleID := range item.RoleIDs {
+						roleIDs = append(roleIDs, adminapi.Snowflake(roleID))
+					}
 					out = append(out, adminapi.GuildMemberInfo{
-						UserID:      item.UserID,
+						UserID:      adminapi.Snowflake(item.UserID),
 						Username:    item.Username,
 						DisplayName: item.DisplayName,
 						AvatarURL:   item.AvatarURL,
 						Bot:         item.Bot,
 						JoinedAt:    item.JoinedAt,
-						RoleIDs:     item.RoleIDs,
+						RoleIDs:     roleIDs,
 					})
 				}
 				return out, nil
@@ -350,7 +354,7 @@ func (a *App) initAdminServer() error {
 				out := make([]adminapi.GuildEmojiInfo, 0, len(items))
 				for _, item := range items {
 					out = append(out, adminapi.GuildEmojiInfo{
-						ID:       item.ID,
+						ID:       adminapi.Snowflake(item.ID),
 						Name:     item.Name,
 						Animated: item.Animated,
 					})
@@ -365,7 +369,7 @@ func (a *App) initAdminServer() error {
 				out := make([]adminapi.GuildStickerInfo, 0, len(items))
 				for _, item := range items {
 					out = append(out, adminapi.GuildStickerInfo{
-						ID:          item.ID,
+						ID:          adminapi.Snowflake(item.ID),
 						Name:        item.Name,
 						Description: item.Description,
 						Tags:        item.Tags,

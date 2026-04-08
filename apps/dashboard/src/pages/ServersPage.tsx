@@ -25,7 +25,7 @@ type Props = {
 	onLogin: () => void;
 	onRefresh: () => void;
 	onInviteBot: () => void;
-	onOpenGuild: (guildID: number) => void;
+	onOpenGuild: (guildID: string) => void;
 };
 
 export function ServersPage({

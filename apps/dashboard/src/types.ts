@@ -1,7 +1,7 @@
 export type AuthMe = {
 	authenticated: boolean;
 	user: {
-		id: number;
+		id: string;
 		username: string;
 		name: string;
 		avatar_url?: string;
@@ -17,7 +17,7 @@ export type SetupStatus = {
 	owner_configured: boolean;
 	owner_resolved: boolean;
 	owner_source: string;
-	effective_owner_user_id?: number;
+	effective_owner_user_id?: string;
 	signing_configured: boolean;
 	trusted_keys_configured: boolean;
 	admin_addr: string;
@@ -72,7 +72,7 @@ export type StatusResponse = {
 		trusted_keys_file: string;
 		ops_addr: string;
 		admin_addr: string;
-		dev_guild_id?: number;
+		dev_guild_id?: string;
 		command_registration_mode: string;
 		prod_mode: boolean;
 		allow_unsigned_plugins: boolean;
@@ -110,7 +110,7 @@ export type MigrationStatus = {
 };
 
 export type GuildSummary = {
-	id: number;
+	id: string;
 	name: string;
 	icon_url?: string;
 	owner: boolean;
@@ -142,7 +142,7 @@ export type GuildDashboard = {
 	info: PluginSection;
 	wellness: PluginSection & {
 		allow_channel_reminders: boolean;
-		default_reminder_channel_id?: number;
+		default_reminder_channel_id?: string;
 	};
 };
 
@@ -159,14 +159,14 @@ export type PluginSection = {
 };
 
 export type GuildChannelInfo = {
-	id: number;
+	id: string;
 	name: string;
 	type: string;
-	parent_id?: number;
+	parent_id?: string;
 };
 
 export type GuildRoleInfo = {
-	id: number;
+	id: string;
 	name: string;
 	color: number;
 	position: number;
@@ -175,23 +175,23 @@ export type GuildRoleInfo = {
 };
 
 export type GuildMemberInfo = {
-	user_id: number;
+	user_id: string;
 	username: string;
 	display_name: string;
 	avatar_url?: string;
 	bot: boolean;
 	joined_at?: number;
-	role_ids: number[];
+	role_ids: string[];
 };
 
 export type GuildEmojiInfo = {
-	id: number;
+	id: string;
 	name: string;
 	animated: boolean;
 };
 
 export type GuildStickerInfo = {
-	id: number;
+	id: string;
 	name: string;
 	description?: string;
 	tags?: string;
@@ -199,8 +199,8 @@ export type GuildStickerInfo = {
 
 export type WarningInfo = {
 	id: string;
-	user_id: number;
-	moderator_id: number;
+	user_id: string;
+	moderator_id: string;
 	reason: string;
 	created_at: string;
 };
@@ -212,5 +212,5 @@ export type GuildPluginConfig = {
 	timeout_threshold?: number;
 	timeout_minutes?: number;
 	allow_channel_reminders?: boolean;
-	default_reminder_channel_id?: number | undefined;
+	default_reminder_channel_id?: string | undefined;
 };

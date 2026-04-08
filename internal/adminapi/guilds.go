@@ -14,6 +14,8 @@ import (
 	store "github.com/xsyetopz/go-mamusiabtw/internal/storage"
 )
 
+var ErrGuildNotAccessible = errors.New("guild is not accessible to this user")
+
 func (s Service) pluginSection(pluginID, name string, cfg guildconfig.PluginConfig) PluginSection {
 	return PluginSection{
 		ID:            pluginID,
@@ -55,11 +57,11 @@ func (s Service) accessibleGuild(ctx context.Context, accessToken string, guildI
 		return UserGuildSummary{}, err
 	}
 	for _, guild := range guilds {
-		if guild.ID == guildID {
+		if uint64(guild.ID) == guildID {
 			return guild, nil
 		}
 	}
-	return UserGuildSummary{}, errors.New("guild is not accessible to this user")
+	return UserGuildSummary{}, ErrGuildNotAccessible
 }
 
 func (s Service) GuildConfig(ctx context.Context, accessToken string, guildID uint64, pluginID string) (guildconfig.PluginConfig, error) {
@@ -91,8 +93,8 @@ func (s Service) GuildWarnings(ctx context.Context, accessToken string, guildID,
 	for _, item := range items {
 		out = append(out, WarningInfo{
 			ID:          item.ID,
-			UserID:      item.UserID,
-			ModeratorID: item.ModeratorID,
+			UserID:      Snowflake(item.UserID),
+			ModeratorID: Snowflake(item.ModeratorID),
 			Reason:      item.Reason,
 			CreatedAt:   item.CreatedAt.UTC().Format(time.RFC3339),
 		})
