@@ -1,4 +1,13 @@
-import { Badge, Button, Card, Group, Stack, Table, Text } from "@mantine/core";
+import {
+	Badge,
+	Button,
+	Card,
+	Group,
+	SimpleGrid,
+	Stack,
+	Table,
+	Text,
+} from "@mantine/core";
 import { IconPlus, IconRefresh } from "@tabler/icons-react";
 import { PageHeader } from "../components/PageHeader";
 import { badgeColor } from "../format";
@@ -22,30 +31,31 @@ export function PluginsPage({
 	onSignPlugin,
 }: Props) {
 	return (
-		<Stack gap="lg">
+		<Stack gap="md">
 			<PageHeader
 				title="Plugins"
-				subtitle="Installed plugins, trust state, and plugin actions."
-				action={
-					<Group gap="xs">
-						<Button
-							variant="default"
-							leftSection={<IconPlus size={16} />}
-							onClick={onCreatePlugin}
-						>
-							Create plugin
-						</Button>
-						<Button
-							leftSection={<IconRefresh size={16} />}
-							loading={busy === "plugins:reload"}
-							onClick={onReload}
-						>
-							Reload plugins
-						</Button>
-					</Group>
+				subtitle="Install state, trust state, and actions."
+				primaryAction={
+					<Button
+						variant="default"
+						leftSection={<IconPlus size={16} />}
+						onClick={onCreatePlugin}
+					>
+						Create
+					</Button>
 				}
+				secondaryActions={[
+					{
+						key: "reload",
+						label: "Reload",
+						icon: <IconRefresh size={16} />,
+						onClick: onReload,
+						loading: busy === "plugins:reload",
+					},
+				]}
 			/>
-			<Card className="panel-card" withBorder={true}>
+
+			<Card className="panel-card" withBorder={true} visibleFrom="sm">
 				<Table className="compact-table" striped={true} highlightOnHover={true}>
 					<Table.Thead>
 						<Table.Tr>
@@ -101,6 +111,46 @@ export function PluginsPage({
 					</Table.Tbody>
 				</Table>
 			</Card>
+
+			<SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md" hiddenFrom="sm">
+				{plugins.map((plugin) => (
+					<Card key={plugin.id} className="panel-card" withBorder={true}>
+						<Stack gap="sm">
+							<Group justify="space-between" align="flex-start">
+								<Stack gap={2}>
+									<Text fw={700}>{plugin.name || plugin.id}</Text>
+									<Text size="xs" c="dimmed">
+										{plugin.version || "No version"} · {plugin.commands.length}{" "}
+										commands
+									</Text>
+								</Stack>
+								<Badge color={badgeColor(plugin.loaded)}>
+									{plugin.loaded ? "Loaded" : "Not loaded"}
+								</Badge>
+							</Group>
+							<Group gap="xs">
+								<Badge
+									variant="light"
+									color={badgeColor(plugin.has_signature_file)}
+								>
+									{plugin.has_signature_file ? "Signature file" : "No file"}
+								</Badge>
+								<Badge variant="light" color={badgeColor(plugin.signed)}>
+									{plugin.signed ? "Trusted" : "Unsigned"}
+								</Badge>
+							</Group>
+							<Button
+								variant="light"
+								disabled={!signingConfigured}
+								loading={busy === `plugin:sign:${plugin.id}`}
+								onClick={() => onSignPlugin(plugin.id)}
+							>
+								Sign plugin
+							</Button>
+						</Stack>
+					</Card>
+				))}
+			</SimpleGrid>
 		</Stack>
 	);
 }

@@ -61,32 +61,31 @@ export function ServersPage({
 	}
 
 	return (
-		<Stack gap="lg">
+		<Stack gap="md">
 			<PageHeader
 				title="Servers"
 				subtitle="Choose a server to check install state and setup status."
-				action={
-					<Group gap="xs">
-						<Button
-							variant="default"
-							leftSection={<IconRefresh size={16} />}
-							loading={loading}
-							onClick={onRefresh}
-						>
-							Refresh
-						</Button>
-						<Button
-							rightSection={<IconExternalLink size={16} />}
-							onClick={onInviteBot}
-						>
-							Invite bot
-						</Button>
-					</Group>
+				primaryAction={
+					<Button
+						rightSection={<IconExternalLink size={16} />}
+						onClick={onInviteBot}
+					>
+						Invite bot
+					</Button>
 				}
+				secondaryActions={[
+					{
+						key: "refresh",
+						label: "Refresh",
+						icon: <IconRefresh size={16} />,
+						onClick: onRefresh,
+						loading,
+					},
+				]}
 			/>
 			{loading ? (
 				<Group justify="center" py="xl">
-					<Loader color="teal" />
+					<Loader color="goblue" />
 				</Group>
 			) : null}
 			<SimpleGrid cols={{ base: 1, md: 2, xl: 3 }} spacing="md">
@@ -102,14 +101,11 @@ export function ServersPage({
 									<Avatar
 										src={guild.icon_url ?? null}
 										radius="md"
-										color="teal"
+										color="goblue"
 										name={guild.name}
 									/>
 									<Stack gap={2}>
 										<Text fw={700}>{guild.name}</Text>
-										<Text size="xs" c="dimmed">
-											{guild.id}
-										</Text>
 									</Stack>
 								</Group>
 								<Badge color={badgeColor(guild.bot_installed)}>
@@ -120,13 +116,10 @@ export function ServersPage({
 								<Badge variant="light" color={badgeColor(guild.owner)}>
 									{guild.owner ? "Owner" : "Manager"}
 								</Badge>
-								<Badge variant="light" color={badgeColor(guild.can_manage)}>
-									{guild.can_manage ? "Can manage" : "View only"}
-								</Badge>
 							</Group>
 							<Group justify="space-between" align="center">
 								<Text size="sm" c="dimmed">
-									Open this server to review setup and add the bot if needed.
+									Open the server dashboard.
 								</Text>
 								<Button
 									rightSection={<IconArrowRight size={16} />}

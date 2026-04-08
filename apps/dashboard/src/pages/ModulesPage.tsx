@@ -1,4 +1,13 @@
-import { Badge, Button, Card, Group, Stack, Table, Text } from "@mantine/core";
+import {
+	Badge,
+	Button,
+	Card,
+	Group,
+	SimpleGrid,
+	Stack,
+	Table,
+	Text,
+} from "@mantine/core";
 import { IconRefresh } from "@tabler/icons-react";
 import { PageHeader } from "../components/PageHeader";
 import { badgeColor, kindLabel } from "../format";
@@ -22,21 +31,22 @@ export function ModulesPage({
 	onReset,
 }: Props) {
 	return (
-		<Stack gap="lg">
+		<Stack gap="md">
 			<PageHeader
 				title="Modules"
-				subtitle="Enable, disable, reset, or reload modules."
-				action={
+				subtitle="Enable, disable, reset, or reload."
+				primaryAction={
 					<Button
 						leftSection={<IconRefresh size={16} />}
 						loading={busy === "modules:reload"}
 						onClick={onReload}
 					>
-						Reload modules
+						Reload
 					</Button>
 				}
 			/>
-			<Card className="panel-card" withBorder={true}>
+
+			<Card className="panel-card" withBorder={true} visibleFrom="sm">
 				<Table className="compact-table" striped={true} highlightOnHover={true}>
 					<Table.Thead>
 						<Table.Tr>
@@ -103,6 +113,55 @@ export function ModulesPage({
 					</Table.Tbody>
 				</Table>
 			</Card>
+
+			<SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md" hiddenFrom="sm">
+				{modules.map((module) => (
+					<Card key={module.id} className="panel-card" withBorder={true}>
+						<Stack gap="sm">
+							<Group justify="space-between" align="flex-start">
+								<Stack gap={2}>
+									<Text fw={700}>{module.name || module.id}</Text>
+									<Text size="xs" c="dimmed">
+										{kindLabel(module.kind)} · {module.runtime}
+									</Text>
+								</Stack>
+								<Badge color={badgeColor(module.enabled)}>
+									{module.enabled ? "Enabled" : "Disabled"}
+								</Badge>
+							</Group>
+							<Text size="sm" c="dimmed">
+								{module.commands.join(", ") || "No commands"}
+							</Text>
+							<Group gap="xs" grow={true}>
+								<Button
+									variant="light"
+									disabled={!module.toggleable || module.enabled}
+									loading={busy === `module:enable:${module.id}`}
+									onClick={() => onEnable(module.id)}
+								>
+									Enable
+								</Button>
+								<Button
+									variant="light"
+									color="gray"
+									disabled={!(module.toggleable && module.enabled)}
+									loading={busy === `module:disable:${module.id}`}
+									onClick={() => onDisable(module.id)}
+								>
+									Disable
+								</Button>
+							</Group>
+							<Button
+								variant="subtle"
+								loading={busy === `module:reset:${module.id}`}
+								onClick={() => onReset(module.id)}
+							>
+								Reset
+							</Button>
+						</Stack>
+					</Card>
+				))}
+			</SimpleGrid>
 		</Stack>
 	);
 }

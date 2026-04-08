@@ -216,7 +216,7 @@ function SetupContainer({
 			<Suspense
 				fallback={
 					<Group justify="center" mt={80}>
-						<Loader color="teal" />
+						<Loader color="goblue" />
 					</Group>
 				}
 			>
@@ -292,7 +292,7 @@ function OwnerShell({
 	let ownerContent = ownerStatus ? (
 		<OverviewPage status={ownerStatus} />
 	) : (
-		<Loader color="teal" />
+		<Loader color="goblue" />
 	);
 
 	switch (view) {
@@ -448,7 +448,7 @@ function OwnerShell({
 			ownerContent = ownerStatus ? (
 				<OverviewPage status={ownerStatus} />
 			) : (
-				<Loader color="teal" />
+				<Loader color="goblue" />
 			);
 			break;
 	}
@@ -473,7 +473,7 @@ function OwnerShell({
 							aria-label="Toggle navigation"
 						/>
 						<Text fw={800}>mamusiabtw</Text>
-						<Badge variant="light" color="teal">
+						<Badge variant="light" color="goblue">
 							Owner
 						</Badge>
 					</Group>
@@ -506,7 +506,7 @@ function OwnerShell({
 						<Avatar
 							src={me.user.avatar_url ?? null}
 							radius="md"
-							color="teal"
+							color="goblue"
 							name={me.user.name}
 						/>
 						<Stack gap={0}>
@@ -537,7 +537,7 @@ function OwnerShell({
 				<Suspense
 					fallback={
 						<Group justify="center" mt={80}>
-							<Loader color="teal" />
+							<Loader color="goblue" />
 						</Group>
 					}
 				>
@@ -573,7 +573,7 @@ function CheckingScreen() {
 	return (
 		<Box p="xl">
 			<Group justify="center" mt={80}>
-				<Loader color="teal" />
+				<Loader color="goblue" />
 			</Group>
 		</Box>
 	);
@@ -880,7 +880,7 @@ function PublicSiteView({
 										src={me.user.avatar_url ?? null}
 										radius="xl"
 										size={30}
-										color="teal"
+										color="goblue"
 										name={me.user.name}
 									/>
 									<Stack gap={0}>
@@ -906,7 +906,7 @@ function PublicSiteView({
 				<Suspense
 					fallback={
 						<Group justify="center" mt={80}>
-							<Loader color="teal" />
+							<Loader color="goblue" />
 						</Group>
 					}
 				>

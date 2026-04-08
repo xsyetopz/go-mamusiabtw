@@ -1,8 +1,10 @@
 import {
 	Accordion,
+	ActionIcon,
 	Badge,
 	Button,
 	Card,
+	CopyButton,
 	Divider,
 	FileInput,
 	Group,
@@ -17,10 +19,13 @@ import {
 	Text,
 	Textarea,
 	TextInput,
+	Tooltip,
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import {
 	IconArrowLeft,
+	IconCheck,
+	IconCopy,
 	IconExternalLink,
 	IconRefresh,
 } from "@tabler/icons-react";
@@ -32,6 +37,7 @@ import {
 	useState,
 } from "react";
 import { get, post } from "../api";
+import { MetricCard } from "../components/MetricCard";
 import { PageHeader } from "../components/PageHeader";
 import { badgeColor } from "../format";
 import type {
@@ -285,7 +291,7 @@ export function ServerDashboardPage({
 	if (loading && !guildDashboard) {
 		return (
 			<Group justify="center" py="xl">
-				<Loader color="teal" />
+				<Loader color="goblue" />
 			</Group>
 		);
 	}
@@ -463,45 +469,63 @@ export function ServerDashboardPage({
 	}
 
 	return (
-		<Stack gap="lg">
+		<Stack gap="md">
 			<PageHeader
 				title={guildDashboard.guild.name}
 				subtitle="Server setup, feature settings, moderation, and manager actions."
-				action={
-					<Group gap="xs">
-						<Button
-							variant="default"
-							leftSection={<IconArrowLeft size={16} />}
-							onClick={onBack}
-						>
-							Back
-						</Button>
-						<Button
-							variant="default"
-							leftSection={<IconRefresh size={16} />}
-							loading={loading}
-							onClick={onRefresh}
-						>
-							Refresh
-						</Button>
-						<Button
-							rightSection={<IconExternalLink size={16} />}
-							onClick={() => onInstall(guildID)}
-						>
-							{guildDashboard.guild.bot_installed ? "Reopen invite" : "Add bot"}
-						</Button>
-					</Group>
+				primaryAction={
+					<Button
+						rightSection={<IconExternalLink size={16} />}
+						onClick={() => onInstall(guildID)}
+					>
+						{guildDashboard.guild.bot_installed ? "Reopen invite" : "Add bot"}
+					</Button>
 				}
+				secondaryActions={[
+					{
+						key: "back",
+						label: "Back",
+						icon: <IconArrowLeft size={16} />,
+						onClick: onBack,
+					},
+					{
+						key: "refresh",
+						label: "Refresh",
+						icon: <IconRefresh size={16} />,
+						onClick: onRefresh,
+						loading,
+					},
+				]}
 			/>
 
 			<SimpleGrid cols={{ base: 1, md: 3 }}>
 				<Card className="panel-card" withBorder={true}>
 					<Stack gap="xs">
-						<Text fw={700}>Server</Text>
+						<Group justify="space-between">
+							<Text fw={700}>Server</Text>
+							<CopyButton value={guildDashboard.guild.id}>
+								{({ copied, copy }) => (
+									<Tooltip
+										label={copied ? "Copied" : "Copy server ID"}
+										withArrow={true}
+									>
+										<ActionIcon
+											variant="subtle"
+											radius="md"
+											aria-label="Copy server ID"
+											onClick={copy}
+										>
+											{copied ? (
+												<IconCheck size={16} />
+											) : (
+												<IconCopy size={16} />
+											)}
+										</ActionIcon>
+									</Tooltip>
+								)}
+							</CopyButton>
+						</Group>
 						<Text size="sm">{guildDashboard.guild.name}</Text>
-						<Text size="xs" c="dimmed">
-							{guildDashboard.guild.id}
-						</Text>
 					</Stack>
 				</Card>
 				<Card className="panel-card" withBorder={true}>
@@ -587,19 +611,19 @@ export function ServerDashboardPage({
 						<SimpleGrid cols={{ base: 1, md: 4 }}>
 							<MetricCard
 								label="Channels"
-								value={guildDashboard.manager.channel_count}
+								value={String(guildDashboard.manager.channel_count)}
 							/>
 							<MetricCard
 								label="Roles"
-								value={guildDashboard.manager.role_count}
+								value={String(guildDashboard.manager.role_count)}
 							/>
 							<MetricCard
 								label="Emojis"
-								value={guildDashboard.manager.emoji_count}
+								value={String(guildDashboard.manager.emoji_count)}
 							/>
 							<MetricCard
 								label="Stickers"
-								value={guildDashboard.manager.sticker_count}
+								value={String(guildDashboard.manager.sticker_count)}
 							/>
 						</SimpleGrid>
 
@@ -1239,7 +1263,11 @@ export function ServerDashboardPage({
 										No warnings loaded for the selected member.
 									</Text>
 								) : (
-									<Table striped={true} highlightOnHover={true}>
+									<Table
+										className="compact-table"
+										striped={true}
+										highlightOnHover={true}
+									>
 										<Table.Thead>
 											<Table.Tr>
 												<Table.Th>When</Table.Th>
@@ -1434,21 +1462,6 @@ function PluginSettingsCard({
 						Save settings
 					</Button>
 				</Group>
-			</Stack>
-		</Card>
-	);
-}
-
-function MetricCard({ label, value }: { label: string; value: number }) {
-	return (
-		<Card className="panel-card" withBorder={true}>
-			<Stack gap={4}>
-				<Text size="sm" c="dimmed">
-					{label}
-				</Text>
-				<Text fw={700} size="lg">
-					{value}
-				</Text>
 			</Stack>
 		</Card>
 	);

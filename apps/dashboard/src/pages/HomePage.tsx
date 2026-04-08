@@ -32,7 +32,7 @@ export function HomePage({ me, setupStatus, onLogin, onOpenServers }: Props) {
 		<Stack gap="xl">
 			<section className="hero-panel">
 				<Stack gap="lg">
-					<Badge variant="light" color="teal" radius="sm" w="fit-content">
+					<Badge variant="light" color="goblue" radius="sm" w="fit-content">
 						Website and server dashboard
 					</Badge>
 					<Stack gap="xs">
@@ -77,7 +77,7 @@ export function HomePage({ me, setupStatus, onLogin, onOpenServers }: Props) {
 			<SimpleGrid cols={{ base: 1, md: 3 }} spacing="md">
 				<Card className="panel-card feature-card" withBorder={true}>
 					<Stack gap="sm">
-						<ThemeIcon variant="light" color="teal" size={40} radius="md">
+						<ThemeIcon variant="light" color="goblue" size={40} radius="md">
 							<IconServer size={20} />
 						</ThemeIcon>
 						<Text fw={700}>Server access</Text>
@@ -89,7 +89,7 @@ export function HomePage({ me, setupStatus, onLogin, onOpenServers }: Props) {
 				</Card>
 				<Card className="panel-card feature-card" withBorder={true}>
 					<Stack gap="sm">
-						<ThemeIcon variant="light" color="teal" size={40} radius="md">
+						<ThemeIcon variant="light" color="goblue" size={40} radius="md">
 							<IconChecklist size={20} />
 						</ThemeIcon>
 						<Text fw={700}>Setup checks</Text>
@@ -101,7 +101,7 @@ export function HomePage({ me, setupStatus, onLogin, onOpenServers }: Props) {
 				</Card>
 				<Card className="panel-card feature-card" withBorder={true}>
 					<Stack gap="sm">
-						<ThemeIcon variant="light" color="teal" size={40} radius="md">
+						<ThemeIcon variant="light" color="goblue" size={40} radius="md">
 							<IconShieldCheck size={20} />
 						</ThemeIcon>
 						<Text fw={700}>Owner area</Text>
