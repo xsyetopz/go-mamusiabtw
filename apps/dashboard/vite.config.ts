@@ -65,6 +65,14 @@ export default defineConfig(({ mode }) => {
 			host: "127.0.0.1",
 			port: 5173,
 			strictPort: true,
+			// Allow using the Vite dev server directly (http://127.0.0.1:5173)
+			// while still talking to the Go admin API without CORS/cookie pain.
+			proxy: {
+				"/api": {
+					target: "http://127.0.0.1:8081",
+					changeOrigin: false,
+				},
+			},
 		},
 	};
 });

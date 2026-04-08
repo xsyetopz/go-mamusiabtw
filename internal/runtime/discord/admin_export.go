@@ -104,6 +104,27 @@ func (b *Bot) KnownGuildIDs() []uint64 {
 	return guilds
 }
 
+func (b *Bot) HasGuild(ctx context.Context, guildID uint64) (bool, error) {
+	if b == nil || b.client == nil {
+		return false, errors.New("discord client unavailable")
+	}
+
+	_, err := b.client.Rest.GetGuild(snowflake.ID(guildID), false, rest.WithCtx(ctx))
+	if err == nil {
+		return true, nil
+	}
+
+	var restErr *rest.Error
+	if errors.As(err, &restErr) && restErr.Response != nil {
+		switch restErr.Response.StatusCode {
+		case 403, 404:
+			// Not installed, or missing access.
+			return false, nil
+		}
+	}
+	return false, err
+}
+
 func (b *Bot) ListGuildChannels(ctx context.Context, guildID uint64) ([]GuildChannelInfo, error) {
 	if b == nil || b.client == nil {
 		return nil, errors.New("discord client unavailable")

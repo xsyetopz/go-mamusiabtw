@@ -187,11 +187,12 @@ func httpBaseFromAddr(addr string) string {
 
 func runDevCommand(ctx context.Context) int {
 	// Lowest-effort path: if you run "mamusiabtw dev" you get the admin API too.
-	if strings.TrimSpace(os.Getenv("MAMUSIABTW_PROD_MODE")) == "" {
-		_ = os.Setenv("MAMUSIABTW_PROD_MODE", "0")
-	}
+	_ = os.Setenv("MAMUSIABTW_PROD_MODE", "0")
 	if strings.TrimSpace(os.Getenv("MAMUSIABTW_ADMIN_ADDR")) == "" {
 		_ = os.Setenv("MAMUSIABTW_ADMIN_ADDR", "127.0.0.1:8081")
+	}
+	if strings.TrimSpace(os.Getenv("MAMUSIABTW_ALLOW_UNSIGNED_PLUGINS")) == "" {
+		_ = os.Setenv("MAMUSIABTW_ALLOW_UNSIGNED_PLUGINS", "1")
 	}
 
 	cfg, err := config.LoadFromEnv()
@@ -208,7 +209,7 @@ func runDevCommand(ctx context.Context) int {
 	_, _ = fmt.Fprintf(os.Stdout, "admin_setup_url: %s/api/setup\n", base)
 	_, _ = fmt.Fprintf(os.Stdout, "dashboard_url: %s/\n", base)
 	_, _ = os.Stdout.WriteString("dashboard_dev: cd apps/dashboard && bun run dev\n")
-	_, _ = os.Stdout.WriteString("dashboard_dev_note: open dashboard_url (admin API proxies Vite; do not open :5173)\n")
+	_, _ = os.Stdout.WriteString("dashboard_dev_note: you can open dashboard_url (recommended) or http://127.0.0.1:5173/ (Vite proxies /api)\n")
 
 	if runErr := run(ctx, logger, cfg); runErr != nil {
 		logger.ErrorContext(ctx, "fatal", slog.String("err", runErr.Error()))

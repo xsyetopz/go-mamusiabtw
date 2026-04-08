@@ -112,22 +112,6 @@ function isUnauthorized(error: unknown): error is APIError {
 	return error instanceof APIError && error.status === 401;
 }
 
-function failFastForViteDirectDev(
-	setBootstrap: (next: BootstrapState) => void,
-): boolean {
-	// Dev ergonomics: if you open the Vite dev server directly, /api/* routes
-	// often return index.html, which breaks JSON parsing and auth cookies.
-	if (import.meta.env.DEV && window.location.port === "5173") {
-		setBootstrap({
-			kind: "invalid_api_base",
-			message:
-				"You opened the Vite dev server directly. Start the Go admin API (`go run ./cmd/mamusiabtw dev`) and open the dashboard at the URL it prints (usually `http://127.0.0.1:8081/`). Do not use `:5173` in the browser.",
-		});
-		return true;
-	}
-	return false;
-}
-
 function setupBootstrapStateFromError(
 	error: unknown,
 	message: string,
@@ -1127,11 +1111,6 @@ async function bootstrapDashboardImpl({
 		setBootstrap({ kind: "invalid_api_base", message: apiBaseErrorMessage });
 		return;
 	}
-
-	if (failFastForViteDirectDev(setBootstrap)) {
-		return;
-	}
-
 	try {
 		const setup = await get<SetupStatus>("/api/setup");
 		setSetupStatus(setup);

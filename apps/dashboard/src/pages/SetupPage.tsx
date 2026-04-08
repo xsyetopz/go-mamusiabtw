@@ -103,7 +103,10 @@ function SignInPanel({
 		>
 			<CodeLine label="Dashboard origin" value={resolvedOrigin} />
 			<CodeLine label="Login callback URL" value={resolvedRedirect} />
-			<CodeLine label="Install callback URL" value={resolvedInstallRedirect} />
+			<CodeLine
+				label="Install callback URL (optional)"
+				value={resolvedInstallRedirect}
+			/>
 			<Text size="sm" c="dimmed">
 				If Discord says “invalid OAuth2 URL”, it usually means one of these URLs
 				is not in the Developer Portal Redirect URI allowlist.

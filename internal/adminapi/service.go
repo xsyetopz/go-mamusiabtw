@@ -41,6 +41,7 @@ type Service struct {
 	OAuth         OAuthClient
 	OwnerStatus   func() OwnerStatus
 	KnownGuildIDs func() []uint64
+	BotHasGuild   func(ctx context.Context, guildID uint64) (bool, error)
 
 	ListGuildChannels  func(ctx context.Context, guildID uint64) ([]GuildChannelInfo, error)
 	ListGuildRoles     func(ctx context.Context, guildID uint64) ([]GuildRoleInfo, error)
@@ -397,7 +398,12 @@ func (s Service) UserGuilds(ctx context.Context, accessToken string) ([]UserGuil
 	if err != nil {
 		return nil, err
 	}
-	installed := toUint64Set(s.KnownGuildIDs)
+
+	// Prefer an explicit "bot has guild" check (REST) so install-state updates
+	// even when the gateway cache isn't available yet.
+	knownInstalled := toUint64Set(s.KnownGuildIDs)
+	installedCache := map[uint64]bool{}
+
 	out := make([]UserGuildSummary, 0, len(guilds))
 	for _, guild := range guilds {
 		id, err := parseDiscordID(guild.ID)
@@ -408,13 +414,27 @@ func (s Service) UserGuilds(ctx context.Context, accessToken string) ([]UserGuil
 		if !canManage {
 			continue
 		}
+
+		botInstalled := knownInstalled[id]
+		if s.BotHasGuild != nil {
+			if cached, ok := installedCache[id]; ok {
+				botInstalled = cached
+			} else {
+				installed, installErr := s.BotHasGuild(ctx, id)
+				if installErr == nil {
+					botInstalled = installed
+				}
+				installedCache[id] = botInstalled
+			}
+		}
+
 		out = append(out, UserGuildSummary{
 			ID:           id,
 			Name:         strings.TrimSpace(guild.Name),
 			IconURL:      guildIconURL(guild),
 			Owner:        guild.Owner,
 			CanManage:    canManage,
-			BotInstalled: installed[id],
+			BotInstalled: botInstalled,
 		})
 	}
 	slices.SortFunc(out, func(a, b UserGuildSummary) int {
@@ -508,20 +528,11 @@ func (s Service) GuildDashboard(ctx context.Context, accessToken string, guildID
 }
 
 func (s Service) InstallURL(guildID uint64, baseURL string) (string, error) {
+	_ = baseURL
 	clientID := strings.TrimSpace(s.Config.DashboardClientID)
 	if clientID == "" {
 		return "", errors.New("dashboard client id is not configured")
 	}
-	callbackURL, err := url.Parse(strings.TrimRight(strings.TrimSpace(baseURL), "/"))
-	if err != nil {
-		return "", err
-	}
-	if callbackURL.Scheme == "" || callbackURL.Host == "" {
-		return "", errors.New("invalid base url")
-	}
-	callbackURL.Path = "/api/install/callback"
-	callbackURL.RawQuery = ""
-	callbackURL.Fragment = ""
 
 	values := url.Values{}
 	values.Set("client_id", clientID)
@@ -529,33 +540,20 @@ func (s Service) InstallURL(guildID uint64, baseURL string) (string, error) {
 	values.Set("permissions", "8")
 	values.Set("guild_id", fmt.Sprintf("%d", guildID))
 	values.Set("disable_guild_select", "true")
-	values.Set("response_type", "code")
-	values.Set("redirect_uri", callbackURL.String())
 	return "https://discord.com/oauth2/authorize?" + values.Encode(), nil
 }
 
 func (s Service) InstallURLAnyGuild(baseURL string) (string, error) {
+	_ = baseURL
 	clientID := strings.TrimSpace(s.Config.DashboardClientID)
 	if clientID == "" {
 		return "", errors.New("dashboard client id is not configured")
 	}
-	callbackURL, err := url.Parse(strings.TrimRight(strings.TrimSpace(baseURL), "/"))
-	if err != nil {
-		return "", err
-	}
-	if callbackURL.Scheme == "" || callbackURL.Host == "" {
-		return "", errors.New("invalid base url")
-	}
-	callbackURL.Path = "/api/install/callback"
-	callbackURL.RawQuery = ""
-	callbackURL.Fragment = ""
 
 	values := url.Values{}
 	values.Set("client_id", clientID)
 	values.Set("scope", "bot applications.commands")
 	values.Set("permissions", "8")
-	values.Set("response_type", "code")
-	values.Set("redirect_uri", callbackURL.String())
 	return "https://discord.com/oauth2/authorize?" + values.Encode(), nil
 }
 

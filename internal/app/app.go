@@ -265,13 +265,13 @@ func (a *App) initAdminServer() error {
 	}
 
 	server, err := adminapi.New(adminapi.Options{
-		Addr:           a.cfg.AdminAddr,
-		Logger:         a.logger,
-		SessionSecret:  a.cfg.DashboardSessionSecret,
-		ClientID:       a.cfg.DashboardClientID,
-		ClientSecret:   a.cfg.DashboardClientSecret,
-		OAuthClient:    oauthClient,
-		SessionStore:   a.store.AdminSessions(),
+		Addr:          a.cfg.AdminAddr,
+		Logger:        a.logger,
+		SessionSecret: a.cfg.DashboardSessionSecret,
+		ClientID:      a.cfg.DashboardClientID,
+		ClientSecret:  a.cfg.DashboardClientSecret,
+		OAuthClient:   oauthClient,
+		SessionStore:  a.store.AdminSessions(),
 		Service: adminapi.Service{
 			Logger:        a.logger,
 			Config:        a.cfg,
@@ -283,6 +283,7 @@ func (a *App) initAdminServer() error {
 			OAuth:         oauthClient,
 			OwnerStatus:   ownerStatus,
 			KnownGuildIDs: a.bot.KnownGuildIDs,
+			BotHasGuild:   a.bot.HasGuild,
 			ListGuildChannels: func(ctx context.Context, guildID uint64) ([]adminapi.GuildChannelInfo, error) {
 				items, err := a.bot.ListGuildChannels(ctx, guildID)
 				if err != nil {

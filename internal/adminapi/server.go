@@ -227,7 +227,7 @@ func (s *Server) handler() http.Handler {
 	root := http.NewServeMux()
 	root.Handle("/api/", api)
 	root.Handle("/", s.dashboardHandler())
-	return root
+	return s.withCORS(root)
 }
 
 func (s *Server) handleSetup(w http.ResponseWriter, r *http.Request) {
@@ -236,7 +236,7 @@ func (s *Server) handleSetup(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	base := requestBaseURL(r)
+	base := s.publicBaseURL(r)
 	resp.AppOrigin = strings.TrimRight(base, "/")
 	resp.RedirectURL = strings.TrimRight(base, "/") + "/api/auth/callback"
 	resp.InstallRedirectURL = strings.TrimRight(base, "/") + "/api/install/callback"
@@ -247,6 +247,63 @@ func normalizeOrigin(raw string) string {
 	raw = strings.TrimSpace(raw)
 	raw = strings.TrimRight(raw, "/")
 	return raw
+}
+
+func (s *Server) withCORS(next http.Handler) http.Handler {
+	// Primary dev path is same-origin (admin API serves/proxies the dashboard).
+	// This is a safety net for cases where the dashboard runs on a different local
+	// origin (e.g. opening Vite directly on :5173 without a reverse proxy).
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if next == nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		origin := strings.TrimSpace(r.Header.Get("Origin"))
+		allowOrigin := ""
+		if origin != "" && s.allowCORSOrigin(r, origin) {
+			allowOrigin = origin
+		}
+
+		if allowOrigin != "" {
+			w.Header().Set("Access-Control-Allow-Origin", allowOrigin)
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-CSRF-Token")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+			w.Header().Set("Vary", "Origin")
+		}
+
+		if r.Method == http.MethodOptions {
+			// Only answer preflight for routes we intentionally expose to browsers.
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (s *Server) allowCORSOrigin(r *http.Request, origin string) bool {
+	if s == nil {
+		return false
+	}
+
+	// Keep prod strict by default. Cross-origin dashboard hosting requires a
+	// deliberate deployment plan (reverse proxy / shared origin).
+	if s.svc.Config.ProdMode {
+		return false
+	}
+
+	u, err := url.Parse(origin)
+	if err != nil || u.Scheme == "" || u.Host == "" {
+		return false
+	}
+	if !strings.EqualFold(u.Scheme, "http") && !strings.EqualFold(u.Scheme, "https") {
+		return false
+	}
+
+	host := strings.ToLower(strings.TrimSpace(u.Hostname()))
+	return host == "127.0.0.1" || host == "localhost"
 }
 
 func (s *Server) withAuth(next func(http.ResponseWriter, *http.Request, session)) http.HandlerFunc {
@@ -294,13 +351,14 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, "failed to start login")
 		return
 	}
-	base := requestBaseURL(r)
-	redirectURL := base + "/api/auth/callback"
+	returnBase := requestBaseURL(r)
+	publicBase := s.publicBaseURL(r)
+	redirectURL := strings.TrimRight(publicBase, "/") + "/api/auth/callback"
 
 	s.stateMu.Lock()
 	s.stateStore[state] = oauthState{
 		RedirectURL: redirectURL,
-		ReturnBase:  base,
+		ReturnBase:  returnBase,
 	}
 	s.stateMu.Unlock()
 
@@ -494,7 +552,11 @@ func (s *Server) handleInstallCallback(w http.ResponseWriter, r *http.Request, s
 	guildIDRaw := strings.TrimSpace(r.URL.Query().Get("guild_id"))
 	guildID, err := strconv.ParseUint(guildIDRaw, 10, 64)
 	if err != nil || guildID == 0 {
-		writeError(w, http.StatusBadRequest, "invalid guild_id")
+		// When using the plain "bot install" authorize URL (no redirect_uri),
+		// Discord will never hit this endpoint. If someone *does* land here (or
+		// a portal redirect was misconfigured), keep it friendly.
+		base := requestBaseURL(r)
+		http.Redirect(w, r, strings.TrimRight(base, "/")+"/#/servers", http.StatusFound)
 		return
 	}
 	if _, err := s.svc.GuildDashboard(r.Context(), sess.AccessToken, guildID); err != nil {
@@ -956,6 +1018,63 @@ func requestBaseURL(r *http.Request) string {
 		host = "127.0.0.1:8081"
 	}
 	return scheme + "://" + host
+}
+
+func baseURLFromListenAddr(addr string) string {
+	addr = strings.TrimSpace(addr)
+	if addr == "" {
+		return ""
+	}
+	if strings.HasPrefix(addr, ":") {
+		return "http://127.0.0.1" + addr
+	}
+	host, port, err := net.SplitHostPort(addr)
+	if err != nil || strings.TrimSpace(port) == "" {
+		return ""
+	}
+	switch strings.TrimSpace(host) {
+	case "", "0.0.0.0", "::", "[::]":
+		host = "127.0.0.1"
+	}
+	return "http://" + host + ":" + strings.TrimSpace(port)
+}
+
+func (s *Server) publicBaseURL(r *http.Request) string {
+	// Production may be behind a reverse proxy; trust forwarded headers.
+	if s != nil && s.svc.Config.ProdMode {
+		return requestBaseURL(r)
+	}
+
+	// Development: keep OAuth redirects stable (always the admin listen addr),
+	// even if the dashboard is accessed through a different local origin.
+	if s != nil {
+		if base := baseURLFromListenAddr(s.addr); base != "" {
+			// Avoid localhost vs 127.0.0.1 cookie mismatches: if the user is
+			// browsing via one local hostname, keep redirects on that hostname too.
+			reqBase := requestBaseURL(r)
+			reqURL, _ := url.Parse(reqBase)
+			baseURL, _ := url.Parse(base)
+			if reqURL != nil && baseURL != nil {
+				reqHost := strings.ToLower(strings.TrimSpace(reqURL.Hostname()))
+				baseHost := strings.ToLower(strings.TrimSpace(baseURL.Hostname()))
+				if isLocalHostname(reqHost) && isLocalHostname(baseHost) && reqHost != baseHost {
+					baseURL.Host = reqHost + ":" + baseURL.Port()
+					return baseURL.String()
+				}
+			}
+			return base
+		}
+	}
+	return requestBaseURL(r)
+}
+
+func isLocalHostname(host string) bool {
+	switch strings.ToLower(strings.TrimSpace(host)) {
+	case "127.0.0.1", "localhost":
+		return true
+	default:
+		return false
+	}
 }
 
 func (s *Server) dashboardHandler() http.Handler {
