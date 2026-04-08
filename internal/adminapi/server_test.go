@@ -145,6 +145,21 @@ func TestHandleModulesWithSession(t *testing.T) {
 	if _, ok := payload["snapshot"]; !ok {
 		t.Fatalf("expected snapshot in response")
 	}
+	setupAny, ok := payload["setup"]
+	if !ok {
+		t.Fatalf("expected setup in response")
+	}
+	setup, ok := setupAny.(map[string]any)
+	if !ok {
+		t.Fatalf("expected setup to be object, got %T", setupAny)
+	}
+	hintsAny, ok := setup["hints"]
+	if !ok {
+		t.Fatalf("expected setup.hints in response")
+	}
+	if _, ok := hintsAny.([]any); !ok {
+		t.Fatalf("expected setup.hints to be array, got %T", hintsAny)
+	}
 }
 
 func TestHandleLoginReturns503WhenAuthNotConfigured(t *testing.T) {

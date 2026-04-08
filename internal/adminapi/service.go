@@ -1151,6 +1151,8 @@ func (s *Service) setupResponse(includeHints bool) SetupResponse {
 		HasClientID:      strings.TrimSpace(s.Config.DashboardClientID) != "",
 		HasClientSecret:  strings.TrimSpace(s.Config.DashboardClientSecret) != "",
 		HasSessionSecret: len(strings.TrimSpace(s.Config.DashboardSessionSecret)) >= 32,
+		// Always encode as JSON array, never null (nil slice -> null).
+		Hints: []string{},
 	}
 	if includeHints {
 		resp.Hints = setupHints(resp)

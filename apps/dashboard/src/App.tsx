@@ -1240,18 +1240,19 @@ export function App() {
 		if (!me?.is_owner) {
 			return;
 		}
-		const [statusResp, modulesResp, pluginsResp, migrations] =
+		const [setup, statusResp, modulesResp, pluginsResp, migrations] =
 			await Promise.all([
+				get<SetupStatus>("/api/setup"),
 				get<StatusResponse>("/api/owner/status"),
 				get<{ modules: ModuleInfo[] }>("/api/owner/modules"),
 				get<{ plugins: PluginSummary[] }>("/api/owner/plugins"),
 				get<MigrationStatus>("/api/owner/migrations/status"),
 			]);
+		setSetupStatus(setup);
 		setOwnerStatus(statusResp);
 		setModules(modulesResp.modules);
 		setPlugins(pluginsResp.plugins);
 		setMigrationStatus(migrations);
-		setSetupStatus(statusResp.setup);
 	}, [me?.is_owner]);
 
 	const refreshGuilds = useCallback(async () => {

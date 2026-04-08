@@ -8,6 +8,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { App } from "./App";
 import { setAPIBase, setAPIBaseError } from "./api";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
 import "./styles.css";
@@ -137,7 +138,9 @@ async function bootstrap() {
 				defaultColorScheme="auto"
 			>
 				<Notifications />
-				<App />
+				<ErrorBoundary>
+					<App />
+				</ErrorBoundary>
 			</MantineProvider>
 		</React.StrictMode>,
 	);

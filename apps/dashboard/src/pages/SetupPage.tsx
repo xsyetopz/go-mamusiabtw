@@ -200,6 +200,7 @@ function RuntimePanel({
 }
 
 function LocalSetupCard({ setupStatus }: { setupStatus: SetupStatus | null }) {
+	const hints = Array.isArray(setupStatus?.hints) ? setupStatus.hints : [];
 	return (
 		<Card className="panel-card" withBorder={true}>
 			<Stack gap="sm">
@@ -208,12 +209,12 @@ function LocalSetupCard({ setupStatus }: { setupStatus: SetupStatus | null }) {
 				<Code
 					block={true}
 				>{`MAMUSIABTW_ADMIN_ADDR=${localSetup.adminAddr}`}</Code>
-				{(setupStatus?.hints.length ?? 0) > 0 ? (
+				{hints.length > 0 ? (
 					<Stack gap="xs">
 						<Text size="sm" fw={600}>
 							What still needs attention
 						</Text>
-						{setupStatus?.hints.map((hint) => (
+						{hints.map((hint) => (
 							<Text key={hint} size="sm">
 								{hint}
 							</Text>
