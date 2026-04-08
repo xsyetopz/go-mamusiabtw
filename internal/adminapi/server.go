@@ -236,10 +236,11 @@ func (s *Server) handleSetup(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	base := s.publicBaseURL(r)
-	resp.AppOrigin = strings.TrimRight(base, "/")
-	resp.RedirectURL = strings.TrimRight(base, "/") + "/api/auth/callback"
-	resp.InstallRedirectURL = strings.TrimRight(base, "/") + "/api/install/callback"
+	dashboardBase := s.dashboardBaseURL(r)
+	apiBase := s.apiBaseURL(r)
+	resp.AppOrigin = strings.TrimRight(dashboardBase, "/")
+	resp.RedirectURL = strings.TrimRight(apiBase, "/") + "/api/auth/callback"
+	resp.InstallRedirectURL = strings.TrimRight(apiBase, "/") + "/api/install/callback"
 	writeJSON(w, http.StatusOK, resp)
 }
 
@@ -288,12 +289,6 @@ func (s *Server) allowCORSOrigin(r *http.Request, origin string) bool {
 		return false
 	}
 
-	// Keep prod strict by default. Cross-origin dashboard hosting requires a
-	// deliberate deployment plan (reverse proxy / shared origin).
-	if s.svc.Config.ProdMode {
-		return false
-	}
-
 	u, err := url.Parse(origin)
 	if err != nil || u.Scheme == "" || u.Host == "" {
 		return false
@@ -302,8 +297,20 @@ func (s *Server) allowCORSOrigin(r *http.Request, origin string) bool {
 		return false
 	}
 
-	host := strings.ToLower(strings.TrimSpace(u.Hostname()))
-	return host == "127.0.0.1" || host == "localhost"
+	norm := normalizeOrigin(origin)
+	for _, allowed := range s.svc.Config.DashboardAllowedOrigins {
+		if strings.EqualFold(norm, normalizeOrigin(allowed)) {
+			return true
+		}
+	}
+
+	// Development fallback: allow local Vite origins without requiring config.
+	if !s.svc.Config.ProdMode {
+		host := strings.ToLower(strings.TrimSpace(u.Hostname()))
+		return host == "127.0.0.1" || host == "localhost"
+	}
+
+	return false
 }
 
 func (s *Server) withAuth(next func(http.ResponseWriter, *http.Request, session)) http.HandlerFunc {
@@ -351,9 +358,9 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, "failed to start login")
 		return
 	}
-	returnBase := requestBaseURL(r)
-	publicBase := s.publicBaseURL(r)
-	redirectURL := strings.TrimRight(publicBase, "/") + "/api/auth/callback"
+	returnBase := s.dashboardBaseURL(r)
+	apiBase := s.apiBaseURL(r)
+	redirectURL := strings.TrimRight(apiBase, "/") + "/api/auth/callback"
 
 	s.stateMu.Lock()
 	s.stateStore[state] = oauthState{
@@ -555,7 +562,7 @@ func (s *Server) handleInstallCallback(w http.ResponseWriter, r *http.Request, s
 		// When using the plain "bot install" authorize URL (no redirect_uri),
 		// Discord will never hit this endpoint. If someone *does* land here (or
 		// a portal redirect was misconfigured), keep it friendly.
-		base := requestBaseURL(r)
+		base := s.dashboardBaseURL(r)
 		http.Redirect(w, r, strings.TrimRight(base, "/")+"/#/servers", http.StatusFound)
 		return
 	}
@@ -563,7 +570,7 @@ func (s *Server) handleInstallCallback(w http.ResponseWriter, r *http.Request, s
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	base := requestBaseURL(r)
+	base := s.dashboardBaseURL(r)
 	http.Redirect(w, r, strings.TrimRight(base, "/")+"/#/servers/"+guildIDRaw, http.StatusFound)
 }
 
@@ -1040,9 +1047,10 @@ func baseURLFromListenAddr(addr string) string {
 }
 
 func (s *Server) publicBaseURL(r *http.Request) string {
-	// Production may be behind a reverse proxy; trust forwarded headers.
-	if s != nil && s.svc.Config.ProdMode {
-		return requestBaseURL(r)
+	if s != nil {
+		if v := normalizeOrigin(s.svc.Config.PublicAPIOrigin); v != "" {
+			return v
+		}
 	}
 
 	// Development: keep OAuth redirects stable (always the admin listen addr),
@@ -1065,6 +1073,26 @@ func (s *Server) publicBaseURL(r *http.Request) string {
 			return base
 		}
 	}
+	return requestBaseURL(r)
+}
+
+func (s *Server) apiBaseURL(r *http.Request) string {
+	if s != nil {
+		if v := normalizeOrigin(s.svc.Config.PublicAPIOrigin); v != "" {
+			return v
+		}
+	}
+	// Fallback: use the admin server "public" base (dev stable listen addr).
+	return s.publicBaseURL(r)
+}
+
+func (s *Server) dashboardBaseURL(r *http.Request) string {
+	if s != nil {
+		if v := normalizeOrigin(s.svc.Config.PublicDashboardOrigin); v != "" {
+			return v
+		}
+	}
+	// Fallback: in dev the dashboard is served from the admin API origin.
 	return requestBaseURL(r)
 }
 

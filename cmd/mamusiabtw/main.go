@@ -387,44 +387,10 @@ func runMigrateCommand(ctx context.Context, args []string) int {
 		}
 		_, _ = fmt.Fprintf(os.Stdout, "backup: %s\n", backupPath)
 		return 0
-	case "down":
-		return runMigrateDown(ctx, runner, cfg.SQLitePath, args[1:])
 	default:
 		printMigrateUsage()
 		return 1
 	}
-}
-
-func runMigrateDown(ctx context.Context, runner migrate.Runner, dbPath string, args []string) int {
-	fs := flag.NewFlagSet("migrate down", flag.ContinueOnError)
-	fs.SetOutput(os.Stderr)
-	to := fs.Int("to", -1, "target migration version")
-	steps := fs.Int("steps", 0, "number of applied migrations to roll back")
-	if err := fs.Parse(args); err != nil {
-		return 1
-	}
-
-	if (*to >= 0 && *steps > 0) || (*to < 0 && *steps <= 0) {
-		_, _ = os.Stderr.WriteString("specify exactly one of --to or --steps for migrate down\n")
-		return 1
-	}
-
-	var (
-		status migrate.Status
-		err    error
-	)
-	if *to >= 0 {
-		status, err = runner.DownToPath(ctx, dbPath, *to)
-	} else {
-		status, err = runner.DownStepsPath(ctx, dbPath, *steps)
-	}
-	if err != nil {
-		_, _ = os.Stderr.WriteString(err.Error() + "\n")
-		return 1
-	}
-
-	printStatus(status)
-	return 0
 }
 
 func printStatus(status migrate.Status) {
@@ -453,8 +419,7 @@ func printMigrateUsage() {
 			"  mamusiabtw migrate status\n" +
 			"  mamusiabtw migrate up\n" +
 			"  mamusiabtw migrate backup\n" +
-			"  mamusiabtw migrate down --to <version>\n" +
-			"  mamusiabtw migrate down --steps <n>\n",
+			"",
 	)
 }
 

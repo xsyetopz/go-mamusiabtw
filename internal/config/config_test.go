@@ -419,13 +419,10 @@ func TestAuthoringAssetsLayout(t *testing.T) {
 
 	for _, relPath := range []string{
 		"migrations/sqlite/001_init.up.sql",
-		"migrations/sqlite/001_init.down.sql",
 		"migrations/sqlite/002_guilds_users.up.sql",
-		"migrations/sqlite/002_guilds_users.down.sql",
 		"migrations/sqlite/003_wellness.up.sql",
-		"migrations/sqlite/003_wellness.down.sql",
 		"migrations/sqlite/004_modules.up.sql",
-		"migrations/sqlite/004_modules.down.sql",
+		"migrations/sqlite/005_admin_sessions.up.sql",
 	} {
 		fullPath := filepath.Join(repoRoot, relPath)
 		if _, err := os.Stat(fullPath); err != nil {
@@ -453,7 +450,7 @@ func TestMigrationLayoutAndSchemaHygiene(t *testing.T) {
 		if !strings.HasSuffix(name, ".sql") {
 			continue
 		}
-		if strings.HasSuffix(name, ".up.sql") || strings.HasSuffix(name, ".down.sql") {
+		if strings.HasSuffix(name, ".up.sql") {
 			continue
 		}
 		t.Fatalf("legacy migration filename still present: %s", name)
@@ -470,6 +467,9 @@ func resetConfigEnv(t *testing.T) {
 		"MAMUSIABTW_MIGRATION_BACKUPS_DIR",
 		"MAMUSIABTW_OPS_ADDR",
 		"MAMUSIABTW_ADMIN_ADDR",
+		"MAMUSIABTW_PUBLIC_DASHBOARD_ORIGIN",
+		"MAMUSIABTW_PUBLIC_API_ORIGIN",
+		"MAMUSIABTW_DASHBOARD_ALLOWED_ORIGINS",
 		"LOCALES_DIR",
 		"PLUGINS_DIR",
 		"MAMUSIABTW_PERMISSIONS_FILE",

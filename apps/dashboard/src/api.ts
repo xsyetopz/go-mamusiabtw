@@ -1,7 +1,17 @@
-// The dashboard is served from the admin API origin, so we always call relative
-// /api/... paths. This avoids all CORS and cookie host issues.
-export const apiBase = "";
-export const apiBaseError: string | null = null;
+// Default is same-origin (admin API serves/proxies the dashboard in dev).
+// In production (GitHub Pages), `apiBase` is set at runtime from /config.json.
+export let apiBase = "";
+export let apiBaseError: string | null = null;
+
+const TRAILING_SLASH_RE = /\/$/;
+
+export function setAPIBase(next: string) {
+	apiBase = next;
+}
+
+export function setAPIBaseError(next: string | null) {
+	apiBaseError = next;
+}
 
 export class APIError extends Error {
 	readonly status: number;
@@ -18,9 +28,13 @@ function looksLikeHTML(text: string): boolean {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+	const url =
+		apiBase && path.startsWith("/")
+			? apiBase.replace(TRAILING_SLASH_RE, "") + path
+			: path;
 	let response: Response;
 	try {
-		response = await fetch(path, {
+		response = await fetch(url, {
 			credentials: "include",
 			...init,
 			headers: {

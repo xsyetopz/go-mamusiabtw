@@ -960,7 +960,7 @@ func (s Service) setupResponse(includeHints bool) SetupResponse {
 		EffectiveOwnerUserID: cloneOptionalUint64(ownerStatus.EffectiveUserID),
 		SigningConfigured:    signingReady(s.Config),
 		AdminAddr:            strings.TrimSpace(s.Config.AdminAddr),
-		// Filled by the HTTP layer from requestBaseURL(r).
+		// Filled by the HTTP layer based on configured public origins.
 		AppOrigin:        "",
 		RedirectURL:      "",
 		HasClientID:      strings.TrimSpace(s.Config.DashboardClientID) != "",

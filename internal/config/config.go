@@ -36,6 +36,17 @@ type Config struct {
 	AllowUnsignedPlugins bool
 	TrustedKeysFile      string
 
+	// PublicDashboardOrigin is the browser-visible dashboard origin (for example a
+	// GitHub Pages site). Used for production setup responses and OAuth return
+	// redirects when the dashboard is not served from the admin API origin.
+	PublicDashboardOrigin string
+	// PublicAPIOrigin is the browser-visible admin API origin (for example
+	// https://api.example.com). Used for OAuth redirect URIs and install callbacks.
+	PublicAPIOrigin string
+	// DashboardAllowedOrigins is the explicit CORS allowlist for the dashboard in
+	// production. Origins must include scheme + host (and port if non-default).
+	DashboardAllowedOrigins []string
+
 	DashboardClientID      string
 	DashboardClientSecret  string
 	DashboardSessionSecret string
@@ -53,21 +64,21 @@ type Config struct {
 }
 
 const (
-	defaultSQLitePath         = "./data/mamusiabtw.sqlite"
-	defaultMigrationsDir      = "./migrations/sqlite"
-	defaultMigrationBackups   = "./data/migration_backups"
-	defaultOpsAddr            = ""
-	defaultAdminAddr          = ""
-	defaultLocalesDir         = "./locales"
-	defaultPluginsDir         = "./plugins"
-	defaultPermissionsFile    = "./config/permissions.json"
-	defaultModulesFile        = "./config/modules.json"
-	defaultTrustedKeysFile    = "./config/trusted_keys.json"
-	defaultLogLevel           = "info"
-	defaultCommandRegMode     = "global"
-	defaultSlashCooldownMS    = 5000
-	defaultComponentCooldown  = 750
-	defaultModalCooldownMS    = 1500
+	defaultSQLitePath        = "./data/mamusiabtw.sqlite"
+	defaultMigrationsDir     = "./migrations/sqlite"
+	defaultMigrationBackups  = "./data/migration_backups"
+	defaultOpsAddr           = ""
+	defaultAdminAddr         = ""
+	defaultLocalesDir        = "./locales"
+	defaultPluginsDir        = "./plugins"
+	defaultPermissionsFile   = "./config/permissions.json"
+	defaultModulesFile       = "./config/modules.json"
+	defaultTrustedKeysFile   = "./config/trusted_keys.json"
+	defaultLogLevel          = "info"
+	defaultCommandRegMode    = "global"
+	defaultSlashCooldownMS   = 5000
+	defaultComponentCooldown = 750
+	defaultModalCooldownMS   = 1500
 )
 
 func LoadFromEnv() (Config, error) {
@@ -117,6 +128,9 @@ func loadFromEnv(requireDiscordToken bool) (Config, error) {
 	dashboardSigningKeyID := envDefault("MAMUSIABTW_DASHBOARD_SIGNING_KEY_ID", "")
 	dashboardSigningKeyFile := envDefault("MAMUSIABTW_DASHBOARD_SIGNING_KEY_FILE", "")
 	dashboardSessionSecretGenerated := false
+	publicDashboardOrigin := envDefault("MAMUSIABTW_PUBLIC_DASHBOARD_ORIGIN", "")
+	publicAPIOrigin := envDefault("MAMUSIABTW_PUBLIC_API_ORIGIN", "")
+	dashboardAllowedOrigins := parseCSV(os.Getenv("MAMUSIABTW_DASHBOARD_ALLOWED_ORIGINS"))
 
 	ownerUserID, err := parseOwnerID(os.Getenv("OWNER_USER_ID"))
 	if err != nil {
@@ -180,6 +194,16 @@ func loadFromEnv(requireDiscordToken bool) (Config, error) {
 			if len(strings.TrimSpace(dashboardSessionSecret)) < 32 {
 				return Config{}, errors.New("MAMUSIABTW_DASHBOARD_SESSION_SECRET must be at least 32 characters when MAMUSIABTW_ADMIN_ADDR is set")
 			}
+
+			if strings.TrimSpace(publicDashboardOrigin) == "" {
+				return Config{}, errors.New("MAMUSIABTW_PUBLIC_DASHBOARD_ORIGIN is required in prod when MAMUSIABTW_ADMIN_ADDR is set")
+			}
+			if strings.TrimSpace(publicAPIOrigin) == "" {
+				return Config{}, errors.New("MAMUSIABTW_PUBLIC_API_ORIGIN is required in prod when MAMUSIABTW_ADMIN_ADDR is set")
+			}
+			if len(dashboardAllowedOrigins) == 0 {
+				return Config{}, errors.New("MAMUSIABTW_DASHBOARD_ALLOWED_ORIGINS is required in prod when MAMUSIABTW_ADMIN_ADDR is set")
+			}
 		} else {
 			if len(strings.TrimSpace(dashboardSessionSecret)) < 32 {
 				dashboardSessionSecret = randomDevSecret()
@@ -210,6 +234,9 @@ func loadFromEnv(requireDiscordToken bool) (Config, error) {
 
 		AllowUnsignedPlugins:            allowUnsigned,
 		TrustedKeysFile:                 trustedKeysFile,
+		PublicDashboardOrigin:           publicDashboardOrigin,
+		PublicAPIOrigin:                 publicAPIOrigin,
+		DashboardAllowedOrigins:         dashboardAllowedOrigins,
 		DashboardClientID:               dashboardClientID,
 		DashboardClientSecret:           dashboardClientSecret,
 		DashboardSessionSecret:          dashboardSessionSecret,

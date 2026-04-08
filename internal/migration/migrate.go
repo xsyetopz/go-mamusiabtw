@@ -36,15 +36,12 @@ type Runner struct {
 }
 
 type Migration struct {
-	Version      int
-	Name         string
-	Kind         Kind
-	UpFilename   string
-	DownFilename string
-	UpSQL        string
-	DownSQL      string
-	UpChecksum   string
-	DownChecksum string
+	Version    int
+	Name       string
+	Kind       Kind
+	UpFilename string
+	UpSQL      string
+	UpChecksum string
 }
 
 type AppliedMigration struct {
@@ -57,13 +54,12 @@ type AppliedMigration struct {
 }
 
 type Item struct {
-	Version      int
-	Name         string
-	Kind         Kind
-	Applied      bool
-	AppliedAt    *time.Time
-	UpFilename   string
-	DownFilename string
+	Version    int
+	Name       string
+	Kind       Kind
+	Applied    bool
+	AppliedAt  *time.Time
+	UpFilename string
 }
 
 type Status struct {
@@ -72,7 +68,7 @@ type Status struct {
 	Pending        []Item
 }
 
-var migrationNamePattern = regexp.MustCompile(`^(\d{3})_(.+)\.(up|down)\.sql$`)
+var migrationNamePattern = regexp.MustCompile(`^(\d{3})_(.+)\.up\.sql$`)
 
 func New(opts Options) (Runner, error) {
 	dir := strings.TrimSpace(opts.Dir)
@@ -98,6 +94,18 @@ func (r Runner) UpPath(ctx context.Context, dbPath string) (Status, error) {
 	}
 	defer db.Close()
 
+	// Production policy: migrations are up-only. Before we apply any pending
+	// migrations, take a backup so rollback is always "restore backup", not "down".
+	status, err := r.Status(ctx, db)
+	if err != nil {
+		return Status{}, err
+	}
+	if len(status.Pending) != 0 {
+		if _, err := r.runBackup(ctx, db, dbPath, fmt.Sprintf("auto-pre-up-v%03d", status.CurrentVersion)); err != nil {
+			return Status{}, err
+		}
+	}
+
 	return r.Up(ctx, db)
 }
 
@@ -121,6 +129,9 @@ func (r Runner) Up(ctx context.Context, db *sql.DB) (Status, error) {
 	for _, def := range defs {
 		if _, ok := applied[def.Version]; ok {
 			continue
+		}
+		if def.Kind == KindDestructive {
+			return Status{}, fmt.Errorf("refusing to apply destructive migration %q; restore from backup for rollbacks instead", def.UpFilename)
 		}
 		if err := applyUp(ctx, db, def); err != nil {
 			return Status{}, err
@@ -183,89 +194,14 @@ func (r Runner) BackupPath(ctx context.Context, dbPath string) (string, error) {
 	return r.runBackup(ctx, db, dbPath, fmt.Sprintf("manual-v%03d", status.CurrentVersion))
 }
 
-func (r Runner) DownStepsPath(ctx context.Context, dbPath string, steps int) (Status, error) {
-	if steps <= 0 {
-		return Status{}, errors.New("steps must be greater than zero")
-	}
-
-	status, err := r.StatusPath(ctx, dbPath)
-	if err != nil {
-		return Status{}, err
-	}
-	if status.CurrentVersion == 0 {
-		return status, nil
-	}
-
-	target := status.CurrentVersion - steps
-	if target < 0 {
-		target = 0
-	}
-
-	return r.DownToPath(ctx, dbPath, target)
-}
-
-func (r Runner) DownToPath(ctx context.Context, dbPath string, targetVersion int) (Status, error) {
-	db, err := sqlite.Open(ctx, sqlite.Options{Path: dbPath})
-	if err != nil {
-		return Status{}, err
-	}
-	defer db.Close()
-
-	return r.DownTo(ctx, db, targetVersion)
-}
-
-func (r Runner) DownTo(ctx context.Context, db *sql.DB, targetVersion int) (Status, error) {
-	if targetVersion < 0 {
-		return Status{}, errors.New("target version must be zero or greater")
-	}
-
-	defs, err := r.loadDefinitions()
-	if err != nil {
-		return Status{}, err
-	}
-	if err := ensureMetadataTables(ctx, db); err != nil {
-		return Status{}, err
-	}
-
-	applied, err := loadAppliedState(ctx, db)
-	if err != nil {
-		return Status{}, err
-	}
-	if err := validateAppliedChecksums(applied, defs); err != nil {
-		return Status{}, err
-	}
-
-	defByVersion := make(map[int]Migration, len(defs))
-	for _, def := range defs {
-		defByVersion[def.Version] = def
-	}
-
-	for current := highestAppliedVersion(applied); current > targetVersion; current = highestAppliedVersion(applied) {
-		def, ok := defByVersion[current]
-		if !ok {
-			return Status{}, fmt.Errorf("applied migration version %03d is not present in %s", current, r.dir)
-		}
-		if err := applyDown(ctx, db, def); err != nil {
-			return Status{}, err
-		}
-		delete(applied, current)
-	}
-
-	return buildStatus(defs, applied), nil
-}
-
 func (r Runner) loadDefinitions() ([]Migration, error) {
 	entries, err := os.ReadDir(r.dir)
 	if err != nil {
 		return nil, fmt.Errorf("read migrations dir %q: %w", r.dir, err)
 	}
 
-	type pair struct {
-		upFile   string
-		downFile string
-	}
-
-	pairs := map[string]*pair{}
+	byVersion := map[int]string{}
+	byVersionName := map[int]string{}
 	for _, entry := range entries {
 		if entry.IsDir() {
 			continue
@@ -281,71 +217,48 @@ func (r Runner) loadDefinitions() ([]Migration, error) {
 			return nil, fmt.Errorf("unsupported migration filename %q", name)
 		}
 
-		key := matches[1] + "_" + matches[2]
-		if pairs[key] == nil {
-			pairs[key] = &pair{}
-		}
-		switch matches[3] {
-		case "up":
-			if pairs[key].upFile != "" {
-				return nil, fmt.Errorf("duplicate up migration for %s", key)
-			}
-			pairs[key].upFile = name
-		case "down":
-			if pairs[key].downFile != "" {
-				return nil, fmt.Errorf("duplicate down migration for %s", key)
-			}
-			pairs[key].downFile = name
-		default:
-			return nil, fmt.Errorf("unsupported migration direction in %q", name)
-		}
-	}
-
-	keys := make([]string, 0, len(pairs))
-	for key, pair := range pairs {
-		if pair.upFile == "" || pair.downFile == "" {
-			return nil, fmt.Errorf("migration %s must have both up and down files", key)
-		}
-		keys = append(keys, key)
-	}
-	sort.Strings(keys)
-
-	defs := make([]Migration, 0, len(keys))
-	expectedVersion := 1
-	for _, key := range keys {
-		matches := migrationNamePattern.FindStringSubmatch(pairs[key].upFile)
 		version, err := strconv.Atoi(matches[1])
 		if err != nil {
 			return nil, fmt.Errorf("parse migration version %q: %w", matches[1], err)
 		}
+		if byVersion[version] != "" {
+			return nil, fmt.Errorf("duplicate migration version %03d", version)
+		}
+		byVersion[version] = name
+		byVersionName[version] = matches[2]
+	}
+
+	versions := make([]int, 0, len(byVersion))
+	for version := range byVersion {
+		versions = append(versions, version)
+	}
+	sort.Ints(versions)
+
+	defs := make([]Migration, 0, len(versions))
+	expectedVersion := 1
+	for _, version := range versions {
 		if version != expectedVersion {
 			return nil, fmt.Errorf("migration versions must be contiguous: expected %03d, found %03d", expectedVersion, version)
 		}
 		expectedVersion++
 
-		upSQL, upChecksum, err := readMigrationFile(filepath.Join(r.dir, pairs[key].upFile))
+		filename := byVersion[version]
+		upSQL, upChecksum, err := readMigrationFile(filepath.Join(r.dir, filename))
 		if err != nil {
 			return nil, err
 		}
-		downSQL, downChecksum, err := readMigrationFile(filepath.Join(r.dir, pairs[key].downFile))
-		if err != nil {
-			return nil, err
-		}
-		kind, err := parseKind(upSQL, pairs[key].upFile)
+		kind, err := parseKind(upSQL, filename)
 		if err != nil {
 			return nil, err
 		}
 
 		defs = append(defs, Migration{
-			Version:      version,
-			Name:         matches[2],
-			Kind:         kind,
-			UpFilename:   pairs[key].upFile,
-			DownFilename: pairs[key].downFile,
-			UpSQL:        upSQL,
-			DownSQL:      downSQL,
-			UpChecksum:   upChecksum,
-			DownChecksum: downChecksum,
+			Version:    version,
+			Name:       byVersionName[version],
+			Kind:       kind,
+			UpFilename: filename,
+			UpSQL:      upSQL,
+			UpChecksum: upChecksum,
 		})
 	}
 
@@ -496,45 +409,6 @@ func applyUp(ctx context.Context, db *sql.DB, def Migration) error {
 	return nil
 }
 
-func applyDown(ctx context.Context, db *sql.DB, def Migration) error {
-	tx, err := db.BeginTx(ctx, &sql.TxOptions{})
-	if err != nil {
-		return fmt.Errorf("begin tx for rollback %q: %w", def.DownFilename, err)
-	}
-	defer func() {
-		_ = tx.Rollback()
-	}()
-
-	if _, err := tx.ExecContext(ctx, def.DownSQL); err != nil {
-		return fmt.Errorf("exec rollback %q: %w", def.DownFilename, err)
-	}
-
-	if _, err := tx.ExecContext(ctx, "DELETE FROM schema_migration_state WHERE version = ?", def.Version); err != nil {
-		return fmt.Errorf("delete schema_migration_state for %q: %w", def.DownFilename, err)
-	}
-
-	now := time.Now().UTC().Unix()
-	if _, err := tx.ExecContext(
-		ctx,
-		`INSERT INTO schema_migration_history(version, name, direction, kind, filename, checksum, applied_at)
-		 VALUES (?, ?, 'down', ?, ?, ?, ?)`,
-		def.Version,
-		def.Name,
-		string(def.Kind),
-		def.DownFilename,
-		def.DownChecksum,
-		now,
-	); err != nil {
-		return fmt.Errorf("record schema_migration_history for %q: %w", def.DownFilename, err)
-	}
-
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("commit rollback %q: %w", def.DownFilename, err)
-	}
-
-	return nil
-}
-
 func (r Runner) runBackup(ctx context.Context, db *sql.DB, dbPath, label string) (string, error) {
 	if strings.TrimSpace(dbPath) == "" {
 		return "", errors.New("sqlite path is required for backups")
@@ -606,11 +480,10 @@ func buildStatus(defs []Migration, applied map[int]AppliedMigration) Status {
 
 	for _, def := range defs {
 		item := Item{
-			Version:      def.Version,
-			Name:         def.Name,
-			Kind:         def.Kind,
-			UpFilename:   def.UpFilename,
-			DownFilename: def.DownFilename,
+			Version:    def.Version,
+			Name:       def.Name,
+			Kind:       def.Kind,
+			UpFilename: def.UpFilename,
 		}
 		if state, ok := applied[def.Version]; ok {
 			item.Applied = true

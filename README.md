@@ -69,11 +69,11 @@ They must match exactly (scheme, host, port, path).
 
 ## Dashboard (Production)
 
-Recommended production shape is still single-origin:
+Recommended production shape:
 
-- build `apps/dashboard` once (`bun run build`)
-- the admin API serves `apps/dashboard/dist/`
-- the browser talks to `/api/...` on the same origin
+- the dashboard is hosted as a static site (GitHub Pages)
+- the admin API is hosted on a separate origin (example: `api.` subdomain)
+- the dashboard calls the admin API using `api_origin` from `apps/dashboard/public/config.json` (example: `{"api_origin":"https://api.example.com"}`)
 
 Minimum prod env (when `MAMUSIABTW_ADMIN_ADDR` is enabled):
 
@@ -82,6 +82,9 @@ Minimum prod env (when `MAMUSIABTW_ADMIN_ADDR` is enabled):
 - `MAMUSIABTW_DASHBOARD_CLIENT_ID=...`
 - `MAMUSIABTW_DASHBOARD_CLIENT_SECRET=...`
 - `MAMUSIABTW_DASHBOARD_SESSION_SECRET=...` (32+ chars)
+- `MAMUSIABTW_PUBLIC_DASHBOARD_ORIGIN=https://...`
+- `MAMUSIABTW_PUBLIC_API_ORIGIN=https://...`
+- `MAMUSIABTW_DASHBOARD_ALLOWED_ORIGINS=https://...` (must include the dashboard origin)
 
 ## Common Problems (Fast Fixes)
 
@@ -105,4 +108,3 @@ Longer docs live in:
 ## License
 
 [MIT](LICENSE)
-
