@@ -123,15 +123,17 @@ export function PluginsPage({
 									</Group>
 								</Table.Td>
 								<Table.Td>
-									<Button
-										size="xs"
-										variant="light"
-										disabled={!signingConfigured}
-										loading={busy === `plugin:sign:${plugin.id}`}
-										onClick={() => onSignPlugin(plugin.id)}
-									>
-										Sign
-									</Button>
+									<Group gap="xs" className="table-actions">
+										<Button
+											size="xs"
+											variant="outline"
+											disabled={!signingConfigured}
+											loading={busy === `plugin:sign:${plugin.id}`}
+											onClick={() => onSignPlugin(plugin.id)}
+										>
+											Sign
+										</Button>
+									</Group>
 								</Table.Td>
 							</Table.Tr>
 						))}

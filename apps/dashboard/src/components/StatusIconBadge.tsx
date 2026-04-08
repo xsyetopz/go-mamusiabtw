@@ -18,7 +18,7 @@ export function StatusIconBadge({
 	label,
 	color,
 	icon,
-	variant = "filled",
+	variant = "outline",
 	size = "sm",
 }: Props) {
 	return (
@@ -58,7 +58,7 @@ export function BoolStatusIconBadge({
 	colorFalse = "gray",
 	iconTrue,
 	iconFalse,
-	variant = "filled",
+	variant = "outline",
 	size = "sm",
 }: BoolProps) {
 	const label = value ? labelTrue : labelFalse;

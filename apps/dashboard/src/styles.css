@@ -25,7 +25,7 @@ body {
 html[data-mantine-color-scheme="dark"] {
   --app-bg: #0f0f0f;
   --app-text: #f4f4f4;
-  --app-border: rgba(244, 244, 244, 0.14);
+  --app-border: rgba(244, 244, 244, 0.2);
   --app-header-bg: rgba(15, 15, 15, 0.86);
   --app-surface: rgba(22, 22, 22, 0.92);
   --app-surface-strong: rgba(22, 22, 22, 0.96);
@@ -33,7 +33,7 @@ html[data-mantine-color-scheme="dark"] {
   --app-navbar-text: #f4f4f4;
   --app-navbar-border: rgba(244, 244, 244, 0.16);
   --app-muted: rgba(244, 244, 244, 0.72);
-  --app-panel-label: rgba(244, 244, 244, 0.7);
+  --app-panel-label: rgba(244, 244, 244, 0.84);
   --app-nested-bg: rgba(255, 255, 255, 0.035);
 }
 
@@ -210,6 +210,35 @@ html[data-mantine-color-scheme="dark"] .mantine-AppShell-main {
 
 .compact-table td {
   vertical-align: top;
+}
+
+.compact-table thead th {
+  background: var(--app-surface-strong);
+  border-bottom: 1px solid var(--app-border);
+}
+
+.compact-table tbody td {
+  border-top: 1px solid var(--app-border);
+}
+
+.compact-table tbody tr:nth-of-type(odd) {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+html[data-mantine-color-scheme="dark"] .compact-table tbody tr:nth-of-type(odd) {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.compact-table tbody tr:hover {
+  background: rgba(15, 98, 254, 0.06);
+}
+
+html[data-mantine-color-scheme="dark"] .compact-table tbody tr:hover {
+  background: rgba(15, 98, 254, 0.12);
+}
+
+.table-actions .mantine-Button-root {
+  border-color: var(--app-border);
 }
 
 .status-badge {

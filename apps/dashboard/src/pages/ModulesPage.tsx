@@ -91,7 +91,7 @@ export function ModulesPage({
 									/>
 								</Table.Td>
 								<Table.Td>
-									<Group gap="xs">
+									<Group gap="xs" className="table-actions">
 										<Button
 											size="xs"
 											variant="light"
@@ -113,7 +113,7 @@ export function ModulesPage({
 										</Button>
 										<Button
 											size="xs"
-											variant="subtle"
+											variant="outline"
 											loading={busy === `module:reset:${module.id}`}
 											onClick={() => onReset(module.id)}
 										>
@@ -176,7 +176,7 @@ export function ModulesPage({
 								</Button>
 							</Group>
 							<Button
-								variant="subtle"
+								variant="outline"
 								loading={busy === `module:reset:${module.id}`}
 								onClick={() => onReset(module.id)}
 							>
