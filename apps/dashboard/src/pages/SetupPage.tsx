@@ -149,6 +149,7 @@ function RuntimePanel({
 	setupStatus: SetupStatus | null;
 	status: StatusResponse | null;
 }) {
+	const discordStartError = status?.snapshot.discord_start_error?.trim() || "";
 	return (
 		<StatePanel
 			title="Runtime"
@@ -170,6 +171,16 @@ function RuntimePanel({
 						: "Not configured"}
 				</Badge>
 			</Group>
+			{discordStartError ? (
+				<SetupMessage title="Discord connection problem">
+					<Stack gap="xs">
+						<Text size="sm">
+							The admin API is up, but the bot failed to connect to Discord.
+						</Text>
+						<Code block={true}>{discordStartError}</Code>
+					</Stack>
+				</SetupMessage>
+			) : null}
 			{status ? (
 				<>
 					<CodeLine label="Plugins path" value={status.config.plugins_dir} />

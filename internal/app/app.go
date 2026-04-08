@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"os"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/xsyetopz/go-mamusiabtw/internal/adminapi"
@@ -38,6 +39,8 @@ type App struct {
 
 	startedAt        time.Time
 	migrationVersion int
+
+	discordStartErr atomic.Pointer[string]
 }
 
 func New(deps Dependencies) (*App, error) {
@@ -93,6 +96,8 @@ func (a *App) Start(ctx context.Context) error {
 		if a.cfg.ProdMode {
 			return err
 		}
+		msg := err.Error()
+		a.discordStartErr.Store(&msg)
 		a.logger.ErrorContext(ctx, "discord bot failed to start; keeping admin API running", slog.String("err", err.Error()))
 		<-ctx.Done()
 		return ctx.Err()
@@ -398,6 +403,9 @@ func (a *App) opsSnapshot() ops.Snapshot {
 		StartedAt:        a.startedAt,
 		MigrationVersion: a.migrationVersion,
 		ProdMode:         a.cfg.ProdMode,
+	}
+	if msg := a.discordStartErr.Load(); msg != nil {
+		snap.DiscordStartError = strings.TrimSpace(*msg)
 	}
 	if a.bot == nil {
 		if a.metrics != nil {

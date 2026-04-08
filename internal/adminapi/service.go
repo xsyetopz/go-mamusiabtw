@@ -93,6 +93,7 @@ type SnapshotResponse struct {
 	StartedAt           string `json:"started_at"`
 	MigrationVersion    int    `json:"migration_version"`
 	ProdMode            bool   `json:"prod_mode"`
+	DiscordStartError   string `json:"discord_start_error,omitempty"`
 	ModuleCount         int    `json:"module_count"`
 	EnabledModuleCount  int    `json:"enabled_module_count"`
 	PluginCount         int    `json:"plugin_count"`
@@ -999,6 +1000,7 @@ func snapshotResponse(snap ops.Snapshot) SnapshotResponse {
 		StartedAt:           formatTime(snap.StartedAt),
 		MigrationVersion:    snap.MigrationVersion,
 		ProdMode:            snap.ProdMode,
+		DiscordStartError:   strings.TrimSpace(snap.DiscordStartError),
 		ModuleCount:         snap.ModuleCount,
 		EnabledModuleCount:  snap.EnabledModuleCount,
 		PluginCount:         snap.PluginCount,

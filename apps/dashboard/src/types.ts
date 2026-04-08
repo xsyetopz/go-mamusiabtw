@@ -35,6 +35,7 @@ export type Snapshot = {
 	started_at: string;
 	migration_version: number;
 	prod_mode: boolean;
+	discord_start_error?: string;
 	module_count: number;
 	enabled_module_count: number;
 	plugin_count: number;

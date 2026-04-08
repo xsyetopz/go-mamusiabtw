@@ -8,10 +8,13 @@ import (
 )
 
 type Snapshot struct {
-	Ready               bool
-	StartedAt           time.Time
-	MigrationVersion    int
-	ProdMode            bool
+	Ready            bool
+	StartedAt        time.Time
+	MigrationVersion int
+	ProdMode         bool
+	// DiscordStartError is a dev-focused diagnostic string when the Discord bot
+	// fails to connect (bad token, missing intents, etc). Empty means no error.
+	DiscordStartError   string
 	ModuleCount         int
 	EnabledModuleCount  int
 	PluginCount         int
