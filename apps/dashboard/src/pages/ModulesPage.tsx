@@ -1,5 +1,4 @@
 import {
-	Badge,
 	Button,
 	Card,
 	Code,
@@ -12,8 +11,9 @@ import {
 import { IconRefresh } from "@tabler/icons-react";
 import { CopyIconButton } from "../components/CopyIconButton";
 import { PageHeader } from "../components/PageHeader";
+import { BoolStatusIconBadge } from "../components/StatusIconBadge";
 import { useDeveloperDetails } from "../developerDetails";
-import { badgeColor, kindLabel } from "../format";
+import { kindLabel } from "../format";
 import type { ModuleInfo } from "../types";
 
 type Props = {
@@ -84,9 +84,11 @@ export function ModulesPage({
 								<Table.Td>{module.runtime}</Table.Td>
 								<Table.Td>{module.commands.join(", ") || "—"}</Table.Td>
 								<Table.Td>
-									<Badge color={badgeColor(module.enabled)}>
-										{module.enabled ? "Enabled" : "Disabled"}
-									</Badge>
+									<BoolStatusIconBadge
+										value={module.enabled}
+										labelTrue="Enabled"
+										labelFalse="Disabled"
+									/>
 								</Table.Td>
 								<Table.Td>
 									<Group gap="xs">
@@ -145,9 +147,11 @@ export function ModulesPage({
 										</Group>
 									) : null}
 								</Stack>
-								<Badge color={badgeColor(module.enabled)}>
-									{module.enabled ? "Enabled" : "Disabled"}
-								</Badge>
+								<BoolStatusIconBadge
+									value={module.enabled}
+									labelTrue="Enabled"
+									labelFalse="Disabled"
+								/>
 							</Group>
 							<Text size="sm" c="dimmed">
 								{module.commands.join(", ") || "No commands"}

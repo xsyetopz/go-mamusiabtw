@@ -1,6 +1,5 @@
 import {
 	Avatar,
-	Badge,
 	Button,
 	Card,
 	Code,
@@ -12,13 +11,15 @@ import {
 } from "@mantine/core";
 import {
 	IconArrowRight,
+	IconCrown,
 	IconExternalLink,
 	IconRefresh,
+	IconUser,
 } from "@tabler/icons-react";
 import { CopyIconButton } from "../components/CopyIconButton";
 import { PageHeader } from "../components/PageHeader";
+import { BoolStatusIconBadge } from "../components/StatusIconBadge";
 import { useDeveloperDetails } from "../developerDetails";
-import { badgeColor } from "../format";
 import type { AuthMe, GuildSummary } from "../types";
 
 type Props = {
@@ -125,14 +126,23 @@ export function ServersPage({
 										) : null}
 									</Stack>
 								</Group>
-								<Badge color={badgeColor(guild.bot_installed)}>
-									{guild.bot_installed ? "Installed" : "Not installed"}
-								</Badge>
+								<BoolStatusIconBadge
+									value={guild.bot_installed}
+									labelTrue="Installed"
+									labelFalse="Not installed"
+								/>
 							</Group>
 							<Group gap="xs">
-								<Badge variant="light" color={badgeColor(guild.owner)}>
-									{guild.owner ? "Owner" : "Manager"}
-								</Badge>
+								<BoolStatusIconBadge
+									value={guild.owner}
+									labelTrue="Owner"
+									labelFalse="Manager"
+									colorTrue="goblue"
+									colorFalse="gray"
+									variant="light"
+									iconTrue={({ size }) => <IconCrown size={size} />}
+									iconFalse={({ size }) => <IconUser size={size} />}
+								/>
 							</Group>
 							<Group justify="space-between" align="center">
 								<Text size="sm" c="dimmed">

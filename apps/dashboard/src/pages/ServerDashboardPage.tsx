@@ -37,6 +37,7 @@ import { get, post } from "../api";
 import { CopyIconButton } from "../components/CopyIconButton";
 import { MetricCard } from "../components/MetricCard";
 import { PageHeader, type SecondaryAction } from "../components/PageHeader";
+import { BoolStatusIconBadge } from "../components/StatusIconBadge";
 import { useDeveloperDetails } from "../developerDetails";
 import { badgeColor } from "../format";
 import type {
@@ -226,7 +227,12 @@ function SetupChecksCard({
 								<Stack gap={4}>
 									<Group justify="space-between">
 										<Text fw={600}>{check.label}</Text>
-										<Badge color="gray">Action needed</Badge>
+										<BoolStatusIconBadge
+											value={false}
+											labelTrue="OK"
+											labelFalse="Action needed"
+											variant="light"
+										/>
 									</Group>
 									<Text size="sm" c="dimmed">
 										{check.message}
@@ -246,7 +252,12 @@ function SetupChecksCard({
 									{ok.map((check) => (
 										<Group key={check.id} justify="space-between">
 											<Text size="sm">{check.label}</Text>
-											<Badge color={badgeColor(true)}>OK</Badge>
+											<BoolStatusIconBadge
+												value={true}
+												labelTrue="OK"
+												labelFalse="Action needed"
+												variant="light"
+											/>
 										</Group>
 									))}
 								</Stack>
@@ -1564,12 +1575,18 @@ function PluginSettingsCard({
 					<Stack gap={4}>
 						<Text fw={700}>{title}</Text>
 						<Group gap="xs">
-							<Badge color={badgeColor(section.global_enabled)}>
-								{section.global_enabled ? "Global on" : "Global off"}
-							</Badge>
-							<Badge color={badgeColor(config.enabled)}>
-								Server {config.enabled ? "on" : "off"}
-							</Badge>
+							<BoolStatusIconBadge
+								value={section.global_enabled}
+								labelTrue="Global on"
+								labelFalse="Global off"
+								variant="light"
+							/>
+							<BoolStatusIconBadge
+								value={config.enabled}
+								labelTrue="Server on"
+								labelFalse="Server off"
+								variant="light"
+							/>
 						</Group>
 					</Stack>
 					<Switch

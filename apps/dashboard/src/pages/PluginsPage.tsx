@@ -1,5 +1,4 @@
 import {
-	Badge,
 	Button,
 	Card,
 	Code,
@@ -9,11 +8,18 @@ import {
 	Table,
 	Text,
 } from "@mantine/core";
-import { IconPlus, IconRefresh } from "@tabler/icons-react";
+import {
+	IconFileCheck,
+	IconFileX,
+	IconPlus,
+	IconRefresh,
+	IconShieldCheck,
+	IconShieldX,
+} from "@tabler/icons-react";
 import { CopyIconButton } from "../components/CopyIconButton";
 import { PageHeader } from "../components/PageHeader";
+import { BoolStatusIconBadge } from "../components/StatusIconBadge";
 import { useDeveloperDetails } from "../developerDetails";
-import { badgeColor } from "../format";
 import type { PluginSummary } from "../types";
 
 type Props = {
@@ -92,18 +98,28 @@ export function PluginsPage({
 								<Table.Td>{plugin.version || "—"}</Table.Td>
 								<Table.Td>{plugin.commands.join(", ") || "—"}</Table.Td>
 								<Table.Td>
-									<Badge color={badgeColor(plugin.loaded)}>
-										{plugin.loaded ? "Loaded" : "Not loaded"}
-									</Badge>
+									<BoolStatusIconBadge
+										value={plugin.loaded}
+										labelTrue="Loaded"
+										labelFalse="Not loaded"
+									/>
 								</Table.Td>
 								<Table.Td>
 									<Group gap="xs">
-										<Badge color={badgeColor(plugin.has_signature_file)}>
-											{plugin.has_signature_file ? "File present" : "No file"}
-										</Badge>
-										<Badge color={badgeColor(plugin.signed)}>
-											{plugin.signed ? "Trusted" : "Unsigned"}
-										</Badge>
+										<BoolStatusIconBadge
+											value={plugin.has_signature_file}
+											labelTrue="Signature file present"
+											labelFalse="Signature file missing"
+											iconTrue={({ size }) => <IconFileCheck size={size} />}
+											iconFalse={({ size }) => <IconFileX size={size} />}
+										/>
+										<BoolStatusIconBadge
+											value={plugin.signed}
+											labelTrue="Trusted (signed)"
+											labelFalse="Unsigned"
+											iconTrue={({ size }) => <IconShieldCheck size={size} />}
+											iconFalse={({ size }) => <IconShieldX size={size} />}
+										/>
 									</Group>
 								</Table.Td>
 								<Table.Td>
@@ -144,20 +160,29 @@ export function PluginsPage({
 										</Group>
 									) : null}
 								</Stack>
-								<Badge color={badgeColor(plugin.loaded)}>
-									{plugin.loaded ? "Loaded" : "Not loaded"}
-								</Badge>
+								<BoolStatusIconBadge
+									value={plugin.loaded}
+									labelTrue="Loaded"
+									labelFalse="Not loaded"
+								/>
 							</Group>
 							<Group gap="xs">
-								<Badge
+								<BoolStatusIconBadge
+									value={plugin.has_signature_file}
+									labelTrue="Signature file present"
+									labelFalse="Signature file missing"
+									iconTrue={({ size }) => <IconFileCheck size={size} />}
+									iconFalse={({ size }) => <IconFileX size={size} />}
 									variant="light"
-									color={badgeColor(plugin.has_signature_file)}
-								>
-									{plugin.has_signature_file ? "Signature file" : "No file"}
-								</Badge>
-								<Badge variant="light" color={badgeColor(plugin.signed)}>
-									{plugin.signed ? "Trusted" : "Unsigned"}
-								</Badge>
+								/>
+								<BoolStatusIconBadge
+									value={plugin.signed}
+									labelTrue="Trusted (signed)"
+									labelFalse="Unsigned"
+									iconTrue={({ size }) => <IconShieldCheck size={size} />}
+									iconFalse={({ size }) => <IconShieldX size={size} />}
+									variant="light"
+								/>
 							</Group>
 							<Button
 								variant="light"

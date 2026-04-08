@@ -1,5 +1,4 @@
 import {
-	Badge,
 	Button,
 	Card,
 	Code,
@@ -8,11 +7,11 @@ import {
 	Stack,
 	Text,
 } from "@mantine/core";
-import { IconRefresh } from "@tabler/icons-react";
+import { IconCircleCheck, IconCircleX, IconRefresh } from "@tabler/icons-react";
 import { PageHeader } from "../components/PageHeader";
 import { CodeLine, SetupMessage, StatePanel } from "../components/StatePanel";
+import { BoolStatusIconBadge } from "../components/StatusIconBadge";
 import { type BootstrapState, localSetup } from "../dashboard";
-import { badgeColor } from "../format";
 import type { SetupStatus, StatusResponse } from "../types";
 
 const TRAILING_SLASH_RE = /\/$/;
@@ -38,16 +37,16 @@ function ConnectionPanel({
 		<StatePanel
 			title="Connection"
 			status={
-				<Badge
-					color={badgeColor(
+				<BoolStatusIconBadge
+					value={
 						bootstrap.kind !== "offline" &&
-							bootstrap.kind !== "invalid_api_base",
-					)}
-				>
-					{bootstrap.kind === "offline" || bootstrap.kind === "invalid_api_base"
-						? "Needs attention"
-						: "Available"}
-				</Badge>
+						bootstrap.kind !== "invalid_api_base"
+					}
+					labelTrue="Available"
+					labelFalse="Needs attention"
+					colorTrue="goblue"
+					colorFalse="gray"
+				/>
 			}
 		>
 			<CodeLine label="Browser URL" value={browserURL} />
@@ -96,9 +95,11 @@ function SignInPanel({
 		<StatePanel
 			title="Sign-in"
 			status={
-				<Badge color={badgeColor(setupStatus?.login_ready ?? false)}>
-					{setupStatus?.login_ready ? "Ready" : "Not ready"}
-				</Badge>
+				<BoolStatusIconBadge
+					value={setupStatus?.login_ready ?? false}
+					labelTrue="Ready"
+					labelFalse="Not ready"
+				/>
 			}
 		>
 			<CodeLine label="Dashboard origin" value={resolvedOrigin} />
@@ -112,18 +113,50 @@ function SignInPanel({
 				is not in the Developer Portal Redirect URI allowlist.
 			</Text>
 			<Stack gap="xs">
-				<Badge color={badgeColor(setupStatus?.has_client_id ?? false)}>
-					Client ID
-				</Badge>
-				<Badge color={badgeColor(setupStatus?.has_client_secret ?? false)}>
-					Client secret
-				</Badge>
-				<Badge color={badgeColor(setupStatus?.has_session_secret ?? false)}>
-					Session secret
-				</Badge>
-				<Badge color={badgeColor(setupStatus?.owner_resolved ?? false)}>
-					Owner account
-				</Badge>
+				<Group gap="xs">
+					<BoolStatusIconBadge
+						value={setupStatus?.has_client_id ?? false}
+						labelTrue="Client ID present"
+						labelFalse="Client ID missing"
+						iconTrue={({ size }) => <IconCircleCheck size={size} />}
+						iconFalse={({ size }) => <IconCircleX size={size} />}
+						variant="light"
+					/>
+					<Text size="sm">Client ID</Text>
+				</Group>
+				<Group gap="xs">
+					<BoolStatusIconBadge
+						value={setupStatus?.has_client_secret ?? false}
+						labelTrue="Client secret present"
+						labelFalse="Client secret missing"
+						iconTrue={({ size }) => <IconCircleCheck size={size} />}
+						iconFalse={({ size }) => <IconCircleX size={size} />}
+						variant="light"
+					/>
+					<Text size="sm">Client secret</Text>
+				</Group>
+				<Group gap="xs">
+					<BoolStatusIconBadge
+						value={setupStatus?.has_session_secret ?? false}
+						labelTrue="Session secret present"
+						labelFalse="Session secret missing"
+						iconTrue={({ size }) => <IconCircleCheck size={size} />}
+						iconFalse={({ size }) => <IconCircleX size={size} />}
+						variant="light"
+					/>
+					<Text size="sm">Session secret</Text>
+				</Group>
+				<Group gap="xs">
+					<BoolStatusIconBadge
+						value={setupStatus?.owner_resolved ?? false}
+						labelTrue="Owner resolved"
+						labelFalse="Owner unresolved"
+						iconTrue={({ size }) => <IconCircleCheck size={size} />}
+						iconFalse={({ size }) => <IconCircleX size={size} />}
+						variant="light"
+					/>
+					<Text size="sm">Owner account</Text>
+				</Group>
 			</Stack>
 			<CodeLine
 				label="Owner source"
@@ -154,22 +187,21 @@ function RuntimePanel({
 		<StatePanel
 			title="Runtime"
 			status={
-				<Badge color={badgeColor(setupStatus?.signing_configured ?? false)}>
-					{setupStatus?.signing_configured
-						? "Signing ready"
-						: "Signing optional"}
-				</Badge>
+				<BoolStatusIconBadge
+					value={setupStatus?.signing_configured ?? false}
+					labelTrue="Signing ready"
+					labelFalse="Signing optional"
+				/>
 			}
 		>
 			<Group gap="xs" align="center">
 				<Text size="sm">Trusted keys</Text>
-				<Badge
-					color={badgeColor(setupStatus?.trusted_keys_configured ?? false)}
-				>
-					{setupStatus?.trusted_keys_configured
-						? "Configured"
-						: "Not configured"}
-				</Badge>
+				<BoolStatusIconBadge
+					value={setupStatus?.trusted_keys_configured ?? false}
+					labelTrue="Configured"
+					labelFalse="Not configured"
+					variant="light"
+				/>
 			</Group>
 			{discordStartError ? (
 				<SetupMessage title="Discord connection problem">
