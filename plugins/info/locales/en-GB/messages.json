@@ -40,6 +40,14 @@
     "translation": "Look up this server."
   },
   {
+    "id": "cmd.lookup.sub.guild.opt.guild_id.name",
+    "translation": "guild_id"
+  },
+  {
+    "id": "cmd.lookup.sub.guild.opt.guild_id.desc",
+    "translation": "Optional: look up another server by ID (owner only)."
+  },
+  {
     "id": "cmd.lookup.sub.role.name",
     "translation": "role"
   },
@@ -178,5 +186,17 @@
   {
     "id": "info.lookup.guild.error",
     "translation": "{{.Mommy}} couldn't fetch this server's info, {{.Pet}}."
+  },
+  {
+    "id": "info.lookup.guild.owner_only",
+    "translation": "No, honey. Only my owner can look up other servers."
+  },
+  {
+    "id": "info.lookup.guild.invalid_guild_id",
+    "translation": "That doesn't look like a real guild ID, {{.Pet}}: `{{.GuildID}}`."
+  },
+  {
+    "id": "info.lookup.guild.not_accessible",
+    "translation": "{{.Mommy}} couldn't access guild `{{.GuildID}}`, {{.Pet}}. Is the bot in that server?"
   }
 ]

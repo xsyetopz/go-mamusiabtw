@@ -123,6 +123,7 @@ func (v *VM) routeContextToLua(kind RouteKind, routeID string, payload Payload) 
 	root.RawSetString("channel_id", lua.LString(strings.TrimSpace(payload.ChannelID)))
 	root.RawSetString("user_id", lua.LString(strings.TrimSpace(payload.UserID)))
 	root.RawSetString("locale", lua.LString(strings.TrimSpace(payload.Locale)))
+	root.RawSetString("is_owner", lua.LBool(payload.IsOwner))
 
 	root.RawSetString("guild", v.entityTable(payload.GuildID))
 	root.RawSetString("channel", v.entityTable(payload.ChannelID))

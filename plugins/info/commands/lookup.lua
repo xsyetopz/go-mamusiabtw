@@ -26,6 +26,15 @@ local function guild_subcommand()
     name = "guild",
     description = "Look up this guild.",
     description_id = "cmd.lookup.sub.guild.desc",
+    options = {
+      option.string("guild_id", {
+        description = "Optional: look up another server by ID (owner only).",
+        description_id = "cmd.lookup.sub.guild.opt.guild_id.desc",
+        required = false,
+        min_length = 5,
+        max_length = 32,
+      }),
+    },
   }
 end
 
@@ -144,8 +153,12 @@ local function user_lookup(ctx)
 end
 
 local function guild_lookup(ctx)
-  if shared.trim(ctx.guild.id) == "" then
-    return shared.not_in_guild(i18n)
+  local target_guild_id = shared.trim(ctx.command.args.guild_id)
+  if target_guild_id == "" then
+    if shared.trim(ctx.guild.id) == "" then
+      return shared.not_in_guild(i18n)
+    end
+    target_guild_id = shared.trim(ctx.guild.id)
   end
 
   local ok = ui.defer({ ephemeral = true })
@@ -156,9 +169,17 @@ local function guild_lookup(ctx)
     })
   end
 
-  local guild = bot.discord.get_guild()
+  if target_guild_id:match("^%d+$") == nil then
+    return shared.update_embed(shared.error_embed(i18n.t("info.lookup.guild.invalid_guild_id", { GuildID = target_guild_id }, nil)))
+  end
+
+  if target_guild_id ~= shared.trim(ctx.guild.id) and ctx.is_owner ~= true then
+    return shared.update_embed(shared.error_embed(i18n.t("info.lookup.guild.owner_only", nil, nil)))
+  end
+
+  local guild, guild_err = bot.discord.get_guild({ guild_id = target_guild_id })
   if guild == nil then
-    return error_update("info.lookup.guild.error")
+    return shared.update_embed(shared.error_embed(i18n.t("info.lookup.guild.not_accessible", { GuildID = target_guild_id, Error = tostring(guild_err or "") }, nil)))
   end
 
   local owner = bot.discord.get_user({ user_id = guild.owner_id })
@@ -198,7 +219,7 @@ local function guild_lookup(ctx)
         inline = true,
       },
     },
-    footer = "🆔" .. shared.trim(ctx.guild.id),
+    footer = "🆔" .. shared.trim(target_guild_id),
   }
 
   if owner ~= nil then

@@ -47,6 +47,10 @@ func (d Dispatcher) OnCommand(e *events.ApplicationCommandInteractionCreate) {
 
 	locale := e.Locale()
 	t := commandapi.Translator{Registry: d.I18n, Locale: locale, UserID: uint64(e.User().ID)}
+	isOwner := false
+	if services := d.Services(locale); services.IsOwner != nil {
+		isOwner = services.IsOwner(uint64(e.User().ID))
+	}
 	data := e.Data
 	cmdName := data.CommandName()
 
@@ -80,11 +84,11 @@ func (d Dispatcher) OnCommand(e *events.ApplicationCommandInteractionCreate) {
 
 	switch data.Type() {
 	case discord.ApplicationCommandTypeUser:
-		d.handlePluginUserCommand(ctx, e, t, locale, cmdName, e.UserCommandInteractionData())
+		d.handlePluginUserCommand(ctx, e, t, locale, cmdName, isOwner, e.UserCommandInteractionData())
 	case discord.ApplicationCommandTypeMessage:
-		d.handlePluginMessageCommand(ctx, e, t, locale, cmdName, e.MessageCommandInteractionData())
+		d.handlePluginMessageCommand(ctx, e, t, locale, cmdName, isOwner, e.MessageCommandInteractionData())
 	default:
-		d.handlePluginSlash(ctx, e, t, locale, cmdName, e.SlashCommandInteractionData())
+		d.handlePluginSlash(ctx, e, t, locale, cmdName, isOwner, e.SlashCommandInteractionData())
 	}
 }
 
@@ -109,11 +113,17 @@ func (d Dispatcher) OnAutocomplete(e *events.AutocompleteInteractionCreate) {
 		return
 	}
 
+	isOwner := false
+	if services := d.Services(e.Locale()); services.IsOwner != nil {
+		isOwner = services.IsOwner(uint64(e.User().ID))
+	}
+
 	res, pluginID, err := route.Host.HandleAutocomplete(ctx, cmdName, router.OptionalString(data.SubCommandGroupName), router.OptionalString(data.SubCommandName), strings.TrimSpace(data.Focused().Name), pluginhost.Payload{
 		GuildID:   router.SnowflakePtrToString(e.GuildID()),
 		ChannelID: e.Channel().ID().String(),
 		UserID:    e.User().ID.String(),
 		Locale:    e.Locale().Code(),
+		IsOwner:   isOwner,
 		Options:   router.PluginAutocompleteOptions(data),
 	})
 	if err != nil {
@@ -217,6 +227,7 @@ func (d Dispatcher) handlePluginSlash(
 	t commandapi.Translator,
 	locale discord.Locale,
 	cmdName string,
+	isOwner bool,
 	data discord.SlashCommandInteractionData,
 ) {
 	route, ok := d.PluginCommands[cmdName]
@@ -241,6 +252,7 @@ func (d Dispatcher) handlePluginSlash(
 		ChannelID:   e.Channel().ID().String(),
 		UserID:      e.User().ID.String(),
 		Locale:      locale.Code(),
+		IsOwner:     isOwner,
 		Options:     router.PluginOptions(data),
 		Interaction: interaction,
 	})
@@ -270,6 +282,7 @@ func (d Dispatcher) handlePluginUserCommand(
 	t commandapi.Translator,
 	locale discord.Locale,
 	cmdName string,
+	isOwner bool,
 	data discord.UserCommandInteractionData,
 ) {
 	route, ok := d.PluginUserCommands[cmdName]
@@ -294,6 +307,7 @@ func (d Dispatcher) handlePluginUserCommand(
 		ChannelID:   e.Channel().ID().String(),
 		UserID:      e.User().ID.String(),
 		Locale:      locale.Code(),
+		IsOwner:     isOwner,
 		Options:     router.PluginUserContextOptions(data),
 		Interaction: interaction,
 	})
@@ -323,6 +337,7 @@ func (d Dispatcher) handlePluginMessageCommand(
 	t commandapi.Translator,
 	locale discord.Locale,
 	cmdName string,
+	isOwner bool,
 	data discord.MessageCommandInteractionData,
 ) {
 	route, ok := d.PluginMessageCommands[cmdName]
@@ -347,6 +362,7 @@ func (d Dispatcher) handlePluginMessageCommand(
 		ChannelID:   e.Channel().ID().String(),
 		UserID:      e.User().ID.String(),
 		Locale:      locale.Code(),
+		IsOwner:     isOwner,
 		Options:     router.PluginMessageContextOptions(data),
 		Interaction: interaction,
 	})

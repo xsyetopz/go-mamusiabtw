@@ -27,10 +27,14 @@ return bot.command("8ball", {
       })
     end
 
+    local answer = tostring(random.choice(answers) or "")
+    answer = answer:gsub("%s+$", "")
+    answer = answer:gsub("[%.%!%?]+$", "")
+
     return shared.reply_embed({
       color = shared.colors.fun,
       description = i18n.t("fun.8ball.result", {
-        Answer = random.choice(answers),
+        Answer = answer,
         User = shared.mention(ctx.user.id),
       }, nil),
     })

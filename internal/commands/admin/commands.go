@@ -3,6 +3,8 @@ package admin
 import (
 	"context"
 	"errors"
+	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -421,18 +423,22 @@ func modules() commandapi.SlashCommand {
 func modulesHandle(
 	ctx context.Context,
 	e *events.ApplicationCommandInteractionCreate,
-	_ commandapi.Translator,
+	t commandapi.Translator,
 	s commandapi.Services,
 ) (interactions.SlashAction, error) {
 	actorID := uint64(e.User().ID)
 	if s.IsOwner == nil || !s.IsOwner(actorID) {
 		return interactions.SlashMessage{
-			Create: discord.NewMessageCreate().WithEphemeral(true).WithContent("Only the bot owner can manage modules."),
+			Create: interactions.MessageEmbeds([]discord.Embed{
+				interactions.Embed("", t.S("admin.not_owner", nil), interactions.ThemeColorError),
+			}, true),
 		}, nil
 	}
 	if s.Modules == nil || !s.Modules.Configured() {
 		return interactions.SlashMessage{
-			Create: discord.NewMessageCreate().WithEphemeral(true).WithContent("Modules are not configured."),
+			Create: interactions.MessageEmbeds([]discord.Embed{
+				interactions.Embed("Modules", "Modules are not configured.", interactions.ThemeColorWarning),
+			}, true),
 		}, nil
 	}
 
@@ -447,7 +453,7 @@ func modulesHandle(
 	switch *sub {
 	case "list":
 		return interactions.SlashMessage{
-			Create: discord.NewMessageCreate().WithEphemeral(true).WithContent(formatModuleList(s.Modules.Infos())),
+			Create: interactions.MessageEmbeds([]discord.Embed{modulesListEmbed(s.Modules.Infos())}, true),
 		}, nil
 	case "info":
 		moduleID := strings.TrimSpace(data.String("module"))
@@ -456,96 +462,170 @@ func modulesHandle(
 				continue
 			}
 			return interactions.SlashMessage{
-				Create: discord.NewMessageCreate().WithEphemeral(true).WithContent(formatModuleDetails(info)),
+				Create: interactions.MessageEmbeds([]discord.Embed{moduleInfoEmbed(info)}, true),
 			}, nil
 		}
 		return interactions.SlashMessage{
-			Create: discord.NewMessageCreate().WithEphemeral(true).WithContent("Unknown module: " + moduleID),
+			Create: interactions.MessageEmbeds([]discord.Embed{
+				interactions.Embed("Modules", "Unknown module: `"+moduleID+"`", interactions.ThemeColorWarning),
+			}, true),
 		}, nil
 	case "enable":
 		moduleID := strings.TrimSpace(data.String("module"))
 		if err := s.Modules.SetEnabled(ctx, moduleID, true, actorID); err != nil {
 			return interactions.SlashMessage{
-				Create: discord.NewMessageCreate().WithEphemeral(true).WithContent("Enable failed: " + err.Error()),
+				Create: interactions.MessageEmbeds([]discord.Embed{
+					interactions.Embed("Modules", "Enable failed: "+err.Error(), interactions.ThemeColorError),
+				}, true),
 			}, nil
 		}
 		return interactions.SlashMessage{
-			Create: discord.NewMessageCreate().WithEphemeral(true).WithContent("Enabled module: " + moduleID),
+			Create: interactions.MessageEmbeds([]discord.Embed{
+				interactions.Embed("Modules", "Enabled: `"+moduleID+"`", interactions.ThemeColorSuccess),
+			}, true),
 		}, nil
 	case "disable":
 		moduleID := strings.TrimSpace(data.String("module"))
 		if err := s.Modules.SetEnabled(ctx, moduleID, false, actorID); err != nil {
 			return interactions.SlashMessage{
-				Create: discord.NewMessageCreate().WithEphemeral(true).WithContent("Disable failed: " + err.Error()),
+				Create: interactions.MessageEmbeds([]discord.Embed{
+					interactions.Embed("Modules", "Disable failed: "+err.Error(), interactions.ThemeColorError),
+				}, true),
 			}, nil
 		}
 		return interactions.SlashMessage{
-			Create: discord.NewMessageCreate().WithEphemeral(true).WithContent("Disabled module: " + moduleID),
+			Create: interactions.MessageEmbeds([]discord.Embed{
+				interactions.Embed("Modules", "Disabled: `"+moduleID+"`", interactions.ThemeColorWarning),
+			}, true),
 		}, nil
 	case "reset":
 		moduleID := strings.TrimSpace(data.String("module"))
 		if err := s.Modules.Reset(ctx, moduleID); err != nil {
 			return interactions.SlashMessage{
-				Create: discord.NewMessageCreate().WithEphemeral(true).WithContent("Reset failed: " + err.Error()),
+				Create: interactions.MessageEmbeds([]discord.Embed{
+					interactions.Embed("Modules", "Reset failed: "+err.Error(), interactions.ThemeColorError),
+				}, true),
 			}, nil
 		}
 		return interactions.SlashMessage{
-			Create: discord.NewMessageCreate().WithEphemeral(true).WithContent("Reset module to default: " + moduleID),
+			Create: interactions.MessageEmbeds([]discord.Embed{
+				interactions.Embed("Modules", "Reset to default: `"+moduleID+"`", interactions.ThemeColorSuccess),
+			}, true),
 		}, nil
 	case "reload":
 		if err := s.Modules.Reload(ctx); err != nil {
 			return interactions.SlashMessage{
-				Create: discord.NewMessageCreate().WithEphemeral(true).WithContent("Reload failed: " + err.Error()),
+				Create: interactions.MessageEmbeds([]discord.Embed{
+					interactions.Embed("Modules", "Reload failed: "+err.Error(), interactions.ThemeColorError),
+				}, true),
 			}, nil
 		}
 		return interactions.SlashMessage{
-			Create: discord.NewMessageCreate().WithEphemeral(true).WithContent("Reloaded modules."),
+			Create: interactions.MessageEmbeds([]discord.Embed{
+				interactions.Embed("Modules", "Reloaded.", interactions.ThemeColorSuccess),
+			}, true),
 		}, nil
 	default:
 		return interactions.SlashMessage{
-			Create: discord.NewMessageCreate().WithEphemeral(true).WithContent("Unknown subcommand."),
+			Create: interactions.MessageEmbeds([]discord.Embed{
+				interactions.Embed("Modules", "Unknown subcommand.", interactions.ThemeColorError),
+			}, true),
 		}, nil
 	}
 }
 
-func formatModuleList(infos []commandapi.ModuleInfo) string {
+func modulesListEmbed(infos []commandapi.ModuleInfo) discord.Embed {
 	if len(infos) == 0 {
-		return "No modules are loaded."
+		return interactions.Embed("Modules", "No modules are loaded.", interactions.ThemeColorBrand)
 	}
 
-	lines := make([]string, 0, len(infos)+1)
-	lines = append(lines, "Loaded modules:")
+	sort.Slice(infos, func(i, j int) bool { return infos[i].ID < infos[j].ID })
+
+	builtins := []string{}
+	official := []string{}
+	user := []string{}
+
 	for _, info := range infos {
-		state := "disabled"
+		prefix := "⛔"
 		if info.Enabled {
-			state = "enabled"
+			prefix = "✅"
 		}
-		toggle := "fixed"
-		if info.Toggleable {
-			toggle = "toggleable"
+		lock := ""
+		if !info.Toggleable {
+			lock = " 🔒"
 		}
-		lines = append(lines, "- "+info.ID+" ["+string(info.Kind)+", "+string(info.Runtime)+", "+state+", "+toggle+"]")
+		line := prefix + " " + info.ID + lock
+
+		switch info.Kind {
+		case commandapi.ModuleKindCoreBuiltin:
+			builtins = append(builtins, line)
+		case commandapi.ModuleKindOfficialPlugin:
+			official = append(official, line)
+		case commandapi.ModuleKindUserPlugin:
+			user = append(user, line)
+		default:
+			user = append(user, line)
+		}
 	}
-	return strings.Join(lines, "\n")
+
+	e := interactions.Embed("Modules", fmt.Sprintf("Loaded: %d", len(infos)), interactions.ThemeColorBrand)
+	e.Fields = append(e.Fields, interactions.EmbedFieldChunked("Built-ins", builtins, false)...)
+	e.Fields = append(e.Fields, interactions.EmbedFieldChunked("Official plugins", official, false)...)
+	e.Fields = append(e.Fields, interactions.EmbedFieldChunked("User plugins", user, false)...)
+	return e
 }
 
-func formatModuleDetails(info commandapi.ModuleInfo) string {
-	commands := "none"
-	if len(info.Commands) != 0 {
-		commands = strings.Join(info.Commands, ", ")
+func moduleInfoEmbed(info commandapi.ModuleInfo) discord.Embed {
+	title := strings.TrimSpace(info.Name)
+	if title == "" {
+		title = info.ID
 	}
-	return strings.Join([]string{
-		"Module: " + info.ID,
-		"Name: " + info.Name,
-		"Kind: " + string(info.Kind),
-		"Runtime: " + string(info.Runtime),
-		"Enabled: " + strconv.FormatBool(info.Enabled),
-		"Default enabled: " + strconv.FormatBool(info.DefaultEnabled),
-		"Toggleable: " + strconv.FormatBool(info.Toggleable),
-		"Signed: " + strconv.FormatBool(info.Signed),
-		"Source: " + info.Source,
-		"Commands: " + commands,
-	}, "\n")
+	e := interactions.Embed(title, "Module: `"+info.ID+"`", interactions.ThemeColorBrand)
+
+	state := "⛔ disabled"
+	color := interactions.ThemeColorWarning
+	if info.Enabled {
+		state = "✅ enabled"
+		color = interactions.ThemeColorSuccess
+	}
+	e.Color = color
+
+	sig := "⚠️ unsigned"
+	if info.Signed {
+		sig = "🔏 signed"
+	}
+
+	e.Fields = []discord.EmbedField{
+		{Name: "State", Value: state, Inline: interactions.Bool(true)},
+		{Name: "Kind", Value: string(info.Kind), Inline: interactions.Bool(true)},
+		{Name: "Runtime", Value: string(info.Runtime), Inline: interactions.Bool(true)},
+		{Name: "Signed", Value: sig, Inline: interactions.Bool(true)},
+		{Name: "Toggleable", Value: strconv.FormatBool(info.Toggleable), Inline: interactions.Bool(true)},
+		{Name: "Default", Value: strconv.FormatBool(info.DefaultEnabled), Inline: interactions.Bool(true)},
+	}
+
+	if len(info.Commands) == 0 {
+		e.Fields = append(e.Fields, discord.EmbedField{Name: "Commands", Value: "none"})
+	} else {
+		cmdLines := make([]string, 0, len(info.Commands))
+		for _, cmd := range info.Commands {
+			cmd = strings.TrimSpace(cmd)
+			if cmd == "" {
+				continue
+			}
+			if strings.HasPrefix(cmd, "/") {
+				cmdLines = append(cmdLines, "`"+cmd+"`")
+			} else {
+				cmdLines = append(cmdLines, "`/"+cmd+"`")
+			}
+		}
+		e.Fields = append(e.Fields, interactions.EmbedFieldChunked("Commands", cmdLines, false)...)
+	}
+
+	if src := strings.TrimSpace(info.Source); src != "" {
+		e.Footer = &discord.EmbedFooter{Text: src}
+	}
+	return e
 }
 
 func pluginsCreateCommand(locales []string, t commandapi.Translator) discord.ApplicationCommandCreate {
@@ -586,14 +666,16 @@ func pluginsHandle(
 	actorID := uint64(e.User().ID)
 	if s.IsOwner == nil || !s.IsOwner(actorID) {
 		return interactions.SlashMessage{
-			Create: discord.NewMessageCreate().WithEphemeral(true).WithContent(t.S("admin.not_owner", nil)),
+			Create: interactions.MessageEmbeds([]discord.Embed{
+				interactions.Embed("", t.S("admin.not_owner", nil), interactions.ThemeColorError),
+			}, true),
 		}, nil
 	}
 	if s.Plugins == nil || !s.Plugins.Configured() {
 		return interactions.SlashMessage{
-			Create: discord.NewMessageCreate().
-				WithEphemeral(true).
-				WithContent(t.S("admin.plugins.not_configured", nil)),
+			Create: interactions.MessageEmbeds([]discord.Embed{
+				interactions.Embed("Plugins", t.S("admin.plugins.not_configured", nil), interactions.ThemeColorWarning),
+			}, true),
 		}, nil
 	}
 
@@ -613,7 +695,9 @@ func pluginsHandle(
 			return nil, err
 		}
 		return interactions.SlashMessage{
-			Create: discord.NewMessageCreate().WithEphemeral(true).WithContent(t.S("admin.plugins.reloaded", nil)),
+			Create: interactions.MessageEmbeds([]discord.Embed{
+				interactions.Embed("Plugins", t.S("admin.plugins.reloaded", nil), interactions.ThemeColorSuccess),
+			}, true),
 		}, nil
 	default:
 		return interactions.SlashMessage{
@@ -626,7 +710,9 @@ func pluginsHandleList(t commandapi.Translator, p commandapi.PluginAdmin) intera
 	infos := p.Infos()
 	if len(infos) == 0 {
 		return interactions.SlashMessage{
-			Create: discord.NewMessageCreate().WithEphemeral(true).WithContent(t.S("admin.plugins.none", nil)),
+			Create: interactions.MessageEmbeds([]discord.Embed{
+				interactions.Embed("Plugins", t.S("admin.plugins.none", nil), interactions.ThemeColorBrand),
+			}, true),
 		}
 	}
 
@@ -636,27 +722,32 @@ func pluginsHandleList(t commandapi.Translator, p commandapi.PluginAdmin) intera
 	}
 
 	return interactions.SlashMessage{
-		Create: discord.NewMessageCreate().WithEphemeral(true).WithContent(t.S("admin.plugins.list", map[string]any{
-			"Count": len(infos),
-			"List":  strings.Join(lines, "\n"),
-		})),
+		Create: interactions.MessageEmbeds([]discord.Embed{
+			pluginsListEmbed(t, lines, len(infos)),
+		}, true),
 	}
 }
 
 func formatPluginInfoLine(info pluginhost.PluginInfo) string {
-	cmdNames := make([]string, 0, len(info.Commands))
-	for _, cmd := range info.Commands {
-		if strings.TrimSpace(cmd.Name) != "" {
-			cmdNames = append(cmdNames, cmd.Name)
-		}
-	}
-
-	sig := "unsigned"
+	sig := "⚠️"
 	if info.Signed {
-		sig = "signed"
+		sig = "🔏"
 	}
 
-	name := strings.TrimSpace(info.Name)
 	version := strings.TrimSpace(info.Version)
-	return "- " + info.ID + " (" + name + " " + version + ", " + sig + ") cmds: " + strings.Join(cmdNames, ", ")
+	if version == "" {
+		version = "dev"
+	}
+	return sig + " " + info.ID + " " + version + " · " + strconv.Itoa(len(info.Commands)) + " cmds"
+}
+
+func pluginsListEmbed(t commandapi.Translator, lines []string, count int) discord.Embed {
+	sort.Strings(lines)
+	desc := strings.TrimSpace(t.S("admin.plugins.list", map[string]any{
+		"Count": count,
+		"List":  "",
+	}))
+	e := interactions.Embed("Plugins", desc, interactions.ThemeColorBrand)
+	e.Fields = interactions.EmbedFieldChunked("\u200b", lines, false)
+	return e
 }

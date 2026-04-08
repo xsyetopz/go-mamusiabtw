@@ -125,6 +125,7 @@ type Payload struct {
 	ChannelID   string
 	UserID      string
 	Locale      string
+	IsOwner     bool
 	Options     map[string]any
 	Interaction Interaction
 }

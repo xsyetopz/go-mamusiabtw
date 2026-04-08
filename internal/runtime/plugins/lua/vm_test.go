@@ -977,6 +977,66 @@ func TestInfoPluginRoutes(t *testing.T) {
 		t.Fatalf("expected lookup guild defer, got %+v", interaction)
 	}
 
+	interaction = &fakeInteraction{}
+	got, hasValue, err = vm.CallRoute(ctx, luaplugin.RouteCommand, "lookup", luaplugin.Payload{
+		GuildID:     "777",
+		ChannelID:   "555",
+		UserID:      "42",
+		Locale:      "en-US",
+		Interaction: interaction,
+		Options: map[string]any{
+			"__subcommand": "guild",
+			"guild_id":     "999",
+		},
+	})
+	if err != nil {
+		t.Fatalf("CallRoute(lookup guild other): %v", err)
+	}
+	if !hasValue {
+		t.Fatalf("expected lookup guild other value")
+	}
+	if interaction.deferCalls != 1 {
+		t.Fatalf("expected lookup guild other defer, got %+v", interaction)
+	}
+	otherMap, ok := got.(map[string]any)
+	if !ok || otherMap["type"] != "update" || otherMap["__deferred"] != true {
+		t.Fatalf("expected deferred update response, got %#v", got)
+	}
+	otherEmbeds, ok := otherMap["embeds"].([]any)
+	if !ok || len(otherEmbeds) != 1 {
+		t.Fatalf("expected lookup guild other embeds, got %#v", otherMap)
+	}
+	otherEmbed, ok := otherEmbeds[0].(map[string]any)
+	if !ok {
+		t.Fatalf("expected lookup guild other embed object, got %#v", otherEmbeds[0])
+	}
+	if desc, _ := otherEmbed["description"].(string); !strings.Contains(desc, "Only my owner") {
+		t.Fatalf("expected owner-only description, got %#v", otherEmbed)
+	}
+
+	interaction = &fakeInteraction{}
+	got, hasValue, err = vm.CallRoute(ctx, luaplugin.RouteCommand, "lookup", luaplugin.Payload{
+		GuildID:     "777",
+		ChannelID:   "555",
+		UserID:      "42",
+		Locale:      "en-US",
+		IsOwner:     true,
+		Interaction: interaction,
+		Options: map[string]any{
+			"__subcommand": "guild",
+			"guild_id":     "999",
+		},
+	})
+	if err != nil {
+		t.Fatalf("CallRoute(lookup guild other owner): %v", err)
+	}
+	if !hasValue {
+		t.Fatalf("expected lookup guild other owner value")
+	}
+	if interaction.deferCalls != 1 {
+		t.Fatalf("expected lookup guild other owner defer, got %+v", interaction)
+	}
+
 	got, hasValue, err = vm.CallRoute(ctx, luaplugin.RouteCommand, "lookup", luaplugin.Payload{
 		GuildID:   "777",
 		ChannelID: "555",

@@ -160,6 +160,7 @@ type Payload struct {
 	ChannelID   string
 	UserID      string
 	Locale      string
+	IsOwner     bool
 	Options     map[string]any
 	Interaction luaplugin.Interaction
 }
@@ -654,6 +655,7 @@ func (m *Host) handleCommand(ctx context.Context, kind, cmdName string, payload 
 			ChannelID:   payload.ChannelID,
 			UserID:      payload.UserID,
 			Locale:      payload.Locale,
+			IsOwner:     payload.IsOwner,
 			Options:     payload.Options,
 			Interaction: payload.Interaction,
 		})
@@ -663,6 +665,7 @@ func (m *Host) handleCommand(ctx context.Context, kind, cmdName string, payload 
 			ChannelID: payload.ChannelID,
 			UserID:    payload.UserID,
 			Locale:    payload.Locale,
+			IsOwner:   payload.IsOwner,
 			Options:   payload.Options,
 		})
 	}
@@ -724,6 +727,7 @@ func (m *Host) HandleAutocomplete(
 		ChannelID:   payload.ChannelID,
 		UserID:      payload.UserID,
 		Locale:      payload.Locale,
+		IsOwner:     payload.IsOwner,
 		Options:     payload.Options,
 		Interaction: payload.Interaction,
 	})
@@ -746,6 +750,7 @@ func (m *Host) HandleComponent(ctx context.Context, pluginID, localID string, pa
 			ChannelID: payload.ChannelID,
 			UserID:    payload.UserID,
 			Locale:    payload.Locale,
+			IsOwner:   payload.IsOwner,
 			Options:   payload.Options,
 		})
 	}
@@ -759,6 +764,7 @@ func (m *Host) HandleComponent(ctx context.Context, pluginID, localID string, pa
 		ChannelID: payload.ChannelID,
 		UserID:    payload.UserID,
 		Locale:    payload.Locale,
+		IsOwner:   payload.IsOwner,
 		Options:   payload.Options,
 	})
 }
@@ -779,6 +785,7 @@ func (m *Host) HandleModal(ctx context.Context, pluginID, localID string, payloa
 			ChannelID: payload.ChannelID,
 			UserID:    payload.UserID,
 			Locale:    payload.Locale,
+			IsOwner:   payload.IsOwner,
 			Options:   payload.Options,
 		})
 	}
@@ -792,6 +799,7 @@ func (m *Host) HandleModal(ctx context.Context, pluginID, localID string, payloa
 		ChannelID: payload.ChannelID,
 		UserID:    payload.UserID,
 		Locale:    payload.Locale,
+		IsOwner:   payload.IsOwner,
 		Options:   payload.Options,
 	})
 }
@@ -812,6 +820,7 @@ func (m *Host) HandleEvent(ctx context.Context, pluginID, eventName string, payl
 			ChannelID: payload.ChannelID,
 			UserID:    payload.UserID,
 			Locale:    payload.Locale,
+			IsOwner:   payload.IsOwner,
 			Options:   payload.Options,
 		})
 	}
@@ -825,6 +834,7 @@ func (m *Host) HandleEvent(ctx context.Context, pluginID, eventName string, payl
 		ChannelID: payload.ChannelID,
 		UserID:    payload.UserID,
 		Locale:    payload.Locale,
+		IsOwner:   payload.IsOwner,
 		Options:   payload.Options,
 	})
 }
@@ -845,6 +855,7 @@ func (m *Host) HandleJob(ctx context.Context, pluginID, jobID string, payload Pa
 			ChannelID: payload.ChannelID,
 			UserID:    payload.UserID,
 			Locale:    payload.Locale,
+			IsOwner:   payload.IsOwner,
 			Options:   payload.Options,
 		})
 	}
@@ -858,6 +869,7 @@ func (m *Host) HandleJob(ctx context.Context, pluginID, jobID string, payload Pa
 		ChannelID: payload.ChannelID,
 		UserID:    payload.UserID,
 		Locale:    payload.Locale,
+		IsOwner:   payload.IsOwner,
 		Options:   payload.Options,
 	})
 }

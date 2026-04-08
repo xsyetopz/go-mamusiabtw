@@ -73,11 +73,26 @@ func help() commandapi.SlashCommand {
 			if s.HelpNames != nil {
 				names = s.HelpNames(t.Locale)
 			}
+
+			lines := make([]string, 0, len(names))
+			for _, name := range names {
+				name = strings.TrimSpace(name)
+				if name == "" {
+					continue
+				}
+				if strings.HasPrefix(name, "/") {
+					lines = append(lines, "• "+name)
+				} else {
+					lines = append(lines, "• /"+name)
+				}
+			}
+
 			content := t.S("cmd.help.content", map[string]any{
-				"Commands": strings.Join(names, ", "),
+				"Commands": strings.Join(lines, "\n"),
 			})
+			embed := interactions.Embed("Help", content, interactions.ThemeColorBrand)
 			return interactions.SlashMessage{
-				Create: discord.NewMessageCreate().WithEphemeral(true).WithContent(content),
+				Create: interactions.MessageEmbeds([]discord.Embed{embed}, true),
 			}, nil
 		},
 	}
