@@ -46,6 +46,13 @@ const theme = createTheme({
 		xl: "1.75rem",
 	},
 	components: {
+		Text: {
+			// Mantine Text defaults to <p>, which cannot contain some Mantine
+			// components that render block-level <div> (hydration warnings).
+			defaultProps: {
+				component: "div",
+			},
+		},
 		Button: {
 			defaultProps: {
 				radius: "md",
@@ -73,6 +80,8 @@ const root = document.getElementById("root");
 if (!root) {
 	throw new Error('Missing root element with id="root".');
 }
+// TS control-flow narrowing does not always carry into nested async functions.
+const rootEl = root;
 
 const TRAILING_SLASH_RE = /\/$/;
 
@@ -120,7 +129,7 @@ async function loadDashboardConfig() {
 
 async function bootstrap() {
 	await loadDashboardConfig();
-	ReactDOM.createRoot(root).render(
+	ReactDOM.createRoot(rootEl).render(
 		<React.StrictMode>
 			<MantineProvider
 				theme={theme}

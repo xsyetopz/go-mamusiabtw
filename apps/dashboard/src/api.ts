@@ -27,20 +27,34 @@ function looksLikeHTML(text: string): boolean {
 	return head.startsWith("<!doctype") || head.startsWith("<html");
 }
 
+function requestHeaders(init?: RequestInit): HeadersInit {
+	const method = String(init?.method ?? "GET").toUpperCase();
+	const isSafeMethod = method === "GET" || method === "HEAD";
+
+	// Avoid forcing a JSON Content-Type on safe requests.
+	// `Content-Type: application/json` turns even a GET into a CORS preflight,
+	// which is needless noise in dev and makes misconfigurations feel worse.
+	const base: HeadersInit = isSafeMethod
+		? {}
+		: { "Content-Type": "application/json" };
+	return {
+		...base,
+		...(init?.headers ?? {}),
+	};
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
 	const url =
 		apiBase && path.startsWith("/")
 			? apiBase.replace(TRAILING_SLASH_RE, "") + path
 			: path;
+
 	let response: Response;
 	try {
 		response = await fetch(url, {
 			credentials: "include",
 			...init,
-			headers: {
-				"Content-Type": "application/json",
-				...(init?.headers ?? {}),
-			},
+			headers: requestHeaders(init),
 		});
 	} catch {
 		throw new APIError("Could not reach the admin API.", 0);
