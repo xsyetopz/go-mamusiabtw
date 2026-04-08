@@ -226,6 +226,23 @@ html[data-mantine-color-scheme="dark"] .mantine-AppShell-main {
   vertical-align: top;
 }
 
+.tabs-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 2px;
+}
+
+.tabs-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.tabs-scroll .mantine-Tabs-tab {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
 @media (max-width: 768px) {
   .site-header-inner {
     align-items: flex-start;

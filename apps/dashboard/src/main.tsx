@@ -9,6 +9,7 @@ import ReactDOM from "react-dom/client";
 import { App } from "./App";
 import { setAPIBase, setAPIBaseError } from "./api";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { DeveloperDetailsProvider } from "./developerDetails";
 import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
 import "./styles.css";
@@ -138,9 +139,11 @@ async function bootstrap() {
 				defaultColorScheme="auto"
 			>
 				<Notifications />
-				<ErrorBoundary>
-					<App />
-				</ErrorBoundary>
+				<DeveloperDetailsProvider>
+					<ErrorBoundary>
+						<App />
+					</ErrorBoundary>
+				</DeveloperDetailsProvider>
 			</MantineProvider>
 		</React.StrictMode>,
 	);

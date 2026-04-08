@@ -57,8 +57,8 @@ export function PageHeader({
 								variant="default"
 								size="sm"
 								leftSection={item.icon}
-								disabled={item.disabled}
-								loading={item.loading}
+								disabled={item.disabled ?? false}
+								loading={item.loading ?? false}
 								onClick={item.onClick}
 							>
 								{item.label}
@@ -95,7 +95,7 @@ export function PageHeader({
 										<Menu.Item
 											key={item.key}
 											leftSection={item.icon}
-											disabled={item.disabled}
+											disabled={item.disabled ?? false}
 											onClick={item.onClick}
 										>
 											{item.label}

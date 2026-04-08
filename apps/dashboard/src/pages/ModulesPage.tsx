@@ -2,6 +2,7 @@ import {
 	Badge,
 	Button,
 	Card,
+	Code,
 	Group,
 	SimpleGrid,
 	Stack,
@@ -9,7 +10,9 @@ import {
 	Text,
 } from "@mantine/core";
 import { IconRefresh } from "@tabler/icons-react";
+import { CopyIconButton } from "../components/CopyIconButton";
 import { PageHeader } from "../components/PageHeader";
+import { useDeveloperDetails } from "../developerDetails";
 import { badgeColor, kindLabel } from "../format";
 import type { ModuleInfo } from "../types";
 
@@ -30,6 +33,8 @@ export function ModulesPage({
 	onDisable,
 	onReset,
 }: Props) {
+	const { enabled: devDetailsEnabled } = useDeveloperDetails();
+
 	return (
 		<Stack gap="md">
 			<PageHeader
@@ -64,9 +69,15 @@ export function ModulesPage({
 								<Table.Td>
 									<Stack gap={1}>
 										<Text fw={600}>{module.name || module.id}</Text>
-										<Text size="xs" c="dimmed">
-											{module.id}
-										</Text>
+										{devDetailsEnabled ? (
+											<Group gap="xs">
+												<Code>{module.id}</Code>
+												<CopyIconButton
+													value={module.id}
+													label="Copy module ID"
+												/>
+											</Group>
+										) : null}
 									</Stack>
 								</Table.Td>
 								<Table.Td>{kindLabel(module.kind)}</Table.Td>
@@ -124,6 +135,15 @@ export function ModulesPage({
 									<Text size="xs" c="dimmed">
 										{kindLabel(module.kind)} · {module.runtime}
 									</Text>
+									{devDetailsEnabled ? (
+										<Group gap="xs">
+											<Code>{module.id}</Code>
+											<CopyIconButton
+												value={module.id}
+												label="Copy module ID"
+											/>
+										</Group>
+									) : null}
 								</Stack>
 								<Badge color={badgeColor(module.enabled)}>
 									{module.enabled ? "Enabled" : "Disabled"}

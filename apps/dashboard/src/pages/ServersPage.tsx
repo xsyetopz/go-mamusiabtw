@@ -3,6 +3,7 @@ import {
 	Badge,
 	Button,
 	Card,
+	Code,
 	Group,
 	Loader,
 	SimpleGrid,
@@ -14,7 +15,9 @@ import {
 	IconExternalLink,
 	IconRefresh,
 } from "@tabler/icons-react";
+import { CopyIconButton } from "../components/CopyIconButton";
 import { PageHeader } from "../components/PageHeader";
+import { useDeveloperDetails } from "../developerDetails";
 import { badgeColor } from "../format";
 import type { AuthMe, GuildSummary } from "../types";
 
@@ -37,6 +40,8 @@ export function ServersPage({
 	onInviteBot,
 	onOpenGuild,
 }: Props) {
+	const { enabled: devDetailsEnabled } = useDeveloperDetails();
+
 	if (!me) {
 		return (
 			<Stack gap="lg">
@@ -106,6 +111,18 @@ export function ServersPage({
 									/>
 									<Stack gap={2}>
 										<Text fw={700}>{guild.name}</Text>
+										{devDetailsEnabled ? (
+											<Group gap="xs">
+												<Text size="xs" c="dimmed">
+													ID
+												</Text>
+												<Code>{guild.id}</Code>
+												<CopyIconButton
+													value={guild.id}
+													label="Copy server ID"
+												/>
+											</Group>
+										) : null}
 									</Stack>
 								</Group>
 								<Badge color={badgeColor(guild.bot_installed)}>

@@ -1,10 +1,9 @@
 import {
 	Accordion,
-	ActionIcon,
 	Badge,
 	Button,
 	Card,
-	CopyButton,
+	Code,
 	Divider,
 	FileInput,
 	Group,
@@ -19,12 +18,10 @@ import {
 	Text,
 	Textarea,
 	TextInput,
-	Tooltip,
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import {
 	IconArrowLeft,
-	IconCheck,
 	IconCopy,
 	IconExternalLink,
 	IconRefresh,
@@ -37,8 +34,10 @@ import {
 	useState,
 } from "react";
 import { get, post } from "../api";
+import { CopyIconButton } from "../components/CopyIconButton";
 import { MetricCard } from "../components/MetricCard";
-import { PageHeader } from "../components/PageHeader";
+import { PageHeader, type SecondaryAction } from "../components/PageHeader";
+import { useDeveloperDetails } from "../developerDetails";
 import { badgeColor } from "../format";
 import type {
 	AuthMe,
@@ -68,17 +67,207 @@ type Props = {
 	onInstall: (guildID: string) => void;
 };
 
-export function ServerDashboardPage({
-	me,
+type LoadedProps = {
+	guildDashboard: GuildDashboard;
+	guildID: string;
+	csrfToken: string;
+	loading: boolean;
+	onBack: () => void;
+	onRefresh: () => void;
+	onInstall: (guildID: string) => void;
+};
+
+export function ServerDashboardPage(props: Props) {
+	const { me, guildDashboard, loading, onLogin, onBack } = props;
+
+	if (!me) {
+		return (
+			<Stack gap="lg">
+				<PageHeader
+					title="Server"
+					subtitle="Sign in to open this server dashboard."
+				/>
+				<Card className="panel-card" withBorder={true}>
+					<Stack gap="sm">
+						<Text fw={700}>Discord sign-in required</Text>
+						<Text size="sm" c="dimmed">
+							Sign in first, then come back to this server dashboard.
+						</Text>
+						<Group>
+							<Button onClick={onLogin}>Sign in with Discord</Button>
+						</Group>
+					</Stack>
+				</Card>
+			</Stack>
+		);
+	}
+
+	if (loading && !guildDashboard) {
+		return (
+			<Group justify="center" py="xl">
+				<Loader color="goblue" />
+			</Group>
+		);
+	}
+
+	if (!guildDashboard) {
+		return (
+			<Stack gap="lg">
+				<PageHeader
+					title="Server"
+					subtitle="This server could not be loaded."
+				/>
+				<Card className="panel-card" withBorder={true}>
+					<Stack gap="sm">
+						<Text size="sm" c="dimmed">
+							The server is not available in the current session or you do not
+							have access to it.
+						</Text>
+						<Group>
+							<Button
+								variant="default"
+								leftSection={<IconArrowLeft size={16} />}
+								onClick={onBack}
+							>
+								Back to servers
+							</Button>
+						</Group>
+					</Stack>
+				</Card>
+			</Stack>
+		);
+	}
+
+	return (
+		<ServerDashboardLoaded
+			guildDashboard={guildDashboard}
+			guildID={props.guildID}
+			csrfToken={props.csrfToken}
+			loading={props.loading}
+			onBack={props.onBack}
+			onRefresh={props.onRefresh}
+			onInstall={props.onInstall}
+		/>
+	);
+}
+
+type ActiveTab = "manager" | "moderation" | "fun" | "info" | "wellness";
+
+function buildHeaderSecondaryActions({
+	loading,
+	onBack,
+	onRefresh,
+	devDetailsEnabled,
+	onCopyServerID,
+}: {
+	loading: boolean;
+	onBack: () => void;
+	onRefresh: () => void;
+	devDetailsEnabled: boolean;
+	onCopyServerID: () => void;
+}): SecondaryAction[] {
+	const base: SecondaryAction[] = [
+		{
+			key: "back",
+			label: "Back",
+			icon: <IconArrowLeft size={16} />,
+			onClick: onBack,
+		},
+		{
+			key: "refresh",
+			label: "Refresh",
+			icon: <IconRefresh size={16} />,
+			onClick: onRefresh,
+			loading,
+		},
+	];
+	if (!devDetailsEnabled) {
+		return base;
+	}
+	return [
+		...base,
+		{
+			key: "copy_server_id",
+			label: "Copy server ID",
+			icon: <IconCopy size={16} />,
+			onClick: onCopyServerID,
+		},
+	];
+}
+
+function SetupChecksCard({
+	checks,
+}: {
+	checks: GuildDashboard["setup_checks"];
+}) {
+	const failing = checks.filter((check) => !check.ok);
+	const ok = checks.filter((check) => check.ok);
+	const allOK = failing.length === 0;
+
+	return (
+		<Card className="panel-card" withBorder={true}>
+			<Stack gap="sm">
+				<Group justify="space-between" align="flex-start">
+					<Stack gap={2}>
+						<Text fw={700}>Setup checks</Text>
+						<Text size="sm" c="dimmed">
+							{allOK ? "All checks OK." : "A few items need attention."}
+						</Text>
+					</Stack>
+					<Badge color={badgeColor(allOK)} w="fit-content">
+						{allOK ? "OK" : `${failing.length} need attention`}
+					</Badge>
+				</Group>
+
+				{failing.length > 0 ? (
+					<Stack gap="xs">
+						{failing.map((check) => (
+							<Card key={check.id} className="nested-panel" withBorder={true}>
+								<Stack gap={4}>
+									<Group justify="space-between">
+										<Text fw={600}>{check.label}</Text>
+										<Badge color="gray">Action needed</Badge>
+									</Group>
+									<Text size="sm" c="dimmed">
+										{check.message}
+									</Text>
+								</Stack>
+							</Card>
+						))}
+					</Stack>
+				) : null}
+
+				{ok.length > 0 ? (
+					<Accordion variant="contained">
+						<Accordion.Item value="ok">
+							<Accordion.Control>OK ({ok.length})</Accordion.Control>
+							<Accordion.Panel>
+								<Stack gap="xs">
+									{ok.map((check) => (
+										<Group key={check.id} justify="space-between">
+											<Text size="sm">{check.label}</Text>
+											<Badge color={badgeColor(true)}>OK</Badge>
+										</Group>
+									))}
+								</Stack>
+							</Accordion.Panel>
+						</Accordion.Item>
+					</Accordion>
+				) : null}
+			</Stack>
+		</Card>
+	);
+}
+
+function ServerDashboardLoaded({
 	guildDashboard,
 	guildID,
 	csrfToken,
 	loading,
-	onLogin,
 	onBack,
 	onRefresh,
 	onInstall,
-}: Props) {
+}: LoadedProps) {
 	const [savingPlugin, setSavingPlugin] = useState<string | null>(null);
 	const [channels, setChannels] = useState<GuildChannelInfo[]>([]);
 	const [roles, setRoles] = useState<GuildRoleInfo[]>([]);
@@ -137,6 +326,10 @@ export function ServerDashboardPage({
 	const [stickerEditName, setStickerEditName] = useState("");
 	const [stickerEditDescription, setStickerEditDescription] = useState("");
 	const [stickerDeleteID, setStickerDeleteID] = useState("");
+
+	const { enabled: devDetailsEnabled } = useDeveloperDetails();
+
+	const [activeTab, setActiveTab] = useState<ActiveTab>("manager");
 
 	const refreshAssets = useCallback(async () => {
 		setAssetsLoading(true);
@@ -222,19 +415,19 @@ export function ServerDashboardPage({
 	}, [guildDashboard]);
 
 	useEffect(() => {
-		if (!(me && guildDashboard?.guild.bot_installed)) {
+		if (!guildDashboard.guild.bot_installed) {
 			return;
 		}
 		refreshAssets().catch(() => undefined);
-	}, [guildDashboard?.guild.bot_installed, me, refreshAssets]);
+	}, [guildDashboard.guild.bot_installed, refreshAssets]);
 
 	useEffect(() => {
-		if (!me || selectedMemberID === "") {
+		if (selectedMemberID === "") {
 			setWarnings([]);
 			return;
 		}
 		refreshWarnings(selectedMemberID).catch(() => undefined);
-	}, [me, refreshWarnings, selectedMemberID]);
+	}, [refreshWarnings, selectedMemberID]);
 
 	const channelOptions = useMemo(
 		() =>
@@ -266,63 +459,36 @@ export function ServerDashboardPage({
 		[stickers],
 	);
 
-	if (!me) {
-		return (
-			<Stack gap="lg">
-				<PageHeader
-					title="Server"
-					subtitle="Sign in to open this server dashboard."
-				/>
-				<Card className="panel-card" withBorder={true}>
-					<Stack gap="sm">
-						<Text fw={700}>Discord sign-in required</Text>
-						<Text size="sm" c="dimmed">
-							Sign in first, then come back to this server dashboard.
-						</Text>
-						<Group>
-							<Button onClick={onLogin}>Sign in with Discord</Button>
-						</Group>
-					</Stack>
-				</Card>
-			</Stack>
-		);
-	}
+	const onCopyServerID = useCallback(() => {
+		navigator.clipboard
+			.writeText(guildDashboard.guild.id)
+			.then(() => {
+				notifications.show({
+					color: "goblue",
+					title: "Copied",
+					message: "Server ID copied to clipboard.",
+				});
+			})
+			.catch(() => {
+				notifications.show({
+					color: "red",
+					title: "Copy failed",
+					message: "Could not copy the server ID.",
+				});
+			});
+	}, [guildDashboard.guild.id]);
 
-	if (loading && !guildDashboard) {
-		return (
-			<Group justify="center" py="xl">
-				<Loader color="goblue" />
-			</Group>
-		);
-	}
-
-	if (!guildDashboard) {
-		return (
-			<Stack gap="lg">
-				<PageHeader
-					title="Server"
-					subtitle="This server could not be loaded."
-				/>
-				<Card className="panel-card" withBorder={true}>
-					<Stack gap="sm">
-						<Text size="sm" c="dimmed">
-							The server is not available in the current session or you do not
-							have access to it.
-						</Text>
-						<Group>
-							<Button
-								variant="default"
-								leftSection={<IconArrowLeft size={16} />}
-								onClick={onBack}
-							>
-								Back to servers
-							</Button>
-						</Group>
-					</Stack>
-				</Card>
-			</Stack>
-		);
-	}
+	const headerSecondaryActions = useMemo(
+		() =>
+			buildHeaderSecondaryActions({
+				loading,
+				onBack,
+				onRefresh,
+				devDetailsEnabled,
+				onCopyServerID,
+			}),
+		[devDetailsEnabled, loading, onBack, onCopyServerID, onRefresh],
+	);
 
 	async function savePluginConfig(pluginID: string, config: GuildPluginConfig) {
 		setSavingPlugin(pluginID);
@@ -337,7 +503,7 @@ export function ServerDashboardPage({
 				csrfToken,
 			);
 			notifications.show({
-				color: "teal",
+				color: "goblue",
 				title: "Saved",
 				message: `${pluginID} settings updated.`,
 			});
@@ -472,7 +638,7 @@ export function ServerDashboardPage({
 		<Stack gap="md">
 			<PageHeader
 				title={guildDashboard.guild.name}
-				subtitle="Server setup, feature settings, moderation, and manager actions."
+				subtitle="Manage plugins and tools for this server."
 				primaryAction={
 					<Button
 						rightSection={<IconExternalLink size={16} />}
@@ -481,56 +647,13 @@ export function ServerDashboardPage({
 						{guildDashboard.guild.bot_installed ? "Reopen invite" : "Add bot"}
 					</Button>
 				}
-				secondaryActions={[
-					{
-						key: "back",
-						label: "Back",
-						icon: <IconArrowLeft size={16} />,
-						onClick: onBack,
-					},
-					{
-						key: "refresh",
-						label: "Refresh",
-						icon: <IconRefresh size={16} />,
-						onClick: onRefresh,
-						loading,
-					},
-				]}
+				secondaryActions={headerSecondaryActions}
 			/>
 
-			<SimpleGrid cols={{ base: 1, md: 3 }}>
+			<SimpleGrid cols={{ base: 1, md: 2 }}>
 				<Card className="panel-card" withBorder={true}>
 					<Stack gap="xs">
-						<Group justify="space-between">
-							<Text fw={700}>Server</Text>
-							<CopyButton value={guildDashboard.guild.id}>
-								{({ copied, copy }) => (
-									<Tooltip
-										label={copied ? "Copied" : "Copy server ID"}
-										withArrow={true}
-									>
-										<ActionIcon
-											variant="subtle"
-											radius="md"
-											aria-label="Copy server ID"
-											onClick={copy}
-										>
-											{copied ? (
-												<IconCheck size={16} />
-											) : (
-												<IconCopy size={16} />
-											)}
-										</ActionIcon>
-									</Tooltip>
-								)}
-							</CopyButton>
-						</Group>
-						<Text size="sm">{guildDashboard.guild.name}</Text>
-					</Stack>
-				</Card>
-				<Card className="panel-card" withBorder={true}>
-					<Stack gap="xs">
-						<Text fw={700}>Install state</Text>
+						<Text fw={700}>Install</Text>
 						<Badge
 							color={badgeColor(guildDashboard.guild.bot_installed)}
 							w="fit-content"
@@ -539,11 +662,11 @@ export function ServerDashboardPage({
 								? "Installed"
 								: "Not installed"}
 						</Badge>
-						<Text size="sm" c="dimmed">
-							{guildDashboard.guild.bot_installed
-								? "The bot is already present in this server."
-								: "Use the add-bot flow to continue."}
-						</Text>
+						{guildDashboard.guild.bot_installed ? null : (
+							<Text size="sm" c="dimmed">
+								Add the bot to start using server actions.
+							</Text>
+						)}
 					</Stack>
 				</Card>
 				<Card className="panel-card" withBorder={true}>
@@ -555,33 +678,47 @@ export function ServerDashboardPage({
 						>
 							{guildDashboard.guild.owner ? "Owner" : "Manager"}
 						</Badge>
-						<Text size="sm" c="dimmed">
-							Your Discord account can manage this server.
-						</Text>
+						{devDetailsEnabled ? (
+							<Group gap="xs">
+								<Text size="sm" c="dimmed">
+									Server ID
+								</Text>
+								<Code>{guildDashboard.guild.id}</Code>
+								<CopyIconButton
+									value={guildDashboard.guild.id}
+									label="Copy server ID"
+								/>
+							</Group>
+						) : null}
 					</Stack>
 				</Card>
 			</SimpleGrid>
 
-			<SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
-				{guildDashboard.setup_checks.map((check) => (
-					<Card key={check.id} className="panel-card" withBorder={true}>
-						<Stack gap="xs">
-							<Group justify="space-between">
-								<Text fw={700}>{check.label}</Text>
-								<Badge color={badgeColor(check.ok)}>
-									{check.ok ? "OK" : "Action needed"}
-								</Badge>
-							</Group>
-							<Text size="sm" c="dimmed">
-								{check.message}
-							</Text>
-						</Stack>
-					</Card>
-				))}
-			</SimpleGrid>
+			<SetupChecksCard checks={guildDashboard.setup_checks} />
 
-			<Tabs defaultValue="manager" variant="outline">
-				<Tabs.List>
+			<Tabs
+				value={activeTab}
+				onChange={(v) => setActiveTab((v as typeof activeTab) ?? "manager")}
+				variant="outline"
+			>
+				<Group hiddenFrom="sm" mb="xs">
+					<Select
+						label="Section"
+						data={[
+							{ value: "manager", label: "Manager" },
+							{ value: "moderation", label: "Moderation" },
+							{ value: "fun", label: "Fun" },
+							{ value: "info", label: "Info" },
+							{ value: "wellness", label: "Wellness" },
+						]}
+						value={activeTab}
+						onChange={(value) =>
+							setActiveTab((value as typeof activeTab) ?? "manager")
+						}
+					/>
+				</Group>
+
+				<Tabs.List visibleFrom="sm" className="tabs-scroll">
 					<Tabs.Tab value="manager">Manager</Tabs.Tab>
 					<Tabs.Tab value="moderation">Moderation</Tabs.Tab>
 					<Tabs.Tab value="fun">Fun</Tabs.Tab>

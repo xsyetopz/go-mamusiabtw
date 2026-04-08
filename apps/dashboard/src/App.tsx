@@ -22,6 +22,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import {
 	IconBolt,
+	IconCode,
 	IconDeviceDesktop,
 	IconLayoutDashboard,
 	IconMoon,
@@ -52,6 +53,7 @@ import {
 	routeHash,
 	type ScaffoldState,
 } from "./dashboard";
+import { useDeveloperDetails } from "./developerDetails";
 import type {
 	AuthMe,
 	GuildDashboard,
@@ -143,6 +145,8 @@ function notifyAsyncError(title: string, error: unknown) {
 
 function ThemeMenu() {
 	const { colorScheme, setColorScheme } = useMantineColorScheme();
+	const { enabled: devDetailsEnabled, toggle: toggleDevDetails } =
+		useDeveloperDetails();
 	const current = colorScheme ?? "auto";
 	const icon =
 		current === "dark" ? (
@@ -186,6 +190,14 @@ function ThemeMenu() {
 					data-active={current === "dark" ? "true" : undefined}
 				>
 					Dark
+				</Menu.Item>
+				<Menu.Divider />
+				<Menu.Label>Developer</Menu.Label>
+				<Menu.Item
+					leftSection={<IconCode size={16} />}
+					onClick={toggleDevDetails}
+				>
+					Developer details: {devDetailsEnabled ? "On" : "Off"}
 				</Menu.Item>
 			</Menu.Dropdown>
 		</Menu>

@@ -2,6 +2,7 @@ import {
 	Badge,
 	Button,
 	Card,
+	Code,
 	Group,
 	SimpleGrid,
 	Stack,
@@ -9,7 +10,9 @@ import {
 	Text,
 } from "@mantine/core";
 import { IconPlus, IconRefresh } from "@tabler/icons-react";
+import { CopyIconButton } from "../components/CopyIconButton";
 import { PageHeader } from "../components/PageHeader";
+import { useDeveloperDetails } from "../developerDetails";
 import { badgeColor } from "../format";
 import type { PluginSummary } from "../types";
 
@@ -30,6 +33,8 @@ export function PluginsPage({
 	onCreatePlugin,
 	onSignPlugin,
 }: Props) {
+	const { enabled: devDetailsEnabled } = useDeveloperDetails();
+
 	return (
 		<Stack gap="md">
 			<PageHeader
@@ -73,9 +78,15 @@ export function PluginsPage({
 								<Table.Td>
 									<Stack gap={1}>
 										<Text fw={600}>{plugin.name || plugin.id}</Text>
-										<Text size="xs" c="dimmed">
-											{plugin.id}
-										</Text>
+										{devDetailsEnabled ? (
+											<Group gap="xs">
+												<Code>{plugin.id}</Code>
+												<CopyIconButton
+													value={plugin.id}
+													label="Copy plugin ID"
+												/>
+											</Group>
+										) : null}
 									</Stack>
 								</Table.Td>
 								<Table.Td>{plugin.version || "—"}</Table.Td>
@@ -123,6 +134,15 @@ export function PluginsPage({
 										{plugin.version || "No version"} · {plugin.commands.length}{" "}
 										commands
 									</Text>
+									{devDetailsEnabled ? (
+										<Group gap="xs">
+											<Code>{plugin.id}</Code>
+											<CopyIconButton
+												value={plugin.id}
+												label="Copy plugin ID"
+											/>
+										</Group>
+									) : null}
 								</Stack>
 								<Badge color={badgeColor(plugin.loaded)}>
 									{plugin.loaded ? "Loaded" : "Not loaded"}

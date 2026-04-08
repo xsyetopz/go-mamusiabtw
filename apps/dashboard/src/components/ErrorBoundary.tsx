@@ -20,8 +20,21 @@ type State = {
 	stack: string;
 };
 
+const DEV_DETAILS_KEY = "mamusiabtw-dev-details";
+
+function shouldShowDiagnostics(): boolean {
+	if (import.meta.env.DEV) {
+		return true;
+	}
+	try {
+		return window.localStorage.getItem(DEV_DETAILS_KEY) === "1";
+	} catch {
+		return false;
+	}
+}
+
 export class ErrorBoundary extends Component<Props, State> {
-	state: State = { hasError: false, message: "", stack: "" };
+	override state: State = { hasError: false, message: "", stack: "" };
 
 	static getDerivedStateFromError(error: unknown): State {
 		const message = error instanceof Error ? error.message : "Unknown error";
@@ -34,7 +47,7 @@ export class ErrorBoundary extends Component<Props, State> {
 			return this.props.children;
 		}
 
-		const showDetails = import.meta.env.DEV;
+		const showDetails = shouldShowDiagnostics();
 		return (
 			<Container size="sm" py="xl">
 				<Stack gap="md">
