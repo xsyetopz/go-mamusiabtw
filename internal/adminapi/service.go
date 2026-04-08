@@ -2,11 +2,14 @@ package adminapi
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
 	"math/big"
+	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -14,6 +17,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/xsyetopz/go-mamusiabtw/internal/buildinfo"
@@ -64,6 +68,24 @@ type Service struct {
 	CreateStickerUpload func(ctx context.Context, guildID uint64, name, description, emojiTag, filename string, body []byte, width, height int) (pluginhostlua.StickerResult, error)
 	EditSticker         func(ctx context.Context, spec pluginhostlua.StickerEditSpec) (pluginhostlua.StickerResult, error)
 	DeleteSticker       func(ctx context.Context, spec pluginhostlua.StickerDeleteSpec) error
+
+	guildsMu       sync.Mutex
+	guildsCache    map[string]guildsCacheEntry
+	guildsInflight map[string]*guildsInflight
+}
+
+type guildsCacheEntry struct {
+	fetchedAt    time.Time
+	expiresAt    time.Time
+	blockedUntil time.Time
+	retryAfter   time.Duration
+	guilds       []OAuthGuild
+}
+
+type guildsInflight struct {
+	done   chan struct{}
+	guilds []OAuthGuild
+	err    error
 }
 
 type OwnerStatus struct {
@@ -79,6 +101,154 @@ func cloneOptionalUint64(value *uint64) *uint64 {
 	}
 	cloned := *value
 	return &cloned
+}
+
+func (s *Service) init() {
+	if s == nil {
+		return
+	}
+	s.guildsMu.Lock()
+	defer s.guildsMu.Unlock()
+	if s.guildsCache == nil {
+		s.guildsCache = map[string]guildsCacheEntry{}
+	}
+	if s.guildsInflight == nil {
+		s.guildsInflight = map[string]*guildsInflight{}
+	}
+}
+
+func tokenCacheKey(accessToken string) string {
+	sum := sha256.Sum256([]byte(strings.TrimSpace(accessToken)))
+	return base64.RawURLEncoding.EncodeToString(sum[:])
+}
+
+const (
+	// guildsCacheTTL keeps Discord OAuth `/users/@me/guilds` calls reasonably low
+	// while still feeling fresh in the UI.
+	guildsCacheTTL = 30 * time.Second
+	// guildsStaleWhileRateLimited is the maximum age of a cached guild list that
+	// we will still serve when Discord is rate limiting this user.
+	guildsStaleWhileRateLimited = 10 * time.Minute
+)
+
+func cloneGuilds(in []OAuthGuild) []OAuthGuild {
+	if len(in) == 0 {
+		return nil
+	}
+	out := make([]OAuthGuild, len(in))
+	copy(out, in)
+	return out
+}
+
+func (s *Service) fetchGuildsCached(ctx context.Context, accessToken string) ([]OAuthGuild, error) {
+	if s == nil || s.OAuth == nil {
+		return nil, errors.New("oauth client is not configured")
+	}
+
+	key := tokenCacheKey(accessToken)
+	now := time.Now()
+
+	s.guildsMu.Lock()
+	if s.guildsCache == nil {
+		s.guildsCache = map[string]guildsCacheEntry{}
+	}
+	if s.guildsInflight == nil {
+		s.guildsInflight = map[string]*guildsInflight{}
+	}
+
+	if entry, ok := s.guildsCache[key]; ok {
+		if now.Before(entry.blockedUntil) {
+			// Prefer serving cached data (even if a bit stale) to avoid showing
+			// raw Discord rate-limit errors in the dashboard.
+			if len(entry.guilds) > 0 && now.Sub(entry.fetchedAt) <= guildsStaleWhileRateLimited {
+				out := cloneGuilds(entry.guilds)
+				s.guildsMu.Unlock()
+				return out, nil
+			}
+			retry := time.Until(entry.blockedUntil)
+			if retry < 0 {
+				retry = 0
+			}
+			s.guildsMu.Unlock()
+			return nil, &PublicError{
+				Status:     http.StatusTooManyRequests,
+				Message:    "Discord is rate limiting right now. Please try again in a moment.",
+				RetryAfter: retry,
+			}
+		}
+
+		if now.Before(entry.expiresAt) && len(entry.guilds) > 0 {
+			out := cloneGuilds(entry.guilds)
+			s.guildsMu.Unlock()
+			return out, nil
+		}
+	}
+
+	if inflight, ok := s.guildsInflight[key]; ok && inflight != nil {
+		done := inflight.done
+		s.guildsMu.Unlock()
+		select {
+		case <-done:
+			return cloneGuilds(inflight.guilds), inflight.err
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		}
+	}
+
+	inflight := &guildsInflight{done: make(chan struct{})}
+	s.guildsInflight[key] = inflight
+	s.guildsMu.Unlock()
+
+	guilds, err := s.OAuth.FetchGuilds(ctx, accessToken)
+
+	s.guildsMu.Lock()
+	delete(s.guildsInflight, key)
+
+	entry := s.guildsCache[key]
+	if err == nil {
+		entry.guilds = cloneGuilds(guilds)
+		entry.fetchedAt = now
+		entry.expiresAt = now.Add(guildsCacheTTL)
+		entry.blockedUntil = time.Time{}
+		entry.retryAfter = 0
+	} else if rl, ok := isOAuthRateLimit(err); ok {
+		// Back off. Keep old data if we have it.
+		entry.retryAfter = rl.RetryAfter
+		entry.blockedUntil = now.Add(rl.RetryAfter)
+		// If we have cached guilds, keep them around long enough to bridge the RL.
+		if len(entry.guilds) > 0 {
+			if entry.expiresAt.Before(now.Add(rl.RetryAfter)) {
+				entry.expiresAt = now.Add(rl.RetryAfter)
+			}
+		}
+	} else {
+		// On non-RL errors, keep the previous cache but don't extend it.
+	}
+	s.guildsCache[key] = entry
+
+	inflight.guilds = cloneGuilds(guilds)
+	inflight.err = err
+	close(inflight.done)
+	s.guildsMu.Unlock()
+
+	// If we got rate-limited but still have usable cached data, serve it.
+	if err != nil {
+		if _, ok := isOAuthRateLimit(err); ok {
+			s.guildsMu.Lock()
+			cached := s.guildsCache[key]
+			s.guildsMu.Unlock()
+			if len(cached.guilds) > 0 && now.Sub(cached.fetchedAt) <= guildsStaleWhileRateLimited {
+				return cloneGuilds(cached.guilds), nil
+			}
+			return nil, &PublicError{
+				Status:     http.StatusTooManyRequests,
+				Message:    "Discord is rate limiting right now. Please try again in a moment.",
+				RetryAfter: cached.blockedUntil.Sub(now),
+			}
+		}
+	}
+
+	return cloneGuilds(guilds), err
 }
 
 func optionalSnowflake(value *uint64) *Snowflake {
@@ -355,7 +525,7 @@ type WarningInfo struct {
 	CreatedAt   string    `json:"created_at"`
 }
 
-func (s Service) Status(ctx context.Context) (StatusResponse, error) {
+func (s *Service) Status(ctx context.Context) (StatusResponse, error) {
 	var devGuildID *Snowflake
 	if s.Config.DevGuildID != nil {
 		v := Snowflake(*s.Config.DevGuildID)
@@ -394,7 +564,7 @@ func (s Service) Status(ctx context.Context) (StatusResponse, error) {
 	return resp, nil
 }
 
-func (s Service) Setup(ctx context.Context) (SetupResponse, error) {
+func (s *Service) Setup(ctx context.Context) (SetupResponse, error) {
 	resp := s.setupResponse(true)
 	keys, err := s.TrustedKeys(ctx)
 	if err != nil {
@@ -404,11 +574,11 @@ func (s Service) Setup(ctx context.Context) (SetupResponse, error) {
 	return resp, nil
 }
 
-func (s Service) UserGuilds(ctx context.Context, accessToken string) ([]UserGuildSummary, error) {
+func (s *Service) UserGuilds(ctx context.Context, accessToken string) ([]UserGuildSummary, error) {
 	if s.OAuth == nil {
 		return nil, errors.New("oauth client is not configured")
 	}
-	guilds, err := s.OAuth.FetchGuilds(ctx, accessToken)
+	guilds, err := s.fetchGuildsCached(ctx, accessToken)
 	if err != nil {
 		return nil, err
 	}
@@ -457,7 +627,7 @@ func (s Service) UserGuilds(ctx context.Context, accessToken string) ([]UserGuil
 	return out, nil
 }
 
-func (s Service) GuildDashboard(ctx context.Context, accessToken string, guildID uint64) (GuildDashboardResponse, error) {
+func (s *Service) GuildDashboard(ctx context.Context, accessToken string, guildID uint64) (GuildDashboardResponse, error) {
 	guilds, err := s.UserGuilds(ctx, accessToken)
 	if err != nil {
 		return GuildDashboardResponse{}, err
@@ -542,7 +712,7 @@ func (s Service) GuildDashboard(ctx context.Context, accessToken string, guildID
 	}, nil
 }
 
-func (s Service) InstallURL(guildID uint64, baseURL string) (string, error) {
+func (s *Service) InstallURL(guildID uint64, baseURL string) (string, error) {
 	_ = baseURL
 	clientID := strings.TrimSpace(s.Config.DashboardClientID)
 	if clientID == "" {
@@ -558,7 +728,7 @@ func (s Service) InstallURL(guildID uint64, baseURL string) (string, error) {
 	return "https://discord.com/oauth2/authorize?" + values.Encode(), nil
 }
 
-func (s Service) InstallURLAnyGuild(baseURL string) (string, error) {
+func (s *Service) InstallURLAnyGuild(baseURL string) (string, error) {
 	_ = baseURL
 	clientID := strings.TrimSpace(s.Config.DashboardClientID)
 	if clientID == "" {
@@ -572,7 +742,7 @@ func (s Service) InstallURLAnyGuild(baseURL string) (string, error) {
 	return "https://discord.com/oauth2/authorize?" + values.Encode(), nil
 }
 
-func (s Service) Modules() []ModuleResponse {
+func (s *Service) Modules() []ModuleResponse {
 	if s.ModuleAdmin == nil {
 		return nil
 	}
@@ -595,28 +765,28 @@ func (s Service) Modules() []ModuleResponse {
 	return out
 }
 
-func (s Service) SetModuleEnabled(ctx context.Context, moduleID string, enabled bool, actorID uint64) error {
+func (s *Service) SetModuleEnabled(ctx context.Context, moduleID string, enabled bool, actorID uint64) error {
 	if s.ModuleAdmin == nil {
 		return errors.New("modules not configured")
 	}
 	return s.ModuleAdmin.SetEnabled(ctx, moduleID, enabled, actorID)
 }
 
-func (s Service) ResetModule(ctx context.Context, moduleID string) error {
+func (s *Service) ResetModule(ctx context.Context, moduleID string) error {
 	if s.ModuleAdmin == nil {
 		return errors.New("modules not configured")
 	}
 	return s.ModuleAdmin.Reset(ctx, moduleID)
 }
 
-func (s Service) ReloadModules(ctx context.Context) error {
+func (s *Service) ReloadModules(ctx context.Context) error {
 	if s.ModuleAdmin == nil {
 		return errors.New("modules not configured")
 	}
 	return s.ModuleAdmin.Reload(ctx)
 }
 
-func (s Service) Plugins() ([]PluginSummary, error) {
+func (s *Service) Plugins() ([]PluginSummary, error) {
 	infosByID := map[string]pluginhost.PluginInfo{}
 	if s.PluginAdmin != nil {
 		for _, info := range s.PluginAdmin.Infos() {
@@ -671,30 +841,30 @@ func (s Service) Plugins() ([]PluginSummary, error) {
 	return out, nil
 }
 
-func (s Service) ReloadPlugins(ctx context.Context) error {
+func (s *Service) ReloadPlugins(ctx context.Context) error {
 	if s.PluginAdmin == nil {
 		return errors.New("plugins not configured")
 	}
 	return s.PluginAdmin.Reload(ctx)
 }
 
-func (s Service) LoadModulesConfig() (config.ModulesFile, error) {
+func (s *Service) LoadModulesConfig() (config.ModulesFile, error) {
 	return config.LoadModulesFile(s.Config.ModulesFile)
 }
 
-func (s Service) SaveModulesConfig(file config.ModulesFile) error {
+func (s *Service) SaveModulesConfig(file config.ModulesFile) error {
 	return config.WriteModulesFile(s.Config.ModulesFile, file)
 }
 
-func (s Service) LoadPermissionsConfig() (permissions.Policy, error) {
+func (s *Service) LoadPermissionsConfig() (permissions.Policy, error) {
 	return permissions.LoadPolicyFile(s.Config.PermissionsFile)
 }
 
-func (s Service) SavePermissionsConfig(policy permissions.Policy) error {
+func (s *Service) SavePermissionsConfig(policy permissions.Policy) error {
 	return permissions.WritePolicyFile(s.Config.PermissionsFile, policy)
 }
 
-func (s Service) TrustedKeys(ctx context.Context) (TrustedKeysResponse, error) {
+func (s *Service) TrustedKeys(ctx context.Context) (TrustedKeysResponse, error) {
 	resp := TrustedKeysResponse{}
 	path := strings.TrimSpace(s.Config.TrustedKeysFile)
 	if path != "" && fileExists(path) {
@@ -731,7 +901,7 @@ func (s Service) TrustedKeys(ctx context.Context) (TrustedKeysResponse, error) {
 	return resp, nil
 }
 
-func (s Service) MigrationStatus(ctx context.Context) (MigrationStatusResponse, error) {
+func (s *Service) MigrationStatus(ctx context.Context) (MigrationStatusResponse, error) {
 	runner, err := s.migrationRunner()
 	if err != nil {
 		return MigrationStatusResponse{}, err
@@ -743,7 +913,7 @@ func (s Service) MigrationStatus(ctx context.Context) (MigrationStatusResponse, 
 	return migrationStatusResponse(status), nil
 }
 
-func (s Service) MigrateUp(ctx context.Context) (MigrationStatusResponse, error) {
+func (s *Service) MigrateUp(ctx context.Context) (MigrationStatusResponse, error) {
 	runner, err := s.migrationRunner()
 	if err != nil {
 		return MigrationStatusResponse{}, err
@@ -755,7 +925,7 @@ func (s Service) MigrateUp(ctx context.Context) (MigrationStatusResponse, error)
 	return migrationStatusResponse(status), nil
 }
 
-func (s Service) BackupMigrations(ctx context.Context) (string, error) {
+func (s *Service) BackupMigrations(ctx context.Context) (string, error) {
 	runner, err := s.migrationRunner()
 	if err != nil {
 		return "", err
@@ -763,7 +933,7 @@ func (s Service) BackupMigrations(ctx context.Context) (string, error) {
 	return runner.BackupPath(ctx, s.Config.SQLitePath)
 }
 
-func (s Service) ScaffoldPlugin(req PluginScaffoldRequest) (PluginScaffoldResponse, error) {
+func (s *Service) ScaffoldPlugin(req PluginScaffoldRequest) (PluginScaffoldResponse, error) {
 	id := strings.TrimSpace(req.ID)
 	name := strings.TrimSpace(req.Name)
 	version := strings.TrimSpace(req.Version)
@@ -897,7 +1067,7 @@ end
 	return resp, nil
 }
 
-func (s Service) SignPlugin(pluginID string) (string, error) {
+func (s *Service) SignPlugin(pluginID string) (string, error) {
 	if !signingReady(s.Config) {
 		return "", errors.New("dashboard signing is not configured")
 	}
@@ -932,7 +1102,7 @@ func (s Service) SignPlugin(pluginID string) (string, error) {
 	return target, nil
 }
 
-func (s Service) migrationRunner() (migrate.Runner, error) {
+func (s *Service) migrationRunner() (migrate.Runner, error) {
 	return migrate.New(migrate.Options{
 		Dir:       s.Config.Migrations,
 		BackupDir: s.Config.MigrationBackups,
@@ -951,7 +1121,7 @@ func fallbackString(primary, secondary string) string {
 	return strings.TrimSpace(secondary)
 }
 
-func (s Service) setupResponse(includeHints bool) SetupResponse {
+func (s *Service) setupResponse(includeHints bool) SetupResponse {
 	ownerStatus := OwnerStatus{
 		Configured: s.Config.OwnerUserID != nil,
 		Resolved:   s.Config.OwnerUserID != nil,

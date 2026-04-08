@@ -43,15 +43,12 @@ function requestHeaders(init?: RequestInit): HeadersInit {
 	};
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-	const url =
-		apiBase && path.startsWith("/")
-			? apiBase.replace(TRAILING_SLASH_RE, "") + path
-			: path;
-
-	let response: Response;
+async function fetchResponse(
+	url: string,
+	init?: RequestInit,
+): Promise<Response> {
 	try {
-		response = await fetch(url, {
+		return await fetch(url, {
 			credentials: "include",
 			...init,
 			headers: requestHeaders(init),
@@ -59,20 +56,30 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 	} catch {
 		throw new APIError("Could not reach the admin API.", 0);
 	}
+}
 
-	if (!response.ok) {
-		let message = response.statusText;
-		try {
-			const payload = (await response.json()) as { error?: string };
-			if (payload.error) {
-				message = payload.error;
-			}
-		} catch {
-			// ignore body parse failures
+async function apiErrorMessage(response: Response): Promise<string> {
+	let message = response.statusText;
+	try {
+		const payload = (await response.json()) as {
+			error?: string;
+			retry_after_ms?: number;
+		};
+		if (payload.error) {
+			message = payload.error;
 		}
-		throw new APIError(message, response.status);
+		const retryMS = Number(payload.retry_after_ms ?? 0);
+		if (Number.isFinite(retryMS) && retryMS > 0) {
+			const seconds = Math.max(1, Math.ceil(retryMS / 1000));
+			message = `${message} (retry in ${seconds}s)`;
+		}
+	} catch {
+		// ignore body parse failures
 	}
+	return message;
+}
 
+async function parseJSONResponse<T>(response: Response): Promise<T> {
 	if (response.status === 204) {
 		return undefined as T;
 	}
@@ -97,6 +104,19 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 		}
 		throw new APIError("Admin API returned invalid JSON.", -1);
 	}
+}
+
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+	const url =
+		apiBase && path.startsWith("/")
+			? apiBase.replace(TRAILING_SLASH_RE, "") + path
+			: path;
+
+	const response = await fetchResponse(url, init);
+	if (!response.ok) {
+		throw new APIError(await apiErrorMessage(response), response.status);
+	}
+	return await parseJSONResponse<T>(response);
 }
 
 export function get<T>(path: string): Promise<T> {

@@ -8,6 +8,8 @@ function forbidNonStandardDotenv() {
 	const forbidden = [
 		".env",
 		".env.local",
+		".env.dev",
+		".env.prod",
 		".env.development",
 		".env.production",
 		".env.production.local",
@@ -18,7 +20,7 @@ function forbidNonStandardDotenv() {
 		const full = path.join(cwd, name);
 		if (fs.existsSync(full)) {
 			throw new Error(
-				`Forbidden env file ${name} detected. Use only .env.dev (dev) or .env.prod (prod).`,
+				`Forbidden env file ${name} detected. The dashboard does not use dotenv files; configure runtime API origin via public/config.json instead.`,
 			);
 		}
 	}

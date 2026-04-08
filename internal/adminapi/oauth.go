@@ -3,6 +3,7 @@ package adminapi
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -15,6 +16,26 @@ type discordOAuthClient struct {
 	client       *http.Client
 	clientID     string
 	clientSecret string
+}
+
+// OAuthRateLimitError represents a Discord OAuth API rate-limit response.
+// It is returned when Discord responds with HTTP 429 and provides a retry delay.
+type OAuthRateLimitError struct {
+	RetryAfter time.Duration
+	Global     bool
+}
+
+func (e *OAuthRateLimitError) Error() string {
+	retry := e.RetryAfter
+	if retry < 0 {
+		retry = 0
+	}
+	return fmt.Sprintf("discord oauth rate limited (retry_after=%s, global=%t)", retry.Truncate(time.Millisecond), e.Global)
+}
+
+func (e *OAuthRateLimitError) Is(target error) bool {
+	_, ok := target.(*OAuthRateLimitError)
+	return ok
 }
 
 type OAuthToken struct {
@@ -53,10 +74,10 @@ func (p *OAuthPermissions) UnmarshalJSON(data []byte) error {
 }
 
 type OAuthGuild struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Icon        string `json:"icon"`
-	Owner       bool   `json:"owner"`
+	ID          string           `json:"id"`
+	Name        string           `json:"name"`
+	Icon        string           `json:"icon"`
+	Owner       bool             `json:"owner"`
 	Permissions OAuthPermissions `json:"permissions"`
 }
 
@@ -143,13 +164,49 @@ func (c *discordOAuthClient) FetchGuilds(ctx context.Context, accessToken string
 		return nil, err
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusTooManyRequests {
+		var payload struct {
+			Message    string  `json:"message"`
+			RetryAfter float64 `json:"retry_after"`
+			Global     bool    `json:"global"`
+		}
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		_ = json.Unmarshal(body, &payload)
+		// Discord sends retry_after in seconds (often as a float).
+		retry := time.Duration(payload.RetryAfter * float64(time.Second))
+		if retry <= 0 {
+			retry = time.Second
+		}
+		// Keep the raw body out of the public surface; callers can special-case
+		// this typed error and show a friendly message.
+		return nil, &OAuthRateLimitError{RetryAfter: retry, Global: payload.Global}
+	}
 	if resp.StatusCode/100 != 2 {
-		body, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
-		return nil, fmt.Errorf("discord oauth guild lookup failed: %s", strings.TrimSpace(string(body)))
+		switch resp.StatusCode {
+		case http.StatusUnauthorized, http.StatusForbidden:
+			// Don't leak Discord JSON bodies to the dashboard.
+			return nil, &PublicError{
+				Status:  http.StatusUnauthorized,
+				Message: "Discord sign-in expired or was revoked. Please sign in again.",
+			}
+		default:
+			return nil, &PublicError{
+				Status:  http.StatusBadGateway,
+				Message: "Discord API request failed. Please try again in a moment.",
+			}
+		}
 	}
 	var guilds []OAuthGuild
 	if err := json.NewDecoder(resp.Body).Decode(&guilds); err != nil {
 		return nil, err
 	}
 	return guilds, nil
+}
+
+func isOAuthRateLimit(err error) (*OAuthRateLimitError, bool) {
+	var rl *OAuthRateLimitError
+	if errors.As(err, &rl) {
+		return rl, true
+	}
+	return nil, false
 }

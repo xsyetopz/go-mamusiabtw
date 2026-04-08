@@ -58,7 +58,7 @@ type Options struct {
 type Server struct {
 	logger *slog.Logger
 	addr   string
-	svc    Service
+	svc    *Service
 
 	clientID     string
 	clientSecret string
@@ -107,10 +107,12 @@ func New(opts Options) (*Server, error) {
 	if sessionStore == nil {
 		sessionStore = newMemorySessionStore()
 	}
+	svc := opts.Service
+	svc.init()
 	return &Server{
 		logger:       opts.Logger.With(slog.String("component", "admin_api")),
 		addr:         strings.TrimSpace(opts.Addr),
-		svc:          opts.Service,
+		svc:          &svc,
 		clientID:     strings.TrimSpace(opts.ClientID),
 		clientSecret: strings.TrimSpace(opts.ClientSecret),
 		ownerStatus:  opts.OwnerStatus,
@@ -304,10 +306,11 @@ func (s *Server) allowCORSOrigin(r *http.Request, origin string) bool {
 		}
 	}
 
-	// Development fallback: allow local Vite origins without requiring config.
-	if !s.svc.Config.ProdMode {
-		host := strings.ToLower(strings.TrimSpace(u.Hostname()))
-		return host == "127.0.0.1" || host == "localhost"
+	host := strings.ToLower(strings.TrimSpace(u.Hostname()))
+	// Localhost is always safe to allow. This avoids confusing CORS breakage for
+	// local testing (including accidental "prod mode" toggles).
+	if isLocalHostname(host) {
+		return true
 	}
 
 	return false
@@ -501,7 +504,7 @@ func (s *Server) handleLogout(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleGuilds(w http.ResponseWriter, r *http.Request, sess session) {
 	guilds, err := s.svc.UserGuilds(r.Context(), sess.AccessToken)
 	if err != nil {
-		writeError(w, http.StatusBadGateway, err.Error())
+		writeServiceError(w, http.StatusBadGateway, err)
 		return
 	}
 	writeJSON(w, http.StatusOK, struct {
@@ -522,7 +525,7 @@ func (s *Server) handleGuildDashboard(w http.ResponseWriter, r *http.Request, se
 			writeError(w, http.StatusForbidden, err.Error())
 			return
 		}
-		writeError(w, http.StatusBadRequest, err.Error())
+		writeServiceError(w, http.StatusBadRequest, err)
 		return
 	}
 	writeJSON(w, http.StatusOK, dashboard)
@@ -943,6 +946,27 @@ func writeJSON(w http.ResponseWriter, status int, payload any) {
 
 func writeError(w http.ResponseWriter, status int, message string) {
 	writeJSON(w, status, map[string]any{"error": strings.TrimSpace(message)})
+}
+
+func writeServiceError(w http.ResponseWriter, fallbackStatus int, err error) {
+	if err == nil {
+		return
+	}
+	if pe, ok := asPublicError(err); ok {
+		status := pe.statusCode()
+		payload := map[string]any{"error": strings.TrimSpace(pe.Message)}
+		if pe.RetryAfter > 0 {
+			retrySeconds := int64(pe.RetryAfter.Round(time.Second).Seconds())
+			if retrySeconds < 1 {
+				retrySeconds = 1
+			}
+			w.Header().Set("Retry-After", strconv.FormatInt(retrySeconds, 10))
+			payload["retry_after_ms"] = int64(pe.RetryAfter.Round(time.Millisecond) / time.Millisecond)
+		}
+		writeJSON(w, status, payload)
+		return
+	}
+	writeError(w, fallbackStatus, err.Error())
 }
 
 func cookiePolicyFromRequest(r *http.Request) (bool, http.SameSite) {
