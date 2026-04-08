@@ -6,7 +6,8 @@ The stable internal name is `mamusiabtw`. It appears in environment variables, d
 
 ## Before Starting
 
-- Read [README.md](README.md) for the current runtime model, plugin model, and directory layout.
+- Read [README.md](README.md) for the shortest “get running” guide.
+- Read [docs/reference.md](docs/reference.md) for the longer runtime/plugin/module details.
 - Check existing issues or pull requests before starting overlapping work.
 - If your change touches plugins, schemas, or localization, inspect the shipped example in `examples/plugins/example/`.
 
