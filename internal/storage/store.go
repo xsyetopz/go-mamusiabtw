@@ -197,3 +197,34 @@ type CheckInStore interface {
 	CreateCheckIn(ctx context.Context, c CheckIn) error
 	ListCheckIns(ctx context.Context, userID uint64, limit int) ([]CheckIn, error)
 }
+
+type DiscordOAuthToken struct {
+	UserID          uint64
+	AccessTokenEnc  string
+	RefreshTokenEnc string
+	Scope           string
+	ExpiresAt       time.Time
+	UpdatedAt       time.Time
+}
+
+type DiscordOAuthTokenStore interface {
+	GetDiscordOAuthToken(ctx context.Context, userID uint64) (DiscordOAuthToken, bool, error)
+	PutDiscordOAuthToken(ctx context.Context, token DiscordOAuthToken) error
+	DeleteDiscordOAuthToken(ctx context.Context, userID uint64) error
+}
+
+type PluginOAuthGrant struct {
+	UserID    uint64
+	PluginID  string
+	Scope     string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+type PluginOAuthGrantStore interface {
+	GetPluginOAuthGrant(ctx context.Context, userID uint64, pluginID string) (PluginOAuthGrant, bool, error)
+	ListPluginOAuthGrants(ctx context.Context, userID uint64) ([]PluginOAuthGrant, error)
+	PutPluginOAuthGrant(ctx context.Context, grant PluginOAuthGrant) error
+	DeletePluginOAuthGrant(ctx context.Context, userID uint64, pluginID string) error
+	CountPluginOAuthGrants(ctx context.Context, userID uint64) (int, error)
+}

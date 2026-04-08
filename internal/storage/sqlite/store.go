@@ -79,3 +79,11 @@ func (s *Store) Reminders() store.ReminderStore {
 func (s *Store) CheckIns() store.CheckInStore {
 	return checkInStore{db: s.db, now: s.now}
 }
+
+func (s *Store) DiscordOAuthTokens() store.DiscordOAuthTokenStore {
+	return discordOAuthTokenStore{db: s.db, now: s.now}
+}
+
+func (s *Store) PluginOAuthGrants() store.PluginOAuthGrantStore {
+	return pluginOAuthGrantStore{db: s.db, now: s.now}
+}
