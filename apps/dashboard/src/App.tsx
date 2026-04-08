@@ -40,7 +40,7 @@ import {
 	useRef,
 	useState,
 } from "react";
-import { APIError, apiBase, apiBaseError, get, post } from "./api";
+import { APIError, apiBaseError, get, post } from "./api";
 import {
 	type AppRoute,
 	type BootstrapState,
@@ -110,6 +110,32 @@ const OWNER_NAV_ITEMS = [
 
 function isUnauthorized(error: unknown): error is APIError {
 	return error instanceof APIError && error.status === 401;
+}
+
+function failFastForViteDirectDev(
+	setBootstrap: (next: BootstrapState) => void,
+): boolean {
+	// Dev ergonomics: if you open the Vite dev server directly, /api/* routes
+	// often return index.html, which breaks JSON parsing and auth cookies.
+	if (import.meta.env.DEV && window.location.port === "5173") {
+		setBootstrap({
+			kind: "invalid_api_base",
+			message:
+				"You opened the Vite dev server directly. Start the Go admin API (`go run ./cmd/mamusiabtw dev`) and open the dashboard at the URL it prints (usually `http://127.0.0.1:8081/`). Do not use `:5173` in the browser.",
+		});
+		return true;
+	}
+	return false;
+}
+
+function setupBootstrapStateFromError(
+	error: unknown,
+	message: string,
+): Extract<BootstrapState, { kind: "offline" | "invalid_api_base" }> {
+	if (error instanceof APIError && error.status === -1) {
+		return { kind: "invalid_api_base", message };
+	}
+	return { kind: "offline", message };
 }
 
 function currentHashRoute(): AppRoute {
@@ -214,7 +240,6 @@ function SetupContainer({
 					bootstrap={bootstrap}
 					setupStatus={setupStatus}
 					status={ownerStatus}
-					apiBase={apiBase}
 					onRefresh={onRefresh}
 					onLogin={onLogin}
 				/>
@@ -415,7 +440,6 @@ function OwnerShell({
 					bootstrap={bootstrap}
 					setupStatus={setupStatus}
 					status={ownerStatus}
-					apiBase={apiBase}
 					onRefresh={onRefreshBootstrap}
 					onLogin={onLogin}
 				/>
@@ -1104,13 +1128,17 @@ async function bootstrapDashboardImpl({
 		return;
 	}
 
+	if (failFastForViteDirectDev(setBootstrap)) {
+		return;
+	}
+
 	try {
 		const setup = await get<SetupStatus>("/api/setup");
 		setSetupStatus(setup);
 	} catch (error) {
 		const message =
 			error instanceof Error ? error.message : "Could not reach the admin API.";
-		setBootstrap({ kind: "offline", message });
+		setBootstrap(setupBootstrapStateFromError(error, message));
 		return;
 	}
 

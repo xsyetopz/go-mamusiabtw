@@ -21,20 +21,19 @@ type Props = {
 	bootstrap: BootstrapState;
 	setupStatus: SetupStatus | null;
 	status: StatusResponse | null;
-	apiBase: string;
 	onRefresh: () => void;
 	onLogin: () => void;
 };
 
 function ConnectionPanel({
 	bootstrap,
-	apiBase,
 	resolvedAdminAddr,
 }: {
 	bootstrap: BootstrapState;
-	apiBase: string;
 	resolvedAdminAddr: string;
 }) {
+	const browserURL = window.location.origin;
+	const apiURL = `${browserURL.replace(TRAILING_SLASH_RE, "")}/api`;
 	return (
 		<StatePanel
 			title="Connection"
@@ -51,11 +50,22 @@ function ConnectionPanel({
 				</Badge>
 			}
 		>
-			<CodeLine label="Admin API URL" value={apiBase} />
+			<CodeLine label="Browser URL" value={browserURL} />
+			<CodeLine label="API URL" value={apiURL} />
 			<CodeLine label="Expected local admin API" value={resolvedAdminAddr} />
 			{bootstrap.kind === "invalid_api_base" ? (
 				<SetupMessage title="Invalid dashboard URL">
-					{bootstrap.message}
+					<Stack gap="sm">
+						<Text size="sm">{bootstrap.message}</Text>
+						<Button
+							variant="default"
+							onClick={() => {
+								window.location.href = `http://${resolvedAdminAddr}/`;
+							}}
+						>
+							Open admin dashboard
+						</Button>
+					</Stack>
 				</SetupMessage>
 			) : null}
 			{bootstrap.kind === "offline" ? (
@@ -200,7 +210,6 @@ export function SetupPage({
 	bootstrap,
 	setupStatus,
 	status,
-	apiBase,
 	onRefresh,
 	onLogin,
 }: Props) {
@@ -229,7 +238,6 @@ export function SetupPage({
 			<SimpleGrid cols={{ base: 1, md: 3 }} spacing="md">
 				<ConnectionPanel
 					bootstrap={bootstrap}
-					apiBase={apiBase}
 					resolvedAdminAddr={resolvedAdminAddr}
 				/>
 				<SignInPanel

@@ -12,6 +12,11 @@ export class APIError extends Error {
 	}
 }
 
+function looksLikeHTML(text: string): boolean {
+	const head = text.trimStart().slice(0, 64).toLowerCase();
+	return head.startsWith("<!doctype") || head.startsWith("<html");
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
 	let response: Response;
 	try {
@@ -43,7 +48,27 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 	if (response.status === 204) {
 		return undefined as T;
 	}
-	return (await response.json()) as T;
+
+	// Sometimes a misconfigured origin/proxy returns HTML (e.g. Vite index.html)
+	// for an API route, which causes confusing "Unexpected token '<'" errors.
+	const clone = response.clone();
+	try {
+		return (await response.json()) as T;
+	} catch {
+		let body = "";
+		try {
+			body = await clone.text();
+		} catch {
+			// ignore
+		}
+		if (looksLikeHTML(body)) {
+			throw new APIError(
+				"This URL is returning HTML for an API request. You are not talking to the mamusiabtw admin API. Start `go run ./cmd/mamusiabtw dev` and open the dashboard at `http://127.0.0.1:8081/` (or the `dashboard_url` it prints).",
+				-1,
+			);
+		}
+		throw new APIError("Admin API returned invalid JSON.", -1);
+	}
 }
 
 export function get<T>(path: string): Promise<T> {
