@@ -23,6 +23,7 @@ export type SetupStatus = {
 	admin_addr: string;
 	app_origin: string;
 	redirect_url: string;
+	install_redirect_url: string;
 	has_client_id: boolean;
 	has_client_secret: boolean;
 	has_session_secret: boolean;

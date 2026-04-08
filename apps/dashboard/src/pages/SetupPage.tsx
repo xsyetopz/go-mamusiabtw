@@ -81,12 +81,14 @@ function SignInPanel({
 	setupStatus,
 	resolvedOrigin,
 	resolvedRedirect,
+	resolvedInstallRedirect,
 	bootstrap,
 	onLogin,
 }: {
 	setupStatus: SetupStatus | null;
 	resolvedOrigin: string;
 	resolvedRedirect: string;
+	resolvedInstallRedirect: string;
 	bootstrap: BootstrapState;
 	onLogin: () => void;
 }) {
@@ -100,7 +102,12 @@ function SignInPanel({
 			}
 		>
 			<CodeLine label="Dashboard origin" value={resolvedOrigin} />
-			<CodeLine label="Callback URL" value={resolvedRedirect} />
+			<CodeLine label="Login callback URL" value={resolvedRedirect} />
+			<CodeLine label="Install callback URL" value={resolvedInstallRedirect} />
+			<Text size="sm" c="dimmed">
+				If Discord says “invalid OAuth2 URL”, it usually means one of these URLs
+				is not in the Developer Portal Redirect URI allowlist.
+			</Text>
 			<Stack gap="xs">
 				<Badge color={badgeColor(setupStatus?.has_client_id ?? false)}>
 					Client ID
@@ -219,6 +226,9 @@ export function SetupPage({
 	const resolvedRedirect =
 		setupStatus?.redirect_url ||
 		`${resolvedOrigin.replace(TRAILING_SLASH_RE, "")}/api/auth/callback`;
+	const resolvedInstallRedirect =
+		setupStatus?.install_redirect_url ||
+		`${resolvedOrigin.replace(TRAILING_SLASH_RE, "")}/api/install/callback`;
 
 	return (
 		<Stack gap="lg">
@@ -244,6 +254,7 @@ export function SetupPage({
 					setupStatus={setupStatus}
 					resolvedOrigin={resolvedOrigin}
 					resolvedRedirect={resolvedRedirect}
+					resolvedInstallRedirect={resolvedInstallRedirect}
 					bootstrap={bootstrap}
 					onLogin={onLogin}
 				/>

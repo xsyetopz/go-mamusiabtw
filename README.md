@@ -113,13 +113,17 @@ don’t set it (sessions will reset on restart). For stable sessions, set it to 
 
 ### Step 2: Tell Discord About The Redirect URL (One-Time)
 
-In the Discord Developer Portal, your application must allow the callback URL:
+In the Discord Developer Portal, your application must allow these Redirect URIs:
 
-- `http://127.0.0.1:8081/api/auth/callback`
+- `http://127.0.0.1:8081/api/auth/callback` (login)
+- `http://127.0.0.1:8081/api/install/callback` (bot install)
 
 If you prefer `localhost`, you can use:
 
 - `http://localhost:8081/api/auth/callback`
+- `http://localhost:8081/api/install/callback`
+
+They must match exactly (scheme, host, port, and path).
 
 The admin API requests OAuth2 scopes `identify` and `guilds` during login.
 
@@ -245,7 +249,9 @@ If the API is not reachable or the dashboard URLs are invalid, the app opens int
     so the dashboard setup page stays reachable while you fix intents/tokens
 - Login redirects but Discord errors:
   - your OAuth Redirect URI does not match exactly
-  - make sure it’s `http://127.0.0.1:8081/api/auth/callback` for local
+  - make sure both are whitelisted for local:
+    - `http://127.0.0.1:8081/api/auth/callback`
+    - `http://127.0.0.1:8081/api/install/callback`
 - Owner page denies access:
   - the bot must be able to resolve the Discord application owner
   - fallback: set `OWNER_USER_ID=...`

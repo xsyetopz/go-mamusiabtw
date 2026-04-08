@@ -146,6 +146,7 @@ type SetupResponse struct {
 	AdminAddr             string   `json:"admin_addr"`
 	AppOrigin             string   `json:"app_origin"`
 	RedirectURL           string   `json:"redirect_url"`
+	InstallRedirectURL    string   `json:"install_redirect_url"`
 	HasClientID           bool     `json:"has_client_id"`
 	HasClientSecret       bool     `json:"has_client_secret"`
 	HasSessionSecret      bool     `json:"has_session_secret"`
@@ -962,11 +963,11 @@ func (s Service) setupResponse(includeHints bool) SetupResponse {
 		SigningConfigured:    signingReady(s.Config),
 		AdminAddr:            strings.TrimSpace(s.Config.AdminAddr),
 		// Filled by the HTTP layer from requestBaseURL(r).
-		AppOrigin:       "",
-		RedirectURL:     "",
-		HasClientID:          strings.TrimSpace(s.Config.DashboardClientID) != "",
-		HasClientSecret:      strings.TrimSpace(s.Config.DashboardClientSecret) != "",
-		HasSessionSecret:     len(strings.TrimSpace(s.Config.DashboardSessionSecret)) >= 32,
+		AppOrigin:        "",
+		RedirectURL:      "",
+		HasClientID:      strings.TrimSpace(s.Config.DashboardClientID) != "",
+		HasClientSecret:  strings.TrimSpace(s.Config.DashboardClientSecret) != "",
+		HasSessionSecret: len(strings.TrimSpace(s.Config.DashboardSessionSecret)) >= 32,
 	}
 	if includeHints {
 		resp.Hints = setupHints(resp)

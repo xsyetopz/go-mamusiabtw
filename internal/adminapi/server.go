@@ -44,15 +44,15 @@ type OAuthClient interface {
 }
 
 type Options struct {
-	Addr           string
-	Logger         *slog.Logger
-	Service        Service
-	SessionSecret  string
-	ClientID       string
-	ClientSecret   string
-	OwnerStatus    func() OwnerStatus
-	OAuthClient    OAuthClient
-	SessionStore   store.AdminSessionStore
+	Addr          string
+	Logger        *slog.Logger
+	Service       Service
+	SessionSecret string
+	ClientID      string
+	ClientSecret  string
+	OwnerStatus   func() OwnerStatus
+	OAuthClient   OAuthClient
+	SessionStore  store.AdminSessionStore
 }
 
 type Server struct {
@@ -60,11 +60,11 @@ type Server struct {
 	addr   string
 	svc    Service
 
-	clientID       string
-	clientSecret   string
-	ownerStatus    func() OwnerStatus
-	oauth          OAuthClient
-	secret         []byte
+	clientID     string
+	clientSecret string
+	ownerStatus  func() OwnerStatus
+	oauth        OAuthClient
+	secret       []byte
 
 	sessions store.AdminSessionStore
 
@@ -108,16 +108,16 @@ func New(opts Options) (*Server, error) {
 		sessionStore = newMemorySessionStore()
 	}
 	return &Server{
-		logger:         opts.Logger.With(slog.String("component", "admin_api")),
-		addr:           strings.TrimSpace(opts.Addr),
-		svc:            opts.Service,
-		clientID:       strings.TrimSpace(opts.ClientID),
-		clientSecret:   strings.TrimSpace(opts.ClientSecret),
-		ownerStatus:    opts.OwnerStatus,
-		oauth:          opts.OAuthClient,
-		secret:         []byte(opts.SessionSecret),
-		sessions:       sessionStore,
-		stateStore:     map[string]oauthState{},
+		logger:       opts.Logger.With(slog.String("component", "admin_api")),
+		addr:         strings.TrimSpace(opts.Addr),
+		svc:          opts.Service,
+		clientID:     strings.TrimSpace(opts.ClientID),
+		clientSecret: strings.TrimSpace(opts.ClientSecret),
+		ownerStatus:  opts.OwnerStatus,
+		oauth:        opts.OAuthClient,
+		secret:       []byte(opts.SessionSecret),
+		sessions:     sessionStore,
+		stateStore:   map[string]oauthState{},
 	}, nil
 }
 
@@ -239,6 +239,7 @@ func (s *Server) handleSetup(w http.ResponseWriter, r *http.Request) {
 	base := requestBaseURL(r)
 	resp.AppOrigin = strings.TrimRight(base, "/")
 	resp.RedirectURL = strings.TrimRight(base, "/") + "/api/auth/callback"
+	resp.InstallRedirectURL = strings.TrimRight(base, "/") + "/api/install/callback"
 	writeJSON(w, http.StatusOK, resp)
 }
 
