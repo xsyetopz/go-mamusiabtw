@@ -91,7 +91,7 @@ export function ServersPage({
 			/>
 			{loading ? (
 				<Group justify="center" py="xl">
-					<Loader color="goblue" />
+					<Loader color="brand" />
 				</Group>
 			) : null}
 			<SimpleGrid cols={{ base: 1, md: 2, xl: 3 }} spacing="md">
@@ -107,7 +107,7 @@ export function ServersPage({
 									<Avatar
 										src={guild.icon_url ?? null}
 										radius="md"
-										color="goblue"
+										color="brand"
 										name={guild.name}
 									/>
 									<Stack gap={2}>
@@ -137,7 +137,7 @@ export function ServersPage({
 									value={guild.owner}
 									labelTrue="Owner"
 									labelFalse="Manager"
-									colorTrue="goblue"
+									colorTrue="brand"
 									colorFalse="gray"
 									variant="light"
 									iconTrue={({ size }) => <IconCrown size={size} />}

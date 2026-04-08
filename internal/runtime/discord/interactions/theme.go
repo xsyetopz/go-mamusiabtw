@@ -8,10 +8,10 @@ import (
 )
 
 const (
-	ThemeColorBrand   = 0x00ADD8 // Go blue
-	ThemeColorSuccess = 0x57F287
-	ThemeColorWarning = 0xFEE75C
-	ThemeColorError   = 0xED4245
+	ThemeColorBrand   = 0x0F62FE // IBM Blue 60
+	ThemeColorSuccess = 0x009E73 // Wong bluish green
+	ThemeColorWarning = 0xE69F00 // Wong orange
+	ThemeColorError   = 0xD55E00 // Wong vermillion
 )
 
 func boolPtr(v bool) *bool { return &v }

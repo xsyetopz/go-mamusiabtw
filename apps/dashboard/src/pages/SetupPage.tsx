@@ -44,8 +44,8 @@ function ConnectionPanel({
 					}
 					labelTrue="Available"
 					labelFalse="Needs attention"
-					colorTrue="goblue"
-					colorFalse="gray"
+					colorTrue="success"
+					colorFalse="warning"
 				/>
 			}
 		>

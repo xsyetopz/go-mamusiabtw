@@ -228,7 +228,7 @@ function SetupContainer({
 			<Suspense
 				fallback={
 					<Group justify="center" mt={80}>
-						<Loader color="goblue" />
+						<Loader color="brand" />
 					</Group>
 				}
 			>
@@ -304,7 +304,7 @@ function OwnerShell({
 	let ownerContent = ownerStatus ? (
 		<OverviewPage status={ownerStatus} />
 	) : (
-		<Loader color="goblue" />
+		<Loader color="brand" />
 	);
 
 	switch (view) {
@@ -460,7 +460,7 @@ function OwnerShell({
 			ownerContent = ownerStatus ? (
 				<OverviewPage status={ownerStatus} />
 			) : (
-				<Loader color="goblue" />
+				<Loader color="brand" />
 			);
 			break;
 	}
@@ -485,7 +485,7 @@ function OwnerShell({
 							aria-label="Toggle navigation"
 						/>
 						<Text fw={800}>mamusiabtw</Text>
-						<Badge variant="light" color="goblue">
+						<Badge variant="light" color="brand">
 							Owner
 						</Badge>
 					</Group>
@@ -518,7 +518,7 @@ function OwnerShell({
 						<Avatar
 							src={me.user.avatar_url ?? null}
 							radius="md"
-							color="goblue"
+							color="brand"
 							name={me.user.name}
 						/>
 						<Stack gap={0}>
@@ -549,7 +549,7 @@ function OwnerShell({
 				<Suspense
 					fallback={
 						<Group justify="center" mt={80}>
-							<Loader color="goblue" />
+							<Loader color="brand" />
 						</Group>
 					}
 				>
@@ -585,7 +585,7 @@ function CheckingScreen() {
 	return (
 		<Box p="xl">
 			<Group justify="center" mt={80}>
-				<Loader color="goblue" />
+				<Loader color="brand" />
 			</Group>
 		</Box>
 	);
@@ -892,7 +892,7 @@ function PublicSiteView({
 										src={me.user.avatar_url ?? null}
 										radius="xl"
 										size={30}
-										color="goblue"
+										color="brand"
 										name={me.user.name}
 									/>
 									<Stack gap={0}>
@@ -918,7 +918,7 @@ function PublicSiteView({
 				<Suspense
 					fallback={
 						<Group justify="center" mt={80}>
-							<Loader color="goblue" />
+							<Loader color="brand" />
 						</Group>
 					}
 				>
@@ -927,8 +927,8 @@ function PublicSiteView({
 			</Box>
 			<Box component="footer" className="site-footer">
 				<Text size="xs" c="dimmed">
-					Theme uses Go blue (#00ADD8) for the primary palette. Go is a
-					trademark of Google LLC.
+					Theme uses IBM-style neutrals with Wong color-blind-safe status
+					colors.
 				</Text>
 			</Box>
 		</Box>

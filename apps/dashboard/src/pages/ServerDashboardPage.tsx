@@ -106,7 +106,7 @@ export function ServerDashboardPage(props: Props) {
 	if (loading && !guildDashboard) {
 		return (
 			<Group justify="center" py="xl">
-				<Loader color="goblue" />
+				<Loader color="brand" />
 			</Group>
 		);
 	}
@@ -475,7 +475,7 @@ function ServerDashboardLoaded({
 			.writeText(guildDashboard.guild.id)
 			.then(() => {
 				notifications.show({
-					color: "goblue",
+					color: "brand",
 					title: "Copied",
 					message: "Server ID copied to clipboard.",
 				});
@@ -514,7 +514,7 @@ function ServerDashboardLoaded({
 				csrfToken,
 			);
 			notifications.show({
-				color: "goblue",
+				color: "brand",
 				title: "Saved",
 				message: `${pluginID} settings updated.`,
 			});
@@ -665,14 +665,12 @@ function ServerDashboardLoaded({
 				<Card className="panel-card" withBorder={true}>
 					<Stack gap="xs">
 						<Text fw={700}>Install</Text>
-						<Badge
-							color={badgeColor(guildDashboard.guild.bot_installed)}
-							w="fit-content"
-						>
-							{guildDashboard.guild.bot_installed
-								? "Installed"
-								: "Not installed"}
-						</Badge>
+						<BoolStatusIconBadge
+							value={guildDashboard.guild.bot_installed}
+							labelTrue="Installed"
+							labelFalse="Not installed"
+							variant="light"
+						/>
 						{guildDashboard.guild.bot_installed ? null : (
 							<Text size="sm" c="dimmed">
 								Add the bot to start using server actions.
@@ -683,12 +681,14 @@ function ServerDashboardLoaded({
 				<Card className="panel-card" withBorder={true}>
 					<Stack gap="xs">
 						<Text fw={700}>Access</Text>
-						<Badge
-							color={badgeColor(guildDashboard.guild.can_manage)}
-							w="fit-content"
-						>
-							{guildDashboard.guild.owner ? "Owner" : "Manager"}
-						</Badge>
+						<BoolStatusIconBadge
+							value={guildDashboard.guild.can_manage}
+							labelTrue="Manager access"
+							labelFalse="No manage access"
+							colorTrue="brand"
+							colorFalse="danger"
+							variant="light"
+						/>
 						{devDetailsEnabled ? (
 							<Group gap="xs">
 								<Text size="sm" c="dimmed">

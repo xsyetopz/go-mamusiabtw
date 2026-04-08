@@ -1,5 +1,5 @@
 export function badgeColor(value: boolean): string {
-	return value ? "goblue" : "gray";
+	return value ? "success" : "gray";
 }
 
 export function prettyDate(value: string): string {

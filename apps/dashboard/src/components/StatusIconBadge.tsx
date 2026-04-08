@@ -1,8 +1,5 @@
 import { Badge, Tooltip } from "@mantine/core";
-import {
-	IconCircleCheck,
-	IconCircleX,
-} from "@tabler/icons-react";
+import { IconCircleCheck, IconCircleX } from "@tabler/icons-react";
 import type { ReactNode } from "react";
 
 type Props = {
@@ -57,7 +54,7 @@ export function BoolStatusIconBadge({
 	value,
 	labelTrue,
 	labelFalse,
-	colorTrue = "goblue",
+	colorTrue = "success",
 	colorFalse = "gray",
 	iconTrue,
 	iconFalse,
