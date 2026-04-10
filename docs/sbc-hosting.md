@@ -6,41 +6,60 @@ This guide is for running `mamusiabtw` on small single-board computers:
 - Orange Pi
 - ODROID
 
-It is intentionally split by:
+This version is intentionally repetitive.
 
-- what you host on the device
-- what you build on
-- how much RAM and CPU headroom the board actually has
+You should never have to guess:
+
+- which machine a command runs on
+- which directory a command runs in
+- which file should exist before the command
+- which file should exist after the command
 
 ## Fast Answer
 
-If you want the short version:
+If you want the shortest safe answer:
 
-- weakest boards should run **Profile A** or **Profile B**
-- stronger boards can run **Profile C**
-- weak boards should usually **run** the bot, not **build** the release binary
-- after the SQLite CGO removal, cross-build is normal Go cross-build again
-- the cleanest production path for tiny boards is:
-  build elsewhere, copy binary, run locally
+- weak boards should usually **run** the bot, not **build** it
+- strong boards can build and run locally
+- if you are already on the board and the repo is cloned there, use `Local Build On The Device`
+- if you are on your stronger laptop/desktop building for the board, use `Cross-Build On Another Machine`
+- if `/opt/mamusiabtw` does not exist yet, use `First Install On A Fresh Device`
+- if `/opt/mamusiabtw` and `mamusiabtw.service` already exist, use `Update An Existing Install`
+
+## Path + Machine Legend
+
+These words mean exact things in this guide.
+
+- `BUILD HOST`: the machine that compiles the binary
+- `TARGET DEVICE`: the SBC that runs the bot
+- `REPO CHECKOUT`: your git clone, for example `~/go-mamusiabtw`
+- `INSTALLED APP DIR`: `/opt/mamusiabtw`
+- `INSTALLED BINARY`: `/opt/mamusiabtw/mamusiabtw`
+
+Hard rules:
+
+- do not mix `REPO CHECKOUT` commands with `INSTALLED APP DIR` commands
+- do not mix `BUILD HOST` commands with `TARGET DEVICE` commands
+- do not assume `./dist/mamusiabtw` and `./dist/mamusiabtw-linux-arm64` are the same file
 
 ## Table Of Contents
 
 1. Fast answer
-2. Profiles
-3. Board matrix
-4. Host build matrix
-5. Exact cross-build commands
-6. Raspberry Pi guidance
-7. Orange Pi guidance
-8. ODROID guidance
-9. Deployment layout
+2. Path + machine legend
+3. Pick your deployment profile
+4. Board matrix
+5. Stop here if this is your situation
+6. Golden path A: weak board, build elsewhere
+7. Golden path B: stronger board, build locally
+8. Local build on the device
+9. Cross-build on another machine
 10. First install on a fresh device
-11. Environment examples
-12. Dashboard build guidance
-13. Update flow
+11. Update an existing install
+12. Environment examples
+13. Dashboard build guidance
 14. Troubleshooting
 
-## Profiles
+## Pick Your Deployment Profile
 
 ### Profile A: Bot Only On Device
 
@@ -57,8 +76,8 @@ Do not host on device:
 Best for:
 
 - weakest boards
-- lowest RAM use
 - lowest setup complexity
+- lowest RAM use
 
 ### Profile B: Bot + Admin API On Device, Dashboard Elsewhere
 
@@ -74,8 +93,8 @@ Host elsewhere:
 
 Best for:
 
-- small boards that can run the API but should not waste effort on frontend hosting
-- users who want dashboard access without local frontend build pain
+- weak or mid-range boards
+- users who want dashboard access without asking the board to host frontend files
 
 ### Profile C: Full Stack On Device
 
@@ -89,8 +108,7 @@ Host on device:
 Best for:
 
 - stronger boards
-- single-box homelab setups
-- LAN/self-hosted dashboards
+- one-box LAN or homelab setups
 
 Important:
 
@@ -117,7 +135,7 @@ Rule for unmapped boards:
 - if it feels like Pi 3 / RK3566 class hardware, treat it like Pi 3 / ODROID M1S
 - if it has 4GB+ and a modern 64-bit SoC, treat it like Pi 4/5 or Orange Pi 5 class
 
-Official representative board pages:
+Representative vendor pages:
 
 - Raspberry Pi Zero 2 W:
   <https://www.raspberrypi.com/products/raspberry-pi-zero-2-w/>
@@ -128,258 +146,502 @@ Official representative board pages:
 - ODROID M1S:
   <https://www.hardkernel.com/blog-2/odroid-m1s/>
 
-## Host Build Matrix
+## Stop Here If This Is Your Situation
 
-This is about the machine doing the build, not the machine running the bot.
+- If you are already on the board and the repo is cloned there:
+  go to `Local Build On The Device`
+- If you are on your laptop or desktop building for the board:
+  go to `Cross-Build On Another Machine`
+- If `/opt/mamusiabtw` does not exist yet:
+  go to `First Install On A Fresh Device`
+- If `/opt/mamusiabtw` already exists and the service already works:
+  go to `Update An Existing Install`
 
-| Build host                   | Good for                             | Recommendation                                   |
-| ---------------------------- | ------------------------------------ | ------------------------------------------------ |
-| `linux/amd64` / macOS x86_64 | `linux/arm64`, `linux/arm`           | best general build host                          |
-| `linux/arm64` / macOS arm64  | `linux/arm64`, `linux/arm`           | also excellent                                   |
-| `linux/arm`                  | `linux/arm`, sometimes `linux/arm64` | possible, but not the preferred cross-build host |
+## Golden Path A: Weak Board, Build Elsewhere
 
-Important:
+Use this for:
 
-- after the CGO removal, the toolchain complexity is much lower
-- the main choice is now target architecture, not C cross-compilers
-- host architecture mostly affects speed and memory headroom
-
-## Exact Cross-Build Commands
-
-These are the main release commands you want.
-
-### Build For 64-bit ARM SBCs
-
-Examples:
-
-- Raspberry Pi 4 / 5 on 64-bit OS
+- Pi Zero 2 W
 - Orange Pi Zero 2W
-- Orange Pi 5
-- ODROID M1S
+- any board where local builds are miserable
+
+Shape:
+
+- `BUILD HOST`: stronger x86_64 or arm64 machine
+- `TARGET DEVICE`: weak SBC
+- profile: usually A or B
+
+### A1. Build The Binary
+
+Run on `BUILD HOST`, inside `REPO CHECKOUT`.
+
+Input expected before command:
+
+- repo is cloned
+- you are in that repo
+
+Output after command:
+
+- `./dist/mamusiabtw-linux-arm64` for 64-bit targets
+- or `./dist/mamusiabtw-linux-armv7` for 32-bit targets
+
+64-bit target:
 
 ```bash
 GOOS=linux GOARCH=arm64 ./scripts/build-release.sh dist/mamusiabtw-linux-arm64
 ```
 
-### Build For 32-bit ARMv7 SBCs
-
-Examples:
-
-- Raspberry Pi 3 on 32-bit OS
-- Raspberry Pi Zero 2 W on 32-bit Raspberry Pi OS
+32-bit target:
 
 ```bash
 GOOS=linux GOARCH=arm GOARM=7 ./scripts/build-release.sh dist/mamusiabtw-linux-armv7
 ```
 
-### Copy To The Device
+### A2. Copy The Built Binary To The Board
 
-For an already-prepared device, copy to a user-writable path first:
+Placeholder used below:
 
-```bash
-rsync -a dist/mamusiabtw-linux-arm64 krystian@device:~/mamusiabtw
-ssh krystian@device 'sudo install -Dm755 ~/mamusiabtw /opt/mamusiabtw/mamusiabtw'
-```
+- `USER@TARGET_HOST`
 
-For 32-bit targets:
+Real example:
 
-```bash
-rsync -a dist/mamusiabtw-linux-armv7 krystian@device:~/mamusiabtw
-ssh krystian@device 'sudo install -Dm755 ~/mamusiabtw /opt/mamusiabtw/mamusiabtw'
-```
+- `krystian@mamaberry.local`
 
-### Restart The Service
+Run on `BUILD HOST`, inside `REPO CHECKOUT`.
 
-Example:
+Input expected before command:
 
-```bash
-ssh krystian@device 'sudo systemctl restart mamusiabtw && sudo systemctl status mamusiabtw --no-pager'
-```
+- build output exists in `./dist/`
+- the target board is reachable over SSH
 
-### Practical Rule
+Output after command:
 
-- weak SBCs should usually receive a copied binary
-- stronger SBCs can build locally if you prefer
-- the device does not need to be the build machine
+- `~/mamusiabtw` exists on the `TARGET DEVICE`
 
-## Raspberry Pi Guidance
-
-### Raspberry Pi Zero 2 W
-
-Recommended:
-
-- Profile A
-- Profile B
-
-Not recommended:
-
-- local release builds as the normal workflow
-- Profile C unless you really know why
-
-Why:
-
-- it is a great runtime target
-- it is not a comfortable release-build box
-- low RAM makes `modernc` compile spikes painful
-
-Best workflow:
-
-- cross-build on x86_64 or arm64
-- copy binary to the device
-- only prebuild dashboard elsewhere if you insist on Profile C
-
-If you need Go installed on Raspberry Pi OS itself:
+64-bit target:
 
 ```bash
-./scripts/install-go-on-pi.sh
+rsync -a ./dist/mamusiabtw-linux-arm64 USER@TARGET_HOST:~/mamusiabtw
 ```
 
-That helper is Raspberry Pi OS-oriented and only covers the Raspberry Pi archive naming cases.
+32-bit target:
 
-### Raspberry Pi 3
-
-Recommended:
-
-- Profile A
-- Profile B
-
-Acceptable:
-
-- Profile C with a prebuilt dashboard
-
-Why:
-
-- decent runtime box
-- still not a machine you should force into repeated heavy builds
-
-### Raspberry Pi 4
-
-Recommended:
-
-- all profiles
-
-Why:
-
-- first Raspberry Pi tier where full-stack hosting feels normal
-
-### Raspberry Pi 5
-
-Recommended:
-
-- all profiles
-
-Why:
-
-- easiest Raspberry Pi for local builds and one-box hosting
-
-## Orange Pi Guidance
-
-### Orange Pi Zero 2W
-
-Recommended:
-
-- Profile A
-- Profile B
-
-Possible:
-
-- Profile C only on higher-RAM variants, and even then it is not the first choice
-
-Why:
-
-- still a small board class
-- stronger than Zero-class only in some RAM variants, not in “build anything comfortably” terms
-
-### Orange Pi 5 Family
-
-Recommended:
-
-- all profiles
-
-Why:
-
-- this is firmly in the “comfortable arm64 board” class
-- good fit for local builds, full dashboard hosting, and one-box deployments
-
-## ODROID Guidance
-
-### ODROID M1S
-
-Recommended:
-
-- Profile A
-- Profile B
-- Profile C if you want a single-box deployment
-
-Why:
-
-- RK3566 + 4GB/8GB RAM puts it above the weak-board class
-- more realistic for local builds than Zero/Pi 3 class hardware
-
-Practical note:
-
-- if you want the smoothest experience, still prebuild the dashboard elsewhere
-
-## Deployment Layout
-
-Use one predictable working directory, for example:
-
-```text
-/opt/mamusiabtw/
-  mamusiabtw
-  .env.prod
-  migrations/sqlite/
-  locales/
-  config/
-  plugins/
-  data/
-  apps/dashboard/dist/   # only for Profile C
+```bash
+rsync -a ./dist/mamusiabtw-linux-armv7 USER@TARGET_HOST:~/mamusiabtw
 ```
 
-Why:
+### A3. Install It On The Board
 
-- the repo uses relative defaults like `./data`, `./plugins`, `./config`, and `./apps/dashboard/dist`
-- the service should run with `WorkingDirectory=/opt/mamusiabtw`
+Run on `TARGET DEVICE`.
+
+Input expected before command:
+
+- `~/mamusiabtw` exists on the device
+- `/opt/mamusiabtw` already exists if this is an update
+
+Output after command:
+
+- `INSTALLED BINARY` exists
+
+```bash
+sudo install -Dm755 ~/mamusiabtw /opt/mamusiabtw/mamusiabtw
+```
+
+### A4. Restart And Verify
+
+Run on `TARGET DEVICE`.
+
+Output after command:
+
+- service restarted
+- `doctor` reports the installed production config
+
+```bash
+sudo systemctl restart mamusiabtw
+/opt/mamusiabtw/mamusiabtw doctor
+```
+
+## Golden Path B: Stronger Board, Build Locally
+
+Use this for:
+
+- Raspberry Pi 4
+- Raspberry Pi 5
+- ODROID M1S
+- Orange Pi 5 family
+
+Shape:
+
+- `TARGET DEVICE` is also the build machine
+- repo is cloned on the board
+
+### B1. Build On The Board
+
+Run on `TARGET DEVICE`, inside `REPO CHECKOUT`.
+
+Input expected before command:
+
+- repo is cloned on the board
+
+Output after command:
+
+- `./dist/mamusiabtw`
+
+```bash
+./scripts/build-release.sh
+```
+
+### B2. Install The Built Binary
+
+Run on `TARGET DEVICE`, inside `REPO CHECKOUT`.
+
+Input expected before command:
+
+- `./dist/mamusiabtw` exists
+
+Output after command:
+
+- `INSTALLED BINARY` exists
+
+```bash
+sudo install -Dm755 ./dist/mamusiabtw /opt/mamusiabtw/mamusiabtw
+```
+
+### B3. Restart And Verify
+
+Run on `TARGET DEVICE`.
+
+```bash
+sudo systemctl restart mamusiabtw
+/opt/mamusiabtw/mamusiabtw doctor
+```
+
+## Local Build On The Device
+
+Use this section only if both of these are true:
+
+- you are already on the `TARGET DEVICE`
+- the repo is cloned on that device
+
+Do not use this section if you are building on another machine.
+
+### Confirm Where You Are
+
+Run on `TARGET DEVICE`.
+
+Goal:
+
+- confirm you are inside `REPO CHECKOUT`
+
+```bash
+pwd
+ls -la
+```
+
+You should see repo files such as:
+
+- `go.mod`
+- `scripts/build-release.sh`
+- `migrations/`
+- `locales/`
+
+### Build
+
+Run on `TARGET DEVICE`, inside `REPO CHECKOUT`.
+
+Output after command:
+
+- `./dist/mamusiabtw`
+
+```bash
+./scripts/build-release.sh
+```
+
+### Confirm The Build Output Exists
+
+Run on `TARGET DEVICE`, inside `REPO CHECKOUT`.
+
+Expected output:
+
+- a file at `./dist/mamusiabtw`
+
+```bash
+ls -la ./dist
+find ./dist -maxdepth 1 -type f -name 'mamusiabtw*'
+```
+
+### Install The Binary
+
+Run on `TARGET DEVICE`, inside `REPO CHECKOUT`.
+
+Input expected before command:
+
+- `./dist/mamusiabtw` exists
+
+Output after command:
+
+- `INSTALLED BINARY` exists
+
+```bash
+sudo install -Dm755 ./dist/mamusiabtw /opt/mamusiabtw/mamusiabtw
+```
+
+### Install Repo Assets
+
+Run on `TARGET DEVICE`, inside `REPO CHECKOUT`.
+
+Input expected before command:
+
+- `./migrations/`
+- `./locales/`
+- `./plugins/`
+- `./config/`
+- optionally `./apps/dashboard/dist/` for Profile C
+
+Output after command:
+
+- those assets exist under `INSTALLED APP DIR`
+
+```bash
+sudo rsync -a ./migrations/ /opt/mamusiabtw/migrations/
+sudo rsync -a ./locales/ /opt/mamusiabtw/locales/
+sudo rsync -a ./plugins/ /opt/mamusiabtw/plugins/
+sudo rsync -a ./config/ /opt/mamusiabtw/config/
+```
+
+For Profile C only:
+
+```bash
+sudo rsync -a ./apps/dashboard/dist/ /opt/mamusiabtw/apps/dashboard/dist/
+```
+
+### Install `.env.prod`
+
+Run on `TARGET DEVICE`, inside `REPO CHECKOUT`.
+
+Input expected before command:
+
+- `./.env.prod` exists in the repo checkout
+
+Output after command:
+
+- `/opt/mamusiabtw/.env.prod`
+
+```bash
+sudo install -Dm600 ./.env.prod /opt/mamusiabtw/.env.prod
+sudo chown -R mamusiabtw:mamusiabtw /opt/mamusiabtw
+```
+
+### Restart And Verify
+
+Run on `TARGET DEVICE`.
+
+```bash
+sudo systemctl restart mamusiabtw
+/opt/mamusiabtw/mamusiabtw doctor
+```
+
+## Cross-Build On Another Machine
+
+Use this section only if both of these are true:
+
+- the repo checkout is on your stronger computer
+- the board is a different machine
+
+Do not use this section if you are already on the board.
+
+### Pick The Target Architecture
+
+Use these rules:
+
+- `linux/arm64` for 64-bit Pi 4/5, Orange Pi 5, ODROID M1S, and similar boards
+- `linux/arm` plus `GOARM=7` for 32-bit Raspberry Pi OS on Pi 3 / Zero 2 W
+
+### Build For 64-bit Targets
+
+Run on `BUILD HOST`, inside `REPO CHECKOUT`.
+
+Output after command:
+
+- `./dist/mamusiabtw-linux-arm64`
+
+```bash
+GOOS=linux GOARCH=arm64 ./scripts/build-release.sh dist/mamusiabtw-linux-arm64
+```
+
+### Build For 32-bit Targets
+
+Run on `BUILD HOST`, inside `REPO CHECKOUT`.
+
+Output after command:
+
+- `./dist/mamusiabtw-linux-armv7`
+
+```bash
+GOOS=linux GOARCH=arm GOARM=7 ./scripts/build-release.sh dist/mamusiabtw-linux-armv7
+```
+
+### Confirm The Output Exists
+
+Run on `BUILD HOST`, inside `REPO CHECKOUT`.
+
+```bash
+ls -la ./dist
+find ./dist -maxdepth 1 -type f -name 'mamusiabtw*'
+```
+
+### Copy To The Target Device
+
+Placeholder used below:
+
+- `USER@TARGET_HOST`
+
+Real example:
+
+- `krystian@mamaberry.local`
+
+Run on `BUILD HOST`, inside `REPO CHECKOUT`.
+
+Input expected before command:
+
+- build output exists in `./dist/`
+
+Output after command:
+
+- `~/mamusiabtw` exists on the target board
+
+64-bit target:
+
+```bash
+rsync -a ./dist/mamusiabtw-linux-arm64 USER@TARGET_HOST:~/mamusiabtw
+```
+
+32-bit target:
+
+```bash
+rsync -a ./dist/mamusiabtw-linux-armv7 USER@TARGET_HOST:~/mamusiabtw
+```
+
+### Install The Copied Binary
+
+Run on `TARGET DEVICE`.
+
+Input expected before command:
+
+- `~/mamusiabtw` exists
+
+Output after command:
+
+- `INSTALLED BINARY` exists
+
+```bash
+sudo install -Dm755 ~/mamusiabtw /opt/mamusiabtw/mamusiabtw
+```
+
+### Restart And Verify
+
+Run on `TARGET DEVICE`.
+
+```bash
+sudo systemctl restart mamusiabtw
+/opt/mamusiabtw/mamusiabtw doctor
+```
 
 ## First Install On A Fresh Device
 
-This is the missing part that must happen before any update or restart flow.
+Use this only if the target device does not already have:
 
-### 1. Create The Install Tree
+- `/opt/mamusiabtw`
+- `/etc/systemd/system/mamusiabtw.service`
+
+This section is about the initial bootstrap.
+
+### 1. Create The Service User
+
+Run on `TARGET DEVICE`.
+
+Output after command:
+
+- system user `mamusiabtw` exists
 
 ```bash
 sudo useradd --system --home /opt/mamusiabtw --shell /usr/sbin/nologin mamusiabtw || true
+```
+
+### 2. Create The Install Tree
+
+Run on `TARGET DEVICE`.
+
+Output after command:
+
+- `/opt/mamusiabtw`
+- `/opt/mamusiabtw/data`
+
+```bash
 sudo install -d -o mamusiabtw -g mamusiabtw /opt/mamusiabtw
 sudo install -d -o mamusiabtw -g mamusiabtw /opt/mamusiabtw/data
 ```
 
-### 2. Copy The Repo Assets You Need
+### 3. Install The Binary
 
-From your build machine:
+Pick one:
+
+- if you built on the device, go back to `Local Build On The Device`
+- if you built elsewhere, go back to `Cross-Build On Another Machine`
+
+After this step, you must have:
+
+- `/opt/mamusiabtw/mamusiabtw`
+
+### 4. Install Repo Assets
+
+If the repo checkout exists on the board, run on `TARGET DEVICE`, inside `REPO CHECKOUT`.
+
+Output after command:
+
+- `/opt/mamusiabtw/migrations/`
+- `/opt/mamusiabtw/locales/`
+- `/opt/mamusiabtw/plugins/`
+- `/opt/mamusiabtw/config/`
 
 ```bash
-rsync -a dist/mamusiabtw-linux-arm64 user@device:~/mamusiabtw
-rsync -a migrations locales plugins config user@device:~/
-scp .env.prod user@device:~/.env.prod
+sudo rsync -a ./migrations/ /opt/mamusiabtw/migrations/
+sudo rsync -a ./locales/ /opt/mamusiabtw/locales/
+sudo rsync -a ./plugins/ /opt/mamusiabtw/plugins/
+sudo rsync -a ./config/ /opt/mamusiabtw/config/
 ```
 
-Then on the device:
+If you do not have a repo checkout on the board, copy these directories there first from the build host, then install them into `/opt/mamusiabtw/`.
+
+### 5. Install `.env.prod`
+
+Run on `TARGET DEVICE`.
+
+Input expected before command:
+
+- you already created `.env.prod`
+
+Output after command:
+
+- `/opt/mamusiabtw/.env.prod`
+
+If `.env.prod` is already on the target in your current directory:
 
 ```bash
-sudo install -Dm755 ~/mamusiabtw /opt/mamusiabtw/mamusiabtw
-sudo rsync -a ~/migrations/ /opt/mamusiabtw/migrations/
-sudo rsync -a ~/locales/ /opt/mamusiabtw/locales/
-sudo rsync -a ~/plugins/ /opt/mamusiabtw/plugins/
-sudo rsync -a ~/config/ /opt/mamusiabtw/config/
+sudo install -Dm600 ./.env.prod /opt/mamusiabtw/.env.prod
+```
+
+If `.env.prod` is in your home directory:
+
+```bash
 sudo install -Dm600 ~/.env.prod /opt/mamusiabtw/.env.prod
-sudo chown -R mamusiabtw:mamusiabtw /opt/mamusiabtw
 ```
 
-For 32-bit targets, replace the binary name with `dist/mamusiabtw-linux-armv7`.
+### 6. Install The Service
 
-### 3. Install The Service
+Run on `TARGET DEVICE`.
 
-Create `/etc/systemd/system/mamusiabtw.service`:
+Create `/etc/systemd/system/mamusiabtw.service` with:
 
 ```ini
 [Unit]
@@ -400,7 +662,9 @@ RestartSec=3
 WantedBy=multi-user.target
 ```
 
-Then:
+### 7. Start The Service
+
+Run on `TARGET DEVICE`.
 
 ```bash
 sudo systemctl daemon-reload
@@ -408,19 +672,79 @@ sudo systemctl enable --now mamusiabtw
 sudo systemctl status mamusiabtw --no-pager
 ```
 
-### 4. Check The Installed Binary
+### 8. Fix Ownership
 
-Run `doctor` against the installed binary itself:
+Run on `TARGET DEVICE`.
+
+```bash
+sudo chown -R mamusiabtw:mamusiabtw /opt/mamusiabtw
+```
+
+### 9. Verify With `doctor`
+
+Run on `TARGET DEVICE`.
 
 ```bash
 /opt/mamusiabtw/mamusiabtw doctor
 ```
 
-Important:
+You want to see:
 
-- `doctor` should be run from the installed path for production checks
-- the binary now looks for `.env.prod` in the current directory and next to the executable
-- if `/opt/mamusiabtw/.env.prod` exists, `doctor` from `/opt/mamusiabtw/mamusiabtw` should see it
+- `env_file_loaded: .env.prod`
+- `discord_token: true`
+
+## Update An Existing Install
+
+Use this only if both of these are already true:
+
+- `/opt/mamusiabtw` exists
+- `mamusiabtw.service` already exists
+
+### Update Path 1: Build On The Board
+
+Run on `TARGET DEVICE`, inside `REPO CHECKOUT`.
+
+```bash
+git pull --ff-only
+diff -u .env.prod.example .env.prod
+./scripts/build-release.sh
+sudo install -Dm755 ./dist/mamusiabtw /opt/mamusiabtw/mamusiabtw
+sudo rsync -a ./migrations/ /opt/mamusiabtw/migrations/
+sudo rsync -a ./locales/ /opt/mamusiabtw/locales/
+sudo rsync -a ./plugins/ /opt/mamusiabtw/plugins/
+sudo rsync -a ./config/ /opt/mamusiabtw/config/
+sudo install -Dm600 ./.env.prod /opt/mamusiabtw/.env.prod
+sudo systemctl restart mamusiabtw
+/opt/mamusiabtw/mamusiabtw doctor
+```
+
+### Update Path 2: Build Elsewhere
+
+Run on `BUILD HOST`, inside `REPO CHECKOUT`.
+
+64-bit target:
+
+```bash
+git pull --ff-only
+GOOS=linux GOARCH=arm64 ./scripts/build-release.sh dist/mamusiabtw-linux-arm64
+rsync -a ./dist/mamusiabtw-linux-arm64 USER@TARGET_HOST:~/mamusiabtw
+```
+
+32-bit target:
+
+```bash
+git pull --ff-only
+GOOS=linux GOARCH=arm GOARM=7 ./scripts/build-release.sh dist/mamusiabtw-linux-armv7
+rsync -a ./dist/mamusiabtw-linux-armv7 USER@TARGET_HOST:~/mamusiabtw
+```
+
+Run on `TARGET DEVICE`.
+
+```bash
+sudo install -Dm755 ~/mamusiabtw /opt/mamusiabtw/mamusiabtw
+sudo systemctl restart mamusiabtw
+/opt/mamusiabtw/mamusiabtw doctor
+```
 
 ## Environment Examples
 
@@ -478,13 +802,21 @@ MAMUSIABTW_DASHBOARD_ALLOWED_ORIGINS=https://device-or-domain.example
 
 This only matters for Profile C.
 
-Best rule:
+Main rule:
 
-- build frontend elsewhere for weak boards
-- copy `apps/dashboard/dist`
-- run only the Go binary on the target
+- weak boards should not be your normal frontend build machine
+- build the dashboard elsewhere when possible
+- copy built files onto the board
 
-Build once:
+Run on the machine that has the repo checkout you want to build from.
+
+Input expected before command:
+
+- `apps/dashboard/` exists
+
+Output after command:
+
+- `apps/dashboard/dist/`
 
 ```bash
 cd apps/dashboard
@@ -497,91 +829,50 @@ At runtime:
 - the admin API serves `apps/dashboard/dist` automatically if it exists
 - Bun is not needed to serve the production dashboard
 
-## Update Flow
-
-### If The Device Is Also The Build Machine
-
-```bash
-cd /opt/mamusiabtw
-cp .env.prod .env.prod.backup
-git pull --ff-only
-diff -u .env.prod.example .env.prod
-./scripts/build-release.sh
-sudo systemctl restart mamusiabtw
-```
-
-### If You Cross-Build Elsewhere
-
-```bash
-git pull --ff-only
-GOOS=linux GOARCH=arm64 ./scripts/build-release.sh dist/mamusiabtw-linux-arm64
-rsync -a dist/mamusiabtw-linux-arm64 user@device:~/mamusiabtw
-ssh user@device 'sudo install -Dm755 ~/mamusiabtw /opt/mamusiabtw/mamusiabtw'
-ssh user@device 'sudo systemctl restart mamusiabtw'
-```
-
-For 32-bit targets:
-
-```bash
-git pull --ff-only
-GOOS=linux GOARCH=arm GOARM=7 ./scripts/build-release.sh dist/mamusiabtw-linux-armv7
-rsync -a dist/mamusiabtw-linux-armv7 user@device:~/mamusiabtw
-ssh user@device 'sudo install -Dm755 ~/mamusiabtw /opt/mamusiabtw/mamusiabtw'
-ssh user@device 'sudo systemctl restart mamusiabtw'
-```
-
 ## Troubleshooting
 
-### `compile: signal: killed`
+### `install: cannot stat './dist/mamusiabtw'`
 
-That usually means the board ran out of memory during compile.
+That means one of these is true:
 
-Most common fix:
+- the build did not finish successfully
+- you are not in the repo checkout you think you are
+- `./dist/mamusiabtw` was never created
 
-- stop native release building on that board
-- cross-build on a stronger machine
+Run on the machine where you expect the build output:
 
-For boards like Pi Zero 2 W, that should be your normal expectation.
+```bash
+pwd
+ls -la
+ls -la ./dist
+find . -maxdepth 3 -type f -name 'mamusiabtw*'
+```
 
-### `exec format error`
+If you built locally on the board with `./scripts/build-release.sh`, the expected file is:
 
-You built for the wrong target.
+- `./dist/mamusiabtw`
 
-Check whether the device OS is:
+If you cross-built with an explicit output path, the expected file is:
 
-- `linux/arm64`
-- `linux/arm`
+- exactly the filename you passed to `./scripts/build-release.sh`
 
-### Dashboard Does Not Load
+### `rsync: change_dir ... ~/migrations failed`
 
-If you use Profile C:
+That means you used a home-directory path in a repo-local workflow.
 
-- make sure `apps/dashboard/dist/index.html` exists on the target
+If you are already on the board and inside the repo checkout, use:
 
-### Admin API In Prod Fails At Startup
+- `./migrations/`
+- `./locales/`
+- `./plugins/`
+- `./config/`
 
-If `MAMUSIABTW_ADMIN_ADDR` is set in prod mode, make sure the required dashboard OAuth/session/public-origin vars are complete.
+Do not use:
 
-### `doctor` Says `discord_token: false`
+- `~/migrations/`
+- `~/locales/`
 
-Check these in order:
-
-- does `/opt/mamusiabtw/.env.prod` exist
-- are you running `/opt/mamusiabtw/mamusiabtw doctor`
-- does `.env.prod` actually contain `DISCORD_TOKEN=...`
-- if needed, run `doctor` from `/opt/mamusiabtw` as well
-
-The production doctor path should prefer `.env.prod`, not `.env.dev`.
-
-### `systemctl restart mamusiabtw` Says Unit Not Found
-
-That means first-install service setup was never completed.
-
-You need to:
-
-- create `/etc/systemd/system/mamusiabtw.service`
-- run `sudo systemctl daemon-reload`
-- run `sudo systemctl enable --now mamusiabtw`
+unless you explicitly copied those directories into your home directory first.
 
 ### `rsync` To `/opt/mamusiabtw/...` Fails
 
@@ -590,16 +881,62 @@ That usually means one of these is true:
 - `/opt/mamusiabtw` does not exist yet
 - your SSH user cannot write there directly
 
-Use the documented safe flow:
+Safe rule:
 
-- rsync to `~/mamusiabtw`
-- `sudo install -Dm755` into `/opt/mamusiabtw/mamusiabtw`
+- copy to a user-writable path first
+- then use `sudo install` or `sudo rsync` on the target device
 
-### Weak Board Feels Miserable To Build On
+### `systemctl restart mamusiabtw` Says Unit Not Found
 
-That is normal.
+That means the first-install service setup was never completed.
 
-Use this rule:
+You still need to:
 
-- weak board: run it there, build elsewhere
-- strong board: either is fine
+- create `/etc/systemd/system/mamusiabtw.service`
+- run `sudo systemctl daemon-reload`
+- run `sudo systemctl enable --now mamusiabtw`
+
+### `doctor` Says `discord_token: false`
+
+Check these in order:
+
+- does `/opt/mamusiabtw/.env.prod` exist
+- are you running `/opt/mamusiabtw/mamusiabtw doctor`
+- does `.env.prod` actually contain `DISCORD_TOKEN=...`
+- did you install `.env.prod` into `/opt/mamusiabtw/.env.prod`
+
+The installed production check is:
+
+```bash
+/opt/mamusiabtw/mamusiabtw doctor
+```
+
+### `compile: signal: killed`
+
+That usually means the board ran out of memory during compile.
+
+Most common fix:
+
+- stop native release building on that board
+- cross-build on a stronger machine instead
+
+For boards like Pi Zero 2 W, that should be your normal expectation.
+
+### `exec format error`
+
+You built for the wrong target architecture.
+
+Check whether the device OS is:
+
+- `linux/arm64`
+- `linux/arm`
+
+### Dashboard Does Not Load
+
+If you use Profile C, make sure this exists on the target:
+
+- `/opt/mamusiabtw/apps/dashboard/dist/index.html`
+
+### Admin API In Prod Fails At Startup
+
+If `MAMUSIABTW_ADMIN_ADDR` is set in prod mode, make sure the required dashboard OAuth, session, and public-origin vars are all set.

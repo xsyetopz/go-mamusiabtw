@@ -119,7 +119,7 @@ Minimum prod env (when `MAMUSIABTW_ADMIN_ADDR` is enabled):
 Longer docs live in:
 
 - `docs/reference.md` (Docker, commands/modules, Lua plugins, signing, compatibility, release builds)
-- `docs/sbc-hosting.md` (Raspberry Pi, Orange Pi, ODROID, profiles, and cross-build deployment guide)
+- `docs/sbc-hosting.md` (Raspberry Pi, Orange Pi, ODROID, plus separate runbooks for build-on-device, cross-build, first install, and updates)
 
 ## License
 
