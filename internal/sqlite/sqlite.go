@@ -5,12 +5,13 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
-	// SQLite driver (CGO).
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
 type Options struct {
@@ -28,7 +29,7 @@ func Open(ctx context.Context, opts Options) (*sql.DB, error) {
 	}
 
 	dsn := buildDSN(opts.Path)
-	db, err := sql.Open("sqlite3", dsn)
+	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("open sqlite: %w", err)
 	}
@@ -46,11 +47,17 @@ func Open(ctx context.Context, opts Options) (*sql.DB, error) {
 }
 
 func buildDSN(path string) string {
-	// WAL improves concurrency for typical Discord app workloads.
-	// _foreign_keys ensures FK enforcement on each connection.
-	//
-	// busy_timeout is in milliseconds.
-	return fmt.Sprintf("file:%s?_journal_mode=WAL&_foreign_keys=1&_busy_timeout=%d", path, sqliteBusyTimeoutMS)
+	params := url.Values{}
+	params.Add("_pragma", "journal_mode(WAL)")
+	params.Add("_pragma", "foreign_keys(1)")
+	params.Add("_pragma", fmt.Sprintf("busy_timeout(%d)", sqliteBusyTimeoutMS))
+
+	dsn := (&url.URL{
+		Scheme:   "file",
+		Path:     path,
+		RawQuery: params.Encode(),
+	}).String()
+	return "file:" + strings.TrimPrefix(dsn, "file://")
 }
 
 func ping(ctx context.Context, db *sql.DB) error {

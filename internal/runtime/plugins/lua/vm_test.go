@@ -14,8 +14,6 @@ import (
 	"testing"
 	"time"
 
-	_ "github.com/mattn/go-sqlite3"
-
 	"github.com/xsyetopz/go-mamusiabtw/internal/i18n"
 	migrate "github.com/xsyetopz/go-mamusiabtw/internal/migration"
 	"github.com/xsyetopz/go-mamusiabtw/internal/permissions"

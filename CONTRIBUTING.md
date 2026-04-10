@@ -119,7 +119,7 @@ For plugin issues, include the relevant `plugin.json`, the route being exercised
 
 ### Prerequisites
 
-- Go 1.26.1 or newer
+- Go 1.26.2 or newer
 - Git
 - A Discord bot token for local runtime testing
 

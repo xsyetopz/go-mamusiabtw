@@ -16,17 +16,17 @@ mkdir -p "$(dirname "$OUT_PATH")"
 LDFLAGS=(
   "-s"
   "-w"
-  "-X" "github.com/xsyetopz/go-mamusiabtw/internal/buildinfo.Version=${VERSION}"
-  "-X" "github.com/xsyetopz/go-mamusiabtw/internal/buildinfo.Repository=${REPOSITORY}"
-  "-X" "github.com/xsyetopz/go-mamusiabtw/internal/buildinfo.Description=${DESCRIPTION}"
-  "-X" "github.com/xsyetopz/go-mamusiabtw/internal/buildinfo.DeveloperURL=${DEVELOPER_URL}"
-  "-X" "github.com/xsyetopz/go-mamusiabtw/internal/buildinfo.SupportServerURL=${SUPPORT_SERVER_URL}"
-  "-X" "github.com/xsyetopz/go-mamusiabtw/internal/buildinfo.MascotImageURL=${MASCOT_IMAGE_URL}"
+  "-X 'github.com/xsyetopz/go-mamusiabtw/internal/buildinfo.Version=${VERSION}'"
+  "-X 'github.com/xsyetopz/go-mamusiabtw/internal/buildinfo.Repository=${REPOSITORY}'"
+  "-X 'github.com/xsyetopz/go-mamusiabtw/internal/buildinfo.Description=${DESCRIPTION}'"
+  "-X 'github.com/xsyetopz/go-mamusiabtw/internal/buildinfo.DeveloperURL=${DEVELOPER_URL}'"
+  "-X 'github.com/xsyetopz/go-mamusiabtw/internal/buildinfo.SupportServerURL=${SUPPORT_SERVER_URL}'"
+  "-X 'github.com/xsyetopz/go-mamusiabtw/internal/buildinfo.MascotImageURL=${MASCOT_IMAGE_URL}'"
 )
 
 (
   cd "$ROOT_DIR"
-  CGO_ENABLED=1 go build -trimpath -ldflags="${LDFLAGS[*]}" -o "$OUT_PATH" ./cmd/mamusiabtw
+  CGO_ENABLED=0 go build -trimpath -ldflags="${LDFLAGS[*]}" -o "$OUT_PATH" ./cmd/mamusiabtw
 )
 
 printf 'built %s\n' "$OUT_PATH"

@@ -63,8 +63,8 @@ This guide does **not** cover older ARMv6 boards like:
 
 Reason:
 
-- this project uses SQLite through `github.com/mattn/go-sqlite3`
-- that driver is CGO-based
+- this project uses SQLite through a pure-Go driver
+- older ARMv6 boards are still not the baseline we want to support here
 - older ARMv6 boards are possible in theory, but they are not a sane baseline for this repo
 
 ## Choose A Pi Setup
@@ -257,23 +257,21 @@ Notes:
 
 ## Native Build On The Pi
 
-This is the default path because the repo uses CGO + SQLite.
+This is the default path because the repo now builds SQLite without CGO.
 
 What you need:
 
 - a Pi with enough patience for a native Go build
-- build tools
-- SQLite headers
-- Go 1.26.1 or newer
+- Go 1.26.2 or newer
 
 On Raspberry Pi OS / Debian-style systems:
 
 ```bash
 sudo apt update
-sudo apt install -y git build-essential pkg-config libsqlite3-dev
+sudo apt install -y git
 ```
 
-Install Go 1.26.1 or newer.
+Install Go 1.26.2 or newer.
 
 ### Install Go On 64-bit Raspberry Pi OS
 
@@ -355,25 +353,17 @@ This is useful if:
 - you want faster builds
 - you want to prebuild for a Pi Zero 2
 
-But it is more work because this project uses CGO.
-
-You do **not** get a reliable result by only setting `GOOS` and `GOARCH`.
-
-You also need a matching cross C toolchain, for example:
-
-- `aarch64-linux-gnu-gcc` for `linux/arm64`
-- `arm-linux-gnueabihf-gcc` for `linux/arm` on ARMv7-class boards
+This is now much easier because SQLite no longer needs CGO.
 
 Practical recommendation:
 
 - use native builds by default
-- use cross-build only if you already know your target OS/arch and have the
-  right cross compiler available
+- use cross-build if you want faster builds on a stronger machine
 
 Keep it simple:
 
 - native build is the normal path
-- cross-build is the "I know why I want this" path
+- cross-build is just plain Go cross-build now
 
 Typical targets:
 
@@ -685,12 +675,12 @@ For signing commands and trusted key setup.
 
 ### Build fails with SQLite or compiler errors
 
-You are probably missing native build prerequisites.
+You are probably missing a normal Go build prerequisite, or your Go install is not set up correctly.
 
 Install:
 
 ```bash
-sudo apt install -y build-essential pkg-config libsqlite3-dev
+sudo apt install -y git
 ```
 
 ### Binary will not start: `exec format error`
