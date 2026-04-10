@@ -44,20 +44,20 @@ Hard rules:
 
 ## Table Of Contents
 
-1. Fast answer
-2. Path + machine legend
-3. Pick your deployment profile
-4. Board matrix
-5. Stop here if this is your situation
-6. Golden path A: weak board, build elsewhere
-7. Golden path B: stronger board, build locally
-8. Local build on the device
-9. Cross-build on another machine
-10. First install on a fresh device
-11. Update an existing install
-12. Environment examples
-13. Dashboard build guidance
-14. Troubleshooting
+- [Fast Answer](#fast-answer)
+- [Path + Machine Legend](#path--machine-legend)
+- [Pick Your Deployment Profile](#pick-your-deployment-profile)
+- [Board Matrix](#board-matrix)
+- [Stop Here If This Is Your Situation](#stop-here-if-this-is-your-situation)
+- [Golden Path A: Weak Board, Build Elsewhere](#golden-path-a-weak-board-build-elsewhere)
+- [Golden Path B: Stronger Board, Build Locally](#golden-path-b-stronger-board-build-locally)
+- [Local Build On The Device](#local-build-on-the-device)
+- [Cross-Build On Another Machine](#cross-build-on-another-machine)
+- [First Install On A Fresh Device](#first-install-on-a-fresh-device)
+- [Update An Existing Install](#update-an-existing-install)
+- [Environment Examples](#environment-examples)
+- [Dashboard Build Guidance](#dashboard-build-guidance)
+- [Troubleshooting](#troubleshooting)
 
 ## Pick Your Deployment Profile
 
