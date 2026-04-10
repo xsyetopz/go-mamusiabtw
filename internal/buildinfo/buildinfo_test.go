@@ -8,6 +8,7 @@ func TestCurrentNormalizesUnknownValues(t *testing.T) {
 	prevVersion := Version
 	prevRepository := Repository
 	prevDescription := Description
+	prevDescriptionBase64 := DescriptionBase64
 	prevDeveloperURL := DeveloperURL
 	prevSupportServerURL := SupportServerURL
 	prevMascotImageURL := MascotImageURL
@@ -15,6 +16,7 @@ func TestCurrentNormalizesUnknownValues(t *testing.T) {
 		Version = prevVersion
 		Repository = prevRepository
 		Description = prevDescription
+		DescriptionBase64 = prevDescriptionBase64
 		DeveloperURL = prevDeveloperURL
 		SupportServerURL = prevSupportServerURL
 		MascotImageURL = prevMascotImageURL
@@ -45,5 +47,43 @@ func TestCurrentNormalizesUnknownValues(t *testing.T) {
 	}
 	if info.MascotImageURL != "https://example.com/mascot.png" {
 		t.Fatalf("unexpected mascot image url: %q", info.MascotImageURL)
+	}
+}
+
+func TestCurrentUsesBase64DescriptionOverride(t *testing.T) {
+	t.Parallel()
+
+	prevDescription := Description
+	prevDescriptionBase64 := DescriptionBase64
+	defer func() {
+		Description = prevDescription
+		DescriptionBase64 = prevDescriptionBase64
+	}()
+
+	Description = "fallback"
+	DescriptionBase64 = "IGVuY29kZWQgZGVzY3JpcHRpb24g"
+
+	info := Current()
+	if info.Description != "encoded description" {
+		t.Fatalf("unexpected description: %q", info.Description)
+	}
+}
+
+func TestCurrentFallsBackWhenBase64DescriptionInvalid(t *testing.T) {
+	t.Parallel()
+
+	prevDescription := Description
+	prevDescriptionBase64 := DescriptionBase64
+	defer func() {
+		Description = prevDescription
+		DescriptionBase64 = prevDescriptionBase64
+	}()
+
+	Description = " fallback description "
+	DescriptionBase64 = "not-base64"
+
+	info := Current()
+	if info.Description != "fallback description" {
+		t.Fatalf("unexpected description: %q", info.Description)
 	}
 }
