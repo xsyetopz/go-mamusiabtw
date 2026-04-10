@@ -11,9 +11,11 @@ tokens is out of scope unless explicitly added as a separate feature set.
 Coverage is implemented in the Lua runtime under `internal/runtime/plugins/lua/`.
 
 **Lookup**
+
 - guild, user, member, role, channel
 
 **Management**
+
 - slowmode, nicknames
 - role CRUD + add/remove role from members
 - message listing + delete + purge
@@ -21,6 +23,7 @@ Coverage is implemented in the Lua runtime under `internal/runtime/plugins/lua/`
 - sticker CRUD
 
 **Messages**
+
 - get message
 - channel send, DM send
 - reactions: list/add/remove/clear
@@ -28,6 +31,7 @@ Coverage is implemented in the Lua runtime under `internal/runtime/plugins/lua/`
 - crosspost
 
 **Channels / Threads / Invites / Webhooks**
+
 - channel create/edit/delete
 - permission overwrite set/delete
 - thread create/update + membership operations

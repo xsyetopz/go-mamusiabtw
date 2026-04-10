@@ -35,10 +35,14 @@ The Docker build accepts the same values as `BUILD_*` args.
 
 ## Docker
 
-1. Copy `.env.dev.example` to `.env.dev` and fill in at least `DISCORD_TOKEN`.
-2. Start: `docker compose up --build`
+1. Copy `.env.prod.example` to `.env.prod`.
+2. Fill in at least `DISCORD_TOKEN`.
+3. If you want the admin API in Docker, also fill in the required
+   `MAMUSIABTW_DASHBOARD_*` and public origin vars.
+4. Start: `docker compose up --build`
 
-`compose.yml` bind-mounts `./data`, `./plugins`, and `./config` into the container.
+`compose.yml` now reads `.env.prod` and bind-mounts `./data`, `./plugins`, and
+`./config` into the container.
 
 ## Built-in Commands
 
@@ -120,4 +124,3 @@ By default, mamusiabtw registers slash commands globally (unless `DISCORD_DEV_GU
 - `MAMUSIABTW_COMMAND_REGISTRATION_MODE=global|guilds|hybrid`
 - `MAMUSIABTW_COMMAND_GUILD_IDS=...`
 - `MAMUSIABTW_COMMAND_REGISTER_ALL_GUILDS=1`
-
