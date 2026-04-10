@@ -21,10 +21,10 @@ If you want the shortest safe answer:
 
 - weak boards should usually **run** the bot, not **build** it
 - strong boards can build and run locally
-- if you are already on the board and the repo is cloned there, use `Local Build On The Device`
-- if you are on your stronger laptop/desktop building for the board, use `Cross-Build On Another Machine`
-- if `/opt/mamusiabtw` does not exist yet, use `First Install On A Fresh Device`
-- if `/opt/mamusiabtw` and `mamusiabtw.service` already exist, use `Update An Existing Install`
+- if you are already on the board and the repo is cloned there, use [Local Build On The Device](#local-build-on-the-device)
+- if you are on your stronger laptop/desktop building for the board, use [Cross-Build On Another Machine](#cross-build-on-another-machine)
+- if `/opt/mamusiabtw` does not exist yet, use [First Install On A Fresh Device](#first-install-on-a-fresh-device)
+- if `/opt/mamusiabtw` and `mamusiabtw.service` already exist, use [Update An Existing Install](#update-an-existing-install)
 
 ## Path + Machine Legend
 
@@ -149,13 +149,13 @@ Representative vendor pages:
 ## Stop Here If This Is Your Situation
 
 - If you are already on the board and the repo is cloned there:
-  go to `Local Build On The Device`
+  go to [Local Build On The Device](#local-build-on-the-device)
 - If you are on your laptop or desktop building for the board:
-  go to `Cross-Build On Another Machine`
+  go to [Cross-Build On Another Machine](#cross-build-on-another-machine)
 - If `/opt/mamusiabtw` does not exist yet:
-  go to `First Install On A Fresh Device`
+  go to [First Install On A Fresh Device](#first-install-on-a-fresh-device)
 - If `/opt/mamusiabtw` already exists and the service already works:
-  go to `Update An Existing Install`
+  go to [Update An Existing Install](#update-an-existing-install)
 
 ## Golden Path A: Weak Board, Build Elsewhere
 
@@ -586,8 +586,8 @@ sudo install -d -o mamusiabtw -g mamusiabtw /opt/mamusiabtw/data
 
 Pick one:
 
-- if you built on the device, go back to `Local Build On The Device`
-- if you built elsewhere, go back to `Cross-Build On Another Machine`
+- if you built on the device, go back to [Local Build On The Device](#local-build-on-the-device)
+- if you built elsewhere, go back to [Cross-Build On Another Machine](#cross-build-on-another-machine)
 
 After this step, you must have:
 
