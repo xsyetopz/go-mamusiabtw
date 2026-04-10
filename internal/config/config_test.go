@@ -234,6 +234,7 @@ func TestShippedSchemaURLs(t *testing.T) {
 		key  string
 		want string
 	}{
+		{path: "config/trusted_keys.json", key: "$schema", want: schemaBaseURL + "trusted_keys.schema.v1.json"},
 		{path: "config/permissions.json", key: "$schema", want: schemaBaseURL + "permissions.schema.v1.json"},
 		{path: "config/modules.json", key: "$schema", want: schemaBaseURL + "modules.schema.v1.json"},
 		{path: "examples/plugins/example/plugin.json", key: "$schema", want: schemaBaseURL + "plugin.schema.v1.json"},
@@ -323,6 +324,7 @@ func TestAuthoringAssetsLayout(t *testing.T) {
 	}
 
 	for _, relPath := range []string{
+		"config/trusted_keys.json",
 		"examples/plugins/example/plugin.json",
 		"examples/plugins/example/plugin.lua",
 		"examples/plugins/example/lib/counter.lua",

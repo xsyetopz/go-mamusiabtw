@@ -66,6 +66,9 @@ func runMain() int {
 	if len(args) > 0 && args[0] == "sign-plugin" {
 		return runSignPluginCommand(args[1:])
 	}
+	if len(args) > 0 && args[0] == "gen-signing-key" {
+		return runGenSigningKeyCommand(args[1:])
+	}
 
 	cfg, err := config.LoadFromEnv()
 	if err != nil {
@@ -115,7 +118,27 @@ func runDoctorCommand(args []string) int {
 
 	hasToken := strings.TrimSpace(cfg.DiscordToken) != ""
 	writeLine("discord_token: %t", hasToken)
+	writeLine("prod_mode: %t", cfg.ProdMode)
 	writeLine("admin_api_enabled: %t", strings.TrimSpace(cfg.AdminAddr) != "")
+	writeLine("allow_unsigned_plugins: %t", cfg.AllowUnsignedPlugins)
+	writeLine("trusted_keys_file: %s", cfg.TrustedKeysFile)
+	trustedKeysPath := strings.TrimSpace(cfg.TrustedKeysFile)
+	trustedKeysExists := false
+	trustedKeysCount := 0
+	if trustedKeysPath != "" {
+		if keys, err := pluginhost.ReadTrustedKeysFile(trustedKeysPath); err == nil {
+			trustedKeysExists = true
+			trustedKeysCount = len(keys)
+		} else if !os.IsNotExist(err) {
+			writeLine("trusted_keys_file_error: %s", err)
+		}
+	}
+	writeLine("trusted_keys_file_exists: %t", trustedKeysExists)
+	writeLine("trusted_keys_count_file: %d", trustedKeysCount)
+	writeLine(
+		"dashboard_signing_configured: %t",
+		strings.TrimSpace(cfg.DashboardSigningKeyID) != "" && strings.TrimSpace(cfg.DashboardSigningKeyFile) != "",
+	)
 	if strings.TrimSpace(cfg.AdminAddr) != "" {
 		writeLine("admin_addr: %s", cfg.AdminAddr)
 		writeLine("setup_url: %s/api/setup", httpBaseFromAddr(cfg.AdminAddr))
@@ -522,5 +545,59 @@ func runSignPluginCommand(args []string) int {
 
 	_, _ = fmt.Fprintf(os.Stdout, "signature: %s\n", target)
 	_, _ = fmt.Fprintf(os.Stdout, "public_key_b64: %s\n", base64.StdEncoding.EncodeToString(publicKey))
+	return 0
+}
+
+func runGenSigningKeyCommand(args []string) int {
+	fs := flag.NewFlagSet("gen-signing-key", flag.ContinueOnError)
+	fs.SetOutput(os.Stderr)
+
+	keyID := fs.String("key-id", "", "signer key id")
+	privateKeyFile := fs.String("private-key-file", "", "output private key file (default: ./data/keys/<key_id>.key)")
+	trustedKeysFile := fs.String("trusted-keys-file", "", "trusted keys file to create/update (default: ./config/trusted_keys.json)")
+	if err := fs.Parse(args); err != nil {
+		return 1
+	}
+
+	if strings.TrimSpace(*keyID) == "" {
+		_, _ = os.Stderr.WriteString("usage: mamusiabtw gen-signing-key --key-id <key_id> [--private-key-file <path>] [--trusted-keys-file <path>]\n")
+		return 1
+	}
+
+	keyPath := strings.TrimSpace(*privateKeyFile)
+	if keyPath == "" {
+		keyPath = filepath.Join(".", "data", "keys", strings.TrimSpace(*keyID)+".key")
+	}
+	trustPath := strings.TrimSpace(*trustedKeysFile)
+	if trustPath == "" {
+		trustPath = strings.TrimSpace(os.Getenv("MAMUSIABTW_TRUSTED_KEYS_FILE"))
+	}
+	if trustPath == "" {
+		trustPath = "./config/trusted_keys.json"
+	}
+
+	publicKey, privateKey, err := pluginhost.GenerateEd25519Key()
+	if err != nil {
+		_, _ = os.Stderr.WriteString(err.Error() + "\n")
+		return 1
+	}
+	if err := pluginhost.WriteEd25519PrivateKeyFile(keyPath, privateKey); err != nil {
+		_, _ = os.Stderr.WriteString(err.Error() + "\n")
+		return 1
+	}
+
+	publicKeyB64 := base64.StdEncoding.EncodeToString(publicKey)
+	if err := pluginhost.UpsertTrustedKeyFile(trustPath, pluginhost.TrustedKey{
+		KeyID:        strings.TrimSpace(*keyID),
+		PublicKeyB64: publicKeyB64,
+	}); err != nil {
+		_, _ = os.Stderr.WriteString(err.Error() + "\n")
+		return 1
+	}
+
+	_, _ = fmt.Fprintf(os.Stdout, "key_id: %s\n", strings.TrimSpace(*keyID))
+	_, _ = fmt.Fprintf(os.Stdout, "private_key_file: %s\n", keyPath)
+	_, _ = fmt.Fprintf(os.Stdout, "trusted_keys_file: %s\n", trustPath)
+	_, _ = fmt.Fprintf(os.Stdout, "public_key_b64: %s\n", publicKeyB64)
 	return 0
 }

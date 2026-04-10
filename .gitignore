@@ -18,9 +18,6 @@
 *.sqlite-wal
 *.sqlite-shm
 
-# Local config (seed keys, etc.)
-/config/trusted_keys.json
-
 # Executables
 !/cmd/mamusiabtw/
 /mamusiabtw

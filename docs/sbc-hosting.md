@@ -56,6 +56,7 @@ Hard rules:
 - [First Install On A Fresh Device](#first-install-on-a-fresh-device)
 - [Update An Existing Install](#update-an-existing-install)
 - [Environment Examples](#environment-examples)
+- [Production Plugin Signing](#production-plugin-signing)
 - [Dashboard Build Guidance](#dashboard-build-guidance)
 - [Troubleshooting](#troubleshooting)
 
@@ -637,6 +638,17 @@ If `.env.prod` is in your home directory:
 sudo install -Dm600 ~/.env.prod /opt/mamusiabtw/.env.prod
 ```
 
+### 5.5 Production Plugin Signing
+
+If your `.env.prod` contains both of these:
+
+- `MAMUSIABTW_PROD_MODE=1`
+- `MAMUSIABTW_ALLOW_UNSIGNED_PLUGINS=0`
+
+then you must finish the signing setup before the service will boot.
+
+Use [Production Plugin Signing](#production-plugin-signing) before you start the service.
+
 ### 6. Install The Service
 
 Run on `TARGET DEVICE`.
@@ -692,6 +704,8 @@ You want to see:
 
 - `env_file_loaded: .env.prod`
 - `discord_token: true`
+- `prod_mode: true`
+- `trusted_keys_file_exists: true`
 
 ## Update An Existing Install
 
@@ -760,6 +774,7 @@ DISCORD_TOKEN=your-token-here
 
 MAMUSIABTW_PROD_MODE=1
 MAMUSIABTW_ALLOW_UNSIGNED_PLUGINS=0
+# MAMUSIABTW_TRUSTED_KEYS_FILE=./config/trusted_keys.json
 ```
 
 ### Profile B
@@ -769,6 +784,7 @@ DISCORD_TOKEN=your-token-here
 
 MAMUSIABTW_PROD_MODE=1
 MAMUSIABTW_ALLOW_UNSIGNED_PLUGINS=0
+# MAMUSIABTW_TRUSTED_KEYS_FILE=./config/trusted_keys.json
 
 MAMUSIABTW_ADMIN_ADDR=0.0.0.0:8081
 MAMUSIABTW_DASHBOARD_CLIENT_ID=your-discord-client-id
@@ -787,6 +803,7 @@ DISCORD_TOKEN=your-token-here
 
 MAMUSIABTW_PROD_MODE=1
 MAMUSIABTW_ALLOW_UNSIGNED_PLUGINS=0
+# MAMUSIABTW_TRUSTED_KEYS_FILE=./config/trusted_keys.json
 
 MAMUSIABTW_ADMIN_ADDR=0.0.0.0:8081
 MAMUSIABTW_DASHBOARD_CLIENT_ID=your-discord-client-id
@@ -797,6 +814,96 @@ MAMUSIABTW_PUBLIC_DASHBOARD_ORIGIN=https://device-or-domain.example
 MAMUSIABTW_PUBLIC_API_ORIGIN=https://device-or-domain.example
 MAMUSIABTW_DASHBOARD_ALLOWED_ORIGINS=https://device-or-domain.example
 ```
+
+## Production Plugin Signing
+
+This section matters whenever all of these are true:
+
+- you are using `.env.prod`
+- `MAMUSIABTW_PROD_MODE=1`
+- `MAMUSIABTW_ALLOW_UNSIGNED_PLUGINS=0`
+
+If that is your setup, the service will not boot unless trusted signer setup is complete.
+
+### Case 1: You Only Want The Bundled Official Plugins
+
+Good news:
+
+- the bundled official plugins are already signed
+- the matching trusted public key file is `./config/trusted_keys.json`
+
+What must exist on the installed machine:
+
+- `/opt/mamusiabtw/config/trusted_keys.json`
+- `/opt/mamusiabtw/plugins/<plugin>/signature.json` for the bundled plugins
+
+Run on `TARGET DEVICE`:
+
+```bash
+ls -la /opt/mamusiabtw/config/trusted_keys.json
+find /opt/mamusiabtw/plugins -maxdepth 2 -name signature.json -print | sort
+/opt/mamusiabtw/mamusiabtw doctor
+```
+
+You want `doctor` to show:
+
+- `prod_mode: true`
+- `allow_unsigned_plugins: false`
+- `trusted_keys_file_exists: true`
+- `trusted_keys_count_file: 1` or higher
+
+If `config/trusted_keys.json` is missing from the installed machine, copy it from the repo checkout:
+
+Run on `TARGET DEVICE`, inside `REPO CHECKOUT`:
+
+```bash
+sudo install -Dm644 ./config/trusted_keys.json /opt/mamusiabtw/config/trusted_keys.json
+sudo chown mamusiabtw:mamusiabtw /opt/mamusiabtw/config/trusted_keys.json
+```
+
+### Case 2: You Want To Sign Your Own Plugins
+
+Run on the machine where your repo checkout lives.
+
+Generate a signer:
+
+```bash
+go run ./cmd/mamusiabtw gen-signing-key --key-id your-key-id
+```
+
+Default outputs:
+
+- private key: `./data/keys/your-key-id.key`
+- trusted public key entry: `./config/trusted_keys.json`
+
+Sign your plugin:
+
+```bash
+go run ./cmd/mamusiabtw sign-plugin --dir ./plugins/<id> --key-id your-key-id --private-key-file ./data/keys/your-key-id.key
+```
+
+That creates:
+
+- `./plugins/<id>/signature.json`
+
+Then install or copy these onto the target device:
+
+- `config/trusted_keys.json`
+- `plugins/<id>/signature.json`
+- the rest of the plugin directory
+
+You do not need to copy the private key to the target unless you want the dashboard to sign plugins there.
+
+### Optional: Let The Dashboard Sign Plugins Too
+
+If you want plugin scaffolding in the dashboard to sign automatically, set these in `.env.prod`:
+
+```dotenv
+MAMUSIABTW_DASHBOARD_SIGNING_KEY_ID=your-key-id
+MAMUSIABTW_DASHBOARD_SIGNING_KEY_FILE=./data/keys/your-key-id.key
+```
+
+That private key file must exist on the installed machine if you enable dashboard signing.
 
 ## Dashboard Build Guidance
 
@@ -910,6 +1017,27 @@ The installed production check is:
 ```bash
 /opt/mamusiabtw/mamusiabtw doctor
 ```
+
+### Prod Mode Says Trusted Signers Are Missing
+
+If logs say the service needs a trusted signer:
+
+- run `/opt/mamusiabtw/mamusiabtw doctor`
+- check `trusted_keys_file`
+- check `trusted_keys_file_exists`
+- make sure `/opt/mamusiabtw/config/trusted_keys.json` exists
+
+If you only use the bundled official plugins, the usual fix is:
+
+Run on `TARGET DEVICE`, inside `REPO CHECKOUT`:
+
+```bash
+sudo install -Dm644 ./config/trusted_keys.json /opt/mamusiabtw/config/trusted_keys.json
+sudo chown mamusiabtw:mamusiabtw /opt/mamusiabtw/config/trusted_keys.json
+sudo systemctl restart mamusiabtw
+```
+
+If you are signing your own plugins, use [Production Plugin Signing](#production-plugin-signing).
 
 ### `compile: signal: killed`
 

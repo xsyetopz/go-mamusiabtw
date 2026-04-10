@@ -1,0 +1,10 @@
+{
+  "$schema": "https://raw.githubusercontent.com/xsyetopz/go-mamusiabtw/refs/heads/main/schemas/trusted_keys.schema.v1.json",
+  "version": "1",
+  "keys": [
+    {
+      "key_id": "official-release-2026-04",
+      "public_key_b64": "jr4CrQQvK5rn+lEOK6kvOMLuudTfraT2gC96RsvNqEE="
+    }
+  ]
+}

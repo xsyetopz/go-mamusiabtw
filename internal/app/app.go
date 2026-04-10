@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"os"
 	"strings"
@@ -178,7 +179,14 @@ func (a *App) validatePluginTrust(ctx context.Context) error {
 		return err
 	}
 	if fileKeys == 0 && len(signers) == 0 {
-		return errors.New("prod mode requires at least one trusted signer in MAMUSIABTW_TRUSTED_KEYS_FILE or SQLite")
+		pathLabel := strings.TrimSpace(path)
+		if pathLabel == "" {
+			pathLabel = "./config/trusted_keys.json"
+		}
+		return fmt.Errorf(
+			"prod mode requires at least one trusted signer in %s or SQLite; bundled official plugins expect a trusted public key file there, and custom plugins should be signed with mamusiabtw gen-signing-key + sign-plugin",
+			pathLabel,
+		)
 	}
 	return nil
 }

@@ -2,15 +2,23 @@ package pluginhost
 
 import (
 	"crypto/ed25519"
+	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
+	"slices"
 	"strings"
 )
 
 const SignatureSchemaURL = "https://raw.githubusercontent.com/xsyetopz/go-mamusiabtw/refs/heads/main/schemas/signature.schema.v1.json"
+const TrustedKeysSchemaURL = "https://raw.githubusercontent.com/xsyetopz/go-mamusiabtw/refs/heads/main/schemas/trusted_keys.schema.v1.json"
+
+func GenerateEd25519Key() (ed25519.PublicKey, ed25519.PrivateKey, error) {
+	return ed25519.GenerateKey(rand.Reader)
+}
 
 func DecodeEd25519PrivateKey(raw string) (ed25519.PrivateKey, error) {
 	decoded, err := base64.StdEncoding.DecodeString(strings.TrimSpace(raw))
@@ -50,6 +58,64 @@ func ReadEd25519PrivateKeyFile(path string) (ed25519.PrivateKey, error) {
 	}
 
 	return DecodeEd25519PrivateKey(raw)
+}
+
+func WriteEd25519PrivateKeyFile(path string, privateKey ed25519.PrivateKey) error {
+	if len(privateKey) != ed25519.PrivateKeySize {
+		return errors.New("invalid ed25519 private key")
+	}
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return err
+	}
+	payload := strings.TrimSpace(base64.StdEncoding.EncodeToString(privateKey)) + "\n"
+	return os.WriteFile(path, []byte(payload), 0o600)
+}
+
+func UpsertTrustedKeyFile(path string, key TrustedKey) error {
+	if strings.TrimSpace(key.KeyID) == "" {
+		return errors.New("trusted key id is required")
+	}
+	if strings.TrimSpace(key.PublicKeyB64) == "" {
+		return errors.New("trusted public key is required")
+	}
+
+	payload := TrustedKeys{Keys: []TrustedKey{}}
+	if bytes, err := os.ReadFile(path); err == nil {
+		if unmarshalErr := json.Unmarshal(bytes, &payload); unmarshalErr != nil {
+			return fmt.Errorf("parse trusted keys file: %w", unmarshalErr)
+		}
+	} else if !os.IsNotExist(err) {
+		return err
+	}
+
+	replaced := false
+	for i := range payload.Keys {
+		if payload.Keys[i].KeyID != key.KeyID {
+			continue
+		}
+		payload.Keys[i] = key
+		replaced = true
+	}
+	if !replaced {
+		payload.Keys = append(payload.Keys, key)
+	}
+	slices.SortFunc(payload.Keys, func(a, b TrustedKey) int {
+		return strings.Compare(a.KeyID, b.KeyID)
+	})
+
+	bytes, err := json.MarshalIndent(map[string]any{
+		"$schema": TrustedKeysSchemaURL,
+		"version": "1",
+		"keys":    payload.Keys,
+	}, "", "  ")
+	if err != nil {
+		return err
+	}
+	bytes = append(bytes, '\n')
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return err
+	}
+	return os.WriteFile(path, bytes, 0o644)
 }
 
 func SignDir(dir string, keyID string, privateKey ed25519.PrivateKey) (Signature, ed25519.PublicKey, error) {

@@ -134,10 +134,49 @@ The host injects a namespaced global `bot` into plugin scripts (see `sdk/lua/bot
 
 When `MAMUSIABTW_PROD_MODE=1`, plugins must be signed.
 
-- Sign a plugin directory with:
-  `go run ./cmd/mamusiabtw sign-plugin --dir ./plugins/<id> --key-id <key_id> --private-key-file <path>`
-- Seed keys via `MAMUSIABTW_TRUSTED_KEYS_FILE`
-- Additional trusted keys live in SQLite (`trusted_signers`)
+Fast rules:
+
+- bundled official plugins are already signed
+- their matching trusted public keys live in `./config/trusted_keys.json`
+- custom plugins need your own signer key, then `sign-plugin`
+
+Stock official plugins:
+
+- keep `MAMUSIABTW_ALLOW_UNSIGNED_PLUGINS=0`
+- make sure `config/trusted_keys.json` is present on the installed machine
+- default trusted key path is `./config/trusted_keys.json` unless you override `MAMUSIABTW_TRUSTED_KEYS_FILE`
+
+Generate your own signer:
+
+```bash
+go run ./cmd/mamusiabtw gen-signing-key --key-id your-key-id
+```
+
+That creates:
+
+- a private key file, by default `./data/keys/your-key-id.key`
+- a trusted public key entry in `./config/trusted_keys.json`
+
+Sign a plugin directory:
+
+```bash
+go run ./cmd/mamusiabtw sign-plugin --dir ./plugins/<id> --key-id your-key-id --private-key-file ./data/keys/your-key-id.key
+```
+
+That writes:
+
+- `plugins/<id>/signature.json`
+
+If you want the dashboard to sign scaffolded plugins too, set:
+
+- `MAMUSIABTW_DASHBOARD_SIGNING_KEY_ID=your-key-id`
+- `MAMUSIABTW_DASHBOARD_SIGNING_KEY_FILE=./data/keys/your-key-id.key`
+
+Additional trusted keys can also live in SQLite (`trusted_signers`), but file-based trusted keys are the simplest first-boot path.
+
+For SBC/self-hosted production setup, see:
+
+- `docs/sbc-hosting.md#production-plugin-signing`
 
 ## Compatibility Options
 
