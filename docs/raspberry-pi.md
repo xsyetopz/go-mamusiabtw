@@ -273,13 +273,58 @@ sudo apt update
 sudo apt install -y git build-essential pkg-config libsqlite3-dev
 ```
 
-Install Go 1.26.1 or newer, then:
+Install Go 1.26.1 or newer.
+
+### Install Go On 64-bit Raspberry Pi OS
+
+If `uname -m` prints `aarch64`, this is the direct path:
+
+```bash
+wget https://go.dev/dl/go1.26.2.linux-arm64.tar.gz
+sudo rm -rf /usr/local/go
+sudo tar -C /usr/local -xzf go1.26.2.linux-arm64.tar.gz
+echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.profile
+source ~/.profile
+go version
+```
+
+### Install Go On 32-bit Raspberry Pi OS
+
+If `uname -m` prints `armv7l` or `armv6l`, use the 32-bit archive:
+
+```bash
+wget https://go.dev/dl/go1.26.2.linux-armv6l.tar.gz
+sudo rm -rf /usr/local/go
+sudo tar -C /usr/local -xzf go1.26.2.linux-armv6l.tar.gz
+echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.profile
+source ~/.profile
+go version
+```
+
+Why the archive says `armv6l` even on newer boards:
+
+- that is the name Go uses for the 32-bit Linux ARM tarball
+- it is still the right download for 32-bit Raspberry Pi OS on newer supported
+  boards
+
+If you want one helper instead of copy-pasting commands, clone the repo first
+and then run:
 
 ```bash
 git clone https://github.com/xsyetopz/go-mamusiabtw.git
 cd go-mamusiabtw
+./scripts/install-go-on-pi.sh
 cp .env.prod.example .env.prod
 ```
+
+That script:
+
+- detects `aarch64` vs 32-bit ARM
+- fetches the latest stable Go version from `go.dev`
+- installs it into `/usr/local/go`
+- adds `/usr/local/go/bin` to `~/.profile` if needed
+
+Then:
 
 Edit `.env.prod`, then sanity-check:
 
