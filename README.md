@@ -69,11 +69,26 @@ They must match exactly (scheme, host, port, path).
 
 ## Dashboard (Production)
 
-Recommended production shape:
+Canonical public production topology:
 
-- the dashboard is hosted as a static site (GitHub Pages)
+- the dashboard is hosted as a static site (GitHub Pages or similar)
 - the admin API is hosted on a separate origin (example: `api.` subdomain)
 - the dashboard calls the admin API using `api_origin` from `apps/dashboard/public/config.json` (example: `{"api_origin":"https://api.example.com"}`)
+
+Recommended domain shape:
+
+- dashboard: `https://example.com`
+- admin API: `https://api.example.com`
+
+Why this is the main public deployment shape:
+
+- static hosting is cheap and simple
+- the frontend can be cached/CDN-served separately from the bot host
+- same-origin is still simpler for local dev and single-box self-hosting
+
+Raw `*.github.io` hosting is supported, but discouraged as the repo's main public
+default. Prefer a custom domain if you want GitHub Pages to be the canonical
+public dashboard.
 
 Minimum prod env (when `MAMUSIABTW_ADMIN_ADDR` is enabled):
 

@@ -33,6 +33,31 @@ Supported env overrides:
 
 The Docker build accepts the same values as `BUILD_*` args.
 
+## Deployment Shapes
+
+### Local / Dev Default
+
+- admin API serves or proxies the dashboard on the same origin
+- this is the primary development path
+- simplest for local cookies, redirects, and debugging
+
+### Canonical Public Production Topology
+
+- static dashboard on GitHub Pages or similar
+- separate admin API origin
+- preferred domain shape: `example.com` + `api.example.com`
+- this is the repo's main public deployment recommendation
+
+Raw `*.github.io` hosting is supported, but discouraged as the main/default
+public path. Prefer a custom domain if you want GitHub Pages to be the primary
+public dashboard host.
+
+### Self-Hosted / Single-Box
+
+- admin API serves built `apps/dashboard/dist`
+- best fit for LAN, homelab, Raspberry Pi, and single-machine setups
+- simpler operationally than split hosting, but not the canonical public shape
+
 ## Docker
 
 1. Copy `.env.prod.example` to `.env.prod`.

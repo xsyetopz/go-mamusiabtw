@@ -9,6 +9,8 @@ answer is different for a Pi Zero 2 than for a Pi 5.
 
 If you want the short version:
 
+- canonical public production for this repo is:
+  static dashboard + separate admin API
 - Pi Zero 2 W:
   run **Profile A** or **Profile B**
 - Pi 3:
@@ -149,6 +151,7 @@ Quick setup shape:
 - Pi runs the bot and admin API
 - static dashboard lives elsewhere
 - browser talks to the Pi API through the public API origin
+- this matches the repo's canonical public production topology
 
 ### Profile C: Full Stack On The Pi
 
@@ -192,6 +195,7 @@ Quick setup shape:
 - Pi runs the bot and admin API
 - Pi also serves built frontend files from `apps/dashboard/dist`
 - browser opens the Pi directly
+- this is a self-hosted convenience path, not the repo's main public deployment default
 
 ## Board Advice
 
