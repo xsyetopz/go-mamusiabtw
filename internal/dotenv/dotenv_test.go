@@ -63,3 +63,33 @@ func TestLoadFile_ParsesQuotesExportAndComments(t *testing.T) {
 		t.Fatalf("%s=%q, want %q", keyD, got, "value")
 	}
 }
+
+func TestLoadAutoWithSearch_FallsBackToExecutableDir(t *testing.T) {
+	workDir := t.TempDir()
+	execDir := t.TempDir()
+
+	if err := os.WriteFile(filepath.Join(execDir, ".env.prod"), []byte("DOTENV_TEST_SEARCH=prod\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	res, err := LoadAutoWithSearch(
+		[]string{".env.prod", ".env.dev"},
+		[]SearchResult{
+			{Path: workDir, Source: "working_dir"},
+			{Path: execDir, Source: "executable_dir"},
+		},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if got := os.Getenv("DOTENV_TEST_SEARCH"); got != "prod" {
+		t.Fatalf("DOTENV_TEST_SEARCH=%q, want %q", got, "prod")
+	}
+	if res.Source != "executable_dir" {
+		t.Fatalf("unexpected source: %q", res.Source)
+	}
+	if res.Path != filepath.Join(execDir, ".env.prod") {
+		t.Fatalf("unexpected path: %q", res.Path)
+	}
+}

@@ -211,6 +211,19 @@ func TestLoadFromEnv_RejectsInvalidInputs(t *testing.T) {
 
 }
 
+func TestLoadFromEnvOptionalDiscordToken_ReadsTokenWhenPresent(t *testing.T) {
+	resetConfigEnv(t)
+	t.Setenv("DISCORD_TOKEN", "discord-token")
+
+	cfg, err := config.LoadFromEnvOptionalDiscordToken()
+	if err != nil {
+		t.Fatalf("LoadFromEnvOptionalDiscordToken: %v", err)
+	}
+	if cfg.DiscordToken != "discord-token" {
+		t.Fatalf("unexpected discord token: %q", cfg.DiscordToken)
+	}
+}
+
 func TestShippedSchemaURLs(t *testing.T) {
 	t.Parallel()
 

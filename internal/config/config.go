@@ -106,6 +106,8 @@ func loadFromEnv(requireDiscordToken bool) (Config, error) {
 		if err != nil {
 			return Config{}, err
 		}
+	} else {
+		discordToken = envDefault("DISCORD_TOKEN", "")
 	}
 
 	sqlitePath := envDefault("SQLITE_PATH", defaultSQLitePath)

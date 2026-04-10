@@ -34,10 +34,11 @@ If you want the short version:
 7. Orange Pi guidance
 8. ODROID guidance
 9. Deployment layout
-10. Environment examples
-11. Dashboard build guidance
-12. Update flow
-13. Troubleshooting
+10. First install on a fresh device
+11. Environment examples
+12. Dashboard build guidance
+13. Update flow
+14. Troubleshooting
 
 ## Profiles
 
@@ -173,16 +174,18 @@ GOOS=linux GOARCH=arm GOARM=7 ./scripts/build-release.sh dist/mamusiabtw-linux-a
 
 ### Copy To The Device
 
-Example:
+For an already-prepared device, copy to a user-writable path first:
 
 ```bash
-rsync -a dist/mamusiabtw-linux-arm64 krystian@device:/opt/mamusiabtw/mamusiabtw
+rsync -a dist/mamusiabtw-linux-arm64 krystian@device:~/mamusiabtw
+ssh krystian@device 'sudo install -Dm755 ~/mamusiabtw /opt/mamusiabtw/mamusiabtw'
 ```
 
 For 32-bit targets:
 
 ```bash
-rsync -a dist/mamusiabtw-linux-armv7 krystian@device:/opt/mamusiabtw/mamusiabtw
+rsync -a dist/mamusiabtw-linux-armv7 krystian@device:~/mamusiabtw
+ssh krystian@device 'sudo install -Dm755 ~/mamusiabtw /opt/mamusiabtw/mamusiabtw'
 ```
 
 ### Restart The Service
@@ -338,6 +341,87 @@ Why:
 - the repo uses relative defaults like `./data`, `./plugins`, `./config`, and `./apps/dashboard/dist`
 - the service should run with `WorkingDirectory=/opt/mamusiabtw`
 
+## First Install On A Fresh Device
+
+This is the missing part that must happen before any update or restart flow.
+
+### 1. Create The Install Tree
+
+```bash
+sudo useradd --system --home /opt/mamusiabtw --shell /usr/sbin/nologin mamusiabtw || true
+sudo install -d -o mamusiabtw -g mamusiabtw /opt/mamusiabtw
+sudo install -d -o mamusiabtw -g mamusiabtw /opt/mamusiabtw/data
+```
+
+### 2. Copy The Repo Assets You Need
+
+From your build machine:
+
+```bash
+rsync -a dist/mamusiabtw-linux-arm64 user@device:~/mamusiabtw
+rsync -a migrations locales plugins config user@device:~/
+scp .env.prod user@device:~/.env.prod
+```
+
+Then on the device:
+
+```bash
+sudo install -Dm755 ~/mamusiabtw /opt/mamusiabtw/mamusiabtw
+sudo rsync -a ~/migrations/ /opt/mamusiabtw/migrations/
+sudo rsync -a ~/locales/ /opt/mamusiabtw/locales/
+sudo rsync -a ~/plugins/ /opt/mamusiabtw/plugins/
+sudo rsync -a ~/config/ /opt/mamusiabtw/config/
+sudo install -Dm600 ~/.env.prod /opt/mamusiabtw/.env.prod
+sudo chown -R mamusiabtw:mamusiabtw /opt/mamusiabtw
+```
+
+For 32-bit targets, replace the binary name with `dist/mamusiabtw-linux-armv7`.
+
+### 3. Install The Service
+
+Create `/etc/systemd/system/mamusiabtw.service`:
+
+```ini
+[Unit]
+Description=mamusiabtw
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=mamusiabtw
+Group=mamusiabtw
+WorkingDirectory=/opt/mamusiabtw
+ExecStart=/opt/mamusiabtw/mamusiabtw
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Then:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now mamusiabtw
+sudo systemctl status mamusiabtw --no-pager
+```
+
+### 4. Check The Installed Binary
+
+Run `doctor` against the installed binary itself:
+
+```bash
+/opt/mamusiabtw/mamusiabtw doctor
+```
+
+Important:
+
+- `doctor` should be run from the installed path for production checks
+- the binary now looks for `.env.prod` in the current directory and next to the executable
+- if `/opt/mamusiabtw/.env.prod` exists, `doctor` from `/opt/mamusiabtw/mamusiabtw` should see it
+
 ## Environment Examples
 
 Only these env filenames are supported:
@@ -418,7 +502,8 @@ At runtime:
 ### If The Device Is Also The Build Machine
 
 ```bash
-cd ~/go-mamusiabtw
+cd /opt/mamusiabtw
+cp .env.prod .env.prod.backup
 git pull --ff-only
 diff -u .env.prod.example .env.prod
 ./scripts/build-release.sh
@@ -430,7 +515,8 @@ sudo systemctl restart mamusiabtw
 ```bash
 git pull --ff-only
 GOOS=linux GOARCH=arm64 ./scripts/build-release.sh dist/mamusiabtw-linux-arm64
-rsync -a dist/mamusiabtw-linux-arm64 user@device:/opt/mamusiabtw/mamusiabtw
+rsync -a dist/mamusiabtw-linux-arm64 user@device:~/mamusiabtw
+ssh user@device 'sudo install -Dm755 ~/mamusiabtw /opt/mamusiabtw/mamusiabtw'
 ssh user@device 'sudo systemctl restart mamusiabtw'
 ```
 
@@ -439,7 +525,8 @@ For 32-bit targets:
 ```bash
 git pull --ff-only
 GOOS=linux GOARCH=arm GOARM=7 ./scripts/build-release.sh dist/mamusiabtw-linux-armv7
-rsync -a dist/mamusiabtw-linux-armv7 user@device:/opt/mamusiabtw/mamusiabtw
+rsync -a dist/mamusiabtw-linux-armv7 user@device:~/mamusiabtw
+ssh user@device 'sudo install -Dm755 ~/mamusiabtw /opt/mamusiabtw/mamusiabtw'
 ssh user@device 'sudo systemctl restart mamusiabtw'
 ```
 
@@ -474,6 +561,39 @@ If you use Profile C:
 ### Admin API In Prod Fails At Startup
 
 If `MAMUSIABTW_ADMIN_ADDR` is set in prod mode, make sure the required dashboard OAuth/session/public-origin vars are complete.
+
+### `doctor` Says `discord_token: false`
+
+Check these in order:
+
+- does `/opt/mamusiabtw/.env.prod` exist
+- are you running `/opt/mamusiabtw/mamusiabtw doctor`
+- does `.env.prod` actually contain `DISCORD_TOKEN=...`
+- if needed, run `doctor` from `/opt/mamusiabtw` as well
+
+The production doctor path should prefer `.env.prod`, not `.env.dev`.
+
+### `systemctl restart mamusiabtw` Says Unit Not Found
+
+That means first-install service setup was never completed.
+
+You need to:
+
+- create `/etc/systemd/system/mamusiabtw.service`
+- run `sudo systemctl daemon-reload`
+- run `sudo systemctl enable --now mamusiabtw`
+
+### `rsync` To `/opt/mamusiabtw/...` Fails
+
+That usually means one of these is true:
+
+- `/opt/mamusiabtw` does not exist yet
+- your SSH user cannot write there directly
+
+Use the documented safe flow:
+
+- rsync to `~/mamusiabtw`
+- `sudo install -Dm755` into `/opt/mamusiabtw/mamusiabtw`
 
 ### Weak Board Feels Miserable To Build On
 

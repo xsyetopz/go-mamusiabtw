@@ -34,40 +34,18 @@ func runMain() int {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	// Low mental-load workflow: allow env files to be used without requiring users
-	// to manually export variables before running.
-	if strings.TrimSpace(os.Getenv("MAMUSIABTW_DISABLE_DOTENV")) != "1" {
-		if explicit := strings.TrimSpace(os.Getenv("MAMUSIABTW_ENV_FILE")); explicit != "" {
-			base := filepath.Base(explicit)
-			if base != ".env.dev" && base != ".env.prod" {
-				_, _ = os.Stderr.WriteString("refusing to load non-standard env file " + base + "; use .env.dev or .env.prod instead\n")
-				return 1
-			}
-			_, _ = dotenv.LoadAuto([]string{explicit})
-		} else {
-			subcmd := ""
-			if len(os.Args) > 1 {
-				subcmd = strings.TrimSpace(os.Args[1])
-			}
-			// Prefer production env files unless running an explicitly dev-focused
-			// command. This keeps "mamusiabtw" deterministic when both dev and prod
-			// env files exist locally.
-			if subcmd == "dev" || subcmd == "doctor" || subcmd == "init" {
-				if bad := forbiddenDotenvFile(); bad != "" {
-					_, _ = os.Stderr.WriteString("forbidden env file detected: " + bad + " (only .env.dev/.env.prod are allowed)\n")
-					return 1
-				}
-				_, _ = dotenv.LoadAuto([]string{".env.dev"})
-			} else {
-				if bad := forbiddenDotenvFile(); bad != "" {
-					_, _ = os.Stderr.WriteString("forbidden env file detected: " + bad + " (only .env.dev/.env.prod are allowed)\n")
-					return 1
-				}
-				_, _ = dotenv.LoadAuto([]string{".env.prod"})
-			}
-		}
+	loadedEnv, envErr := autoLoadEnvFile()
+	if envErr != nil {
+		_, _ = os.Stderr.WriteString(envErr.Error() + "\n")
+		return 1
+	}
+	if loadedEnv.Path != "" {
+		_ = os.Setenv("MAMUSIABTW_LOADED_ENV_FILE", loadedEnv.Path)
+		_ = os.Setenv("MAMUSIABTW_LOADED_ENV_SOURCE", loadedEnv.Source)
 	}
 
+	// Low mental-load workflow: allow env files to be used without requiring users
+	// to manually export variables before running.
 	args := os.Args[1:]
 	if len(args) > 0 && args[0] == "init" {
 		return runInitCommand(args[1:])
@@ -126,6 +104,15 @@ func runDoctorCommand(args []string) int {
 		_, _ = fmt.Fprintf(os.Stdout, format+"\n", a...)
 	}
 
+	loadedEnv := strings.TrimSpace(os.Getenv("MAMUSIABTW_LOADED_ENV_FILE"))
+	loadedEnvSource := strings.TrimSpace(os.Getenv("MAMUSIABTW_LOADED_ENV_SOURCE"))
+	if loadedEnv == "" {
+		writeLine("env_file_loaded: false")
+	} else {
+		writeLine("env_file_loaded: %s", loadedEnv)
+		writeLine("env_file_source: %s", loadedEnvSource)
+	}
+
 	hasToken := strings.TrimSpace(cfg.DiscordToken) != ""
 	writeLine("discord_token: %t", hasToken)
 	writeLine("admin_api_enabled: %t", strings.TrimSpace(cfg.AdminAddr) != "")
@@ -164,6 +151,46 @@ func runDoctorCommand(args []string) int {
 	}
 
 	return 0
+}
+
+func autoLoadEnvFile() (dotenv.SearchResult, error) {
+	if strings.TrimSpace(os.Getenv("MAMUSIABTW_DISABLE_DOTENV")) == "1" {
+		return dotenv.SearchResult{}, nil
+	}
+	if bad := forbiddenDotenvFile(); bad != "" {
+		return dotenv.SearchResult{}, fmt.Errorf("forbidden env file detected: %s (only .env.dev/.env.prod are allowed)", bad)
+	}
+
+	searchDirs := []dotenv.SearchResult{
+		{Path: ".", Source: "working_dir"},
+	}
+	if execPath, err := os.Executable(); err == nil {
+		if execDir := strings.TrimSpace(filepath.Dir(execPath)); execDir != "" && execDir != "." {
+			searchDirs = append(searchDirs, dotenv.SearchResult{Path: execDir, Source: "executable_dir"})
+		}
+	}
+
+	if explicit := strings.TrimSpace(os.Getenv("MAMUSIABTW_ENV_FILE")); explicit != "" {
+		base := filepath.Base(explicit)
+		if base != ".env.dev" && base != ".env.prod" {
+			return dotenv.SearchResult{}, fmt.Errorf("refusing to load non-standard env file %s; use .env.dev or .env.prod instead", base)
+		}
+		return dotenv.LoadAutoWithSearch([]string{explicit}, searchDirs)
+	}
+
+	subcmd := ""
+	if len(os.Args) > 1 {
+		subcmd = strings.TrimSpace(os.Args[1])
+	}
+
+	switch subcmd {
+	case "dev", "init":
+		return dotenv.LoadAutoWithSearch([]string{".env.dev"}, searchDirs)
+	case "doctor":
+		return dotenv.LoadAutoWithSearch([]string{".env.prod", ".env.dev"}, searchDirs)
+	default:
+		return dotenv.LoadAutoWithSearch([]string{".env.prod"}, searchDirs)
+	}
 }
 
 func httpBaseFromAddr(addr string) string {
