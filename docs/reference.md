@@ -33,6 +33,10 @@ Supported env overrides:
 
 The Docker build accepts the same values as `BUILD_*` args.
 
+For SBC and cross-build deployment guidance, see:
+
+- `docs/sbc-hosting.md`
+
 ## Deployment Shapes
 
 ### Local / Dev Default
@@ -55,7 +59,7 @@ public dashboard host.
 ### Self-Hosted / Single-Box
 
 - admin API serves built `apps/dashboard/dist`
-- best fit for LAN, homelab, Raspberry Pi, and single-machine setups
+- best fit for LAN, homelab, SBCs, and single-machine setups
 - simpler operationally than split hosting, but not the canonical public shape
 
 ## Docker
