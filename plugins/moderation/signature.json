@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/xsyetopz/go-mamusiabtw/refs/heads/main/schemas/signature.schema.v1.json",
   "algorithm": "ed25519-sha256",
-  "hash_b64": "hQkYu7F4laIQ6AqaGzwbJMuxjLckPlOVnBnrROp/beE=",
+  "hash_b64": "WwIlkQC/lkP2hK2wtG/P/sPoHC1/Ag+/nMzwD3k2V/8=",
   "key_id": "official-release-2026-04",
-  "signature_b64": "xzTwUKOZn2zp5s5fIPa+fNFoALNF/SAqUEj+/b94Zn8JSTTp46cK/FFp7g48Uc7KQEH0klQ374rmgkXREjNFCQ=="
+  "signature_b64": "3kZ4jXp75XhjO8CHHYTFLsF5+aLdWdG6sVEuEaCbZd3QmQrDwogyRciB0sghJBjy3VH/5WEbiqt47NCbn+rpCw=="
 }

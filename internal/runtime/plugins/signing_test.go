@@ -255,6 +255,39 @@ func TestUpsertTrustedKeyFile(t *testing.T) {
 	}
 }
 
+func TestTrackedOfficialPluginSignaturesVerify(t *testing.T) {
+	t.Parallel()
+
+	repoRoot := filepath.Clean(filepath.Join("..", "..", ".."))
+	trustedKeysPath := filepath.Join(repoRoot, "config", "trusted_keys.json")
+	keys, err := pluginhost.ReadTrustedKeysFile(trustedKeysPath)
+	if err != nil {
+		t.Fatalf("ReadTrustedKeysFile(%q): %v", trustedKeysPath, err)
+	}
+
+	for _, rel := range []string{
+		"plugins/fun",
+		"plugins/info",
+		"plugins/manager",
+		"plugins/moderation",
+		"plugins/wellness",
+	} {
+		rel := rel
+		t.Run(rel, func(t *testing.T) {
+			t.Parallel()
+
+			dir := filepath.Join(repoRoot, rel)
+			sig, err := pluginhost.ReadSignature(filepath.Join(dir, "signature.json"))
+			if err != nil {
+				t.Fatalf("ReadSignature(%q): %v", dir, err)
+			}
+			if err := pluginhost.VerifyDirSignature(dir, sig, keys); err != nil {
+				t.Fatalf("VerifyDirSignature(%q): %v", dir, err)
+			}
+		})
+	}
+}
+
 func mustWriteFile(t *testing.T, path string, bytes []byte) {
 	t.Helper()
 
