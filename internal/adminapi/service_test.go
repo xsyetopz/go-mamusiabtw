@@ -15,7 +15,7 @@ func TestScaffoldPluginCreatesExpectedFiles(t *testing.T) {
 	dir := t.TempDir()
 	svc := Service{
 		Config: config.Config{
-			PluginsDir: dir,
+			UserPluginsDir: dir,
 		},
 	}
 

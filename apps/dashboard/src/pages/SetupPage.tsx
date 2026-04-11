@@ -215,7 +215,14 @@ function RuntimePanel({
 			) : null}
 			{status ? (
 				<>
-					<CodeLine label="Plugins path" value={status.config.plugins_dir} />
+					<CodeLine
+						label="Bundled plugins path"
+						value={status.config.bundled_plugins_dir}
+					/>
+					<CodeLine
+						label="User plugins path"
+						value={status.config.user_plugins_dir}
+					/>
 					<CodeLine label="Modules file" value={status.config.modules_file} />
 					<CodeLine
 						label="Permissions file"

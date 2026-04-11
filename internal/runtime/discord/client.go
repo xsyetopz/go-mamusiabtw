@@ -39,9 +39,16 @@ func requestedGatewayIntentsMask() gateway.Intents {
 }
 
 func (b *Bot) initPlugins(deps Dependencies) error {
-	if strings.TrimSpace(deps.PluginsDir) != "" {
+	dirs := make([]string, 0, 2)
+	if dir := strings.TrimSpace(deps.BundledPluginsDir); dir != "" {
+		dirs = append(dirs, dir)
+	}
+	if dir := strings.TrimSpace(deps.UserPluginsDir); dir != "" {
+		dirs = append(dirs, dir)
+	}
+	if len(dirs) > 0 {
 		host, err := pluginhost.NewHost(pluginhost.Options{
-			Dir:                 deps.PluginsDir,
+			Dirs:                dirs,
 			ProdMode:            deps.ProdMode,
 			AllowUnsignedPlugin: deps.AllowUnsignedPlugins,
 			TrustedKeysFile:     deps.TrustedKeysFile,

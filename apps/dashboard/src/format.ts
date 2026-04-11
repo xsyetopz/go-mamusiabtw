@@ -17,10 +17,8 @@ export function kindLabel(kind: string): string {
 	switch (kind) {
 		case "core_builtin":
 			return "Built-in";
-		case "official_plugin":
-			return "Official plugin";
-		case "user_plugin":
-			return "User plugin";
+		case "plugin":
+			return "Plugin";
 		default:
 			return kind;
 	}

@@ -27,7 +27,7 @@ type Host struct {
 	mu sync.RWMutex
 
 	logger *slog.Logger
-	dir    string
+	dirs   []string
 
 	prodMode             bool
 	allowUnsignedPlugins bool
@@ -119,7 +119,7 @@ type Discord interface {
 }
 
 type Options struct {
-	Dir                 string
+	Dirs                []string
 	ProdMode            bool
 	AllowUnsignedPlugin bool
 	TrustedKeysFile     string
@@ -166,8 +166,16 @@ type Payload struct {
 }
 
 func NewHost(opts Options) (*Host, error) {
-	if strings.TrimSpace(opts.Dir) == "" {
-		return nil, errors.New("plugins dir is required")
+	dirs := make([]string, 0, len(opts.Dirs))
+	for _, dir := range opts.Dirs {
+		dir = strings.TrimSpace(dir)
+		if dir == "" {
+			continue
+		}
+		dirs = append(dirs, dir)
+	}
+	if len(dirs) == 0 {
+		return nil, errors.New("at least one plugins dir is required")
 	}
 	if opts.Logger == nil {
 		return nil, errors.New("logger is required")
@@ -180,7 +188,7 @@ func NewHost(opts Options) (*Host, error) {
 
 	return &Host{
 		logger:               opts.Logger.With(slog.String("component", "plugins")),
-		dir:                  opts.Dir,
+		dirs:                 dirs,
 		prodMode:             opts.ProdMode,
 		allowUnsignedPlugins: opts.AllowUnsignedPlugin,
 		trustedKeysFile:      opts.TrustedKeysFile,
@@ -196,8 +204,8 @@ func NewHost(opts Options) (*Host, error) {
 }
 
 func (m *Host) LoadAll(ctx context.Context) error {
-	entries, err := m.readPluginDirEntries()
-	if err != nil || entries == nil {
+	pluginDirs, err := m.readPluginDirEntries()
+	if err != nil || pluginDirs == nil {
 		return err
 	}
 
@@ -213,22 +221,35 @@ func (m *Host) LoadAll(ctx context.Context) error {
 		return err
 	}
 
-	nextPlugins, nextCommands := m.loadPluginsFromEntries(ctx, entries, keys, policy)
+	nextPlugins, nextCommands := m.loadPluginsFromEntries(ctx, pluginDirs, keys, policy)
 	nextEvents, nextJobs := buildSubscriptions(nextPlugins)
 	oldPlugins := m.swapState(nextPlugins, nextCommands, nextEvents, nextJobs, policy)
 	closePlugins(oldPlugins)
 	return nil
 }
 
-func (m *Host) readPluginDirEntries() ([]os.DirEntry, error) {
-	entries, err := os.ReadDir(m.dir)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, nil
+func (m *Host) readPluginDirEntries() ([]string, error) {
+	pluginDirs := []string{}
+	for _, root := range m.dirs {
+		root = strings.TrimSpace(root)
+		if root == "" {
+			continue
 		}
-		return nil, fmt.Errorf("read plugins dir: %w", err)
+		entries, err := os.ReadDir(root)
+		if err != nil {
+			if os.IsNotExist(err) {
+				continue
+			}
+			return nil, fmt.Errorf("read plugins dir %q: %w", root, err)
+		}
+		for _, entry := range entries {
+			if !entry.IsDir() {
+				continue
+			}
+			pluginDirs = append(pluginDirs, filepath.Join(root, entry.Name()))
+		}
 	}
-	return entries, nil
+	return pluginDirs, nil
 }
 
 func (m *Host) resetPluginLocales() {
@@ -239,19 +260,18 @@ func (m *Host) resetPluginLocales() {
 
 func (m *Host) loadPluginsFromEntries(
 	ctx context.Context,
-	entries []os.DirEntry,
+	pluginDirs []string,
 	keys map[string]ed25519.PublicKey,
 	policy permissions.Policy,
 ) (map[string]*Plugin, map[string]PluginCommand) {
 	nextPlugins := map[string]*Plugin{}
 	nextCommands := map[string]PluginCommand{}
 
-	for _, entry := range entries {
-		if !entry.IsDir() {
+	for _, pluginDir := range pluginDirs {
+		pluginDir = strings.TrimSpace(pluginDir)
+		if pluginDir == "" {
 			continue
 		}
-
-		pluginDir := filepath.Join(m.dir, entry.Name())
 		pl, cmds, err := m.loadOne(ctx, pluginDir, keys, policy)
 		if err != nil {
 			m.logger.WarnContext(
@@ -880,6 +900,7 @@ type PluginInfo struct {
 	Version   string
 	Dir       string
 	Signed    bool
+	Bundled   bool
 	Effective permissions.Permissions
 	Commands  []Command
 }
@@ -899,12 +920,24 @@ func (m *Host) Infos() []PluginInfo {
 			Version:   pl.Manifest.Version,
 			Dir:       pl.Dir,
 			Signed:    pl.Signature != nil,
+			Bundled:   m.isBundledDir(pl.Dir),
 			Effective: pl.Effective,
 			Commands:  append([]Command(nil), pl.Commands...),
 		})
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].ID < out[j].ID })
 	return out
+}
+
+func (m *Host) isBundledDir(dir string) bool {
+	if m == nil {
+		return false
+	}
+	dir = strings.TrimSpace(dir)
+	if dir == "" || len(m.dirs) == 0 {
+		return false
+	}
+	return dir == strings.TrimSpace(m.dirs[0])
 }
 
 func (m *Host) loadOne(

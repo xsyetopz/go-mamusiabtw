@@ -15,6 +15,7 @@ type ModulesFile struct {
 }
 
 type ModuleDefaults struct {
+	PluginEnabled   *bool `json:"plugin_enabled,omitempty"`
 	OfficialEnabled *bool `json:"official_enabled,omitempty"`
 	UserEnabled     *bool `json:"user_enabled,omitempty"`
 }

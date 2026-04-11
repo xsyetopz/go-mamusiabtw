@@ -99,7 +99,7 @@ func TestProjectMigrationsExcludeLegacyGuildTables(t *testing.T) {
 	if err != nil {
 		t.Fatalf("UpPath: %v", err)
 	}
-	if status.CurrentVersion != 6 {
+	if status.CurrentVersion != 7 {
 		t.Fatalf("unexpected current version: %d", status.CurrentVersion)
 	}
 

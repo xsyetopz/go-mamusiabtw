@@ -43,6 +43,7 @@ func (b *Bot) services(_ discord.Locale) commandapi.Services {
 	if b.pluginHost != nil {
 		s.Plugins = pluginAdmin{b: b}
 	}
+	s.Marketplace = b.marketplace
 	s.Modules = moduleAdmin{b: b}
 	return s
 }

@@ -829,7 +829,7 @@ If that is your setup, the service will not boot unless trusted signer setup is 
 
 Good news:
 
-- the bundled official plugins are already signed
+- the bundled plugins are already signed
 - the matching trusted public key file is `./config/trusted_keys.json`
 
 What must exist on the installed machine:
@@ -1027,7 +1027,7 @@ If logs say the service needs a trusted signer:
 - check `trusted_keys_file_exists`
 - make sure `/opt/mamusiabtw/config/trusted_keys.json` exists
 
-If you only use the bundled official plugins, the usual fix is:
+If you only use the bundled plugins, the usual fix is:
 
 Run on `TARGET DEVICE`, inside `REPO CHECKOUT`:
 

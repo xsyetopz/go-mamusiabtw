@@ -10,6 +10,7 @@ import (
 	"github.com/disgoorg/disgo/events"
 
 	"github.com/xsyetopz/go-mamusiabtw/internal/i18n"
+	"github.com/xsyetopz/go-mamusiabtw/internal/marketplace"
 	"github.com/xsyetopz/go-mamusiabtw/internal/persona"
 	"github.com/xsyetopz/go-mamusiabtw/internal/runtime/discord/interactions"
 	pluginhost "github.com/xsyetopz/go-mamusiabtw/internal/runtime/plugins"
@@ -21,6 +22,11 @@ type Store interface {
 	Warnings() store.WarningStore
 	Audit() store.AuditStore
 	TrustedSigners() store.TrustedSignerStore
+	MarketplaceSources() store.MarketplaceSourceStore
+	MarketplaceSourceSyncs() store.MarketplaceSourceSyncStore
+	PluginInstalls() store.PluginInstallStore
+	TrustedVendors() store.TrustedVendorStore
+	TrustedVendorKeys() store.TrustedVendorKeyStore
 	AdminSessions() store.AdminSessionStore
 	PluginKV() store.PluginKVStore
 	ModuleStates() store.ModuleStateStore
@@ -112,12 +118,25 @@ type PluginAdmin interface {
 	Reload(ctx context.Context) error
 }
 
+type MarketplaceAdmin interface {
+	Configured() bool
+	ListSources(ctx context.Context) ([]marketplace.Source, error)
+	UpsertSource(ctx context.Context, req marketplace.SourceUpsert) (marketplace.Source, error)
+	DeleteSource(ctx context.Context, sourceID string) error
+	SyncSource(ctx context.Context, sourceID string) (marketplace.SyncResult, error)
+	Search(ctx context.Context, query marketplace.SearchQuery) ([]marketplace.PluginCandidate, error)
+	Install(ctx context.Context, req marketplace.InstallRequest) (marketplace.InstallResult, error)
+	Update(ctx context.Context, req marketplace.UpdateRequest) (marketplace.UpdateResult, error)
+	Uninstall(ctx context.Context, req marketplace.UninstallRequest) error
+	TrustSigner(ctx context.Context, req marketplace.TrustSignerRequest) error
+	TrustVendor(ctx context.Context, req marketplace.TrustVendorRequest) (marketplace.TrustVendorResult, error)
+}
+
 type ModuleKind string
 
 const (
-	ModuleKindCoreBuiltin    ModuleKind = "core_builtin"
-	ModuleKindOfficialPlugin ModuleKind = "official_plugin"
-	ModuleKindUserPlugin     ModuleKind = "user_plugin"
+	ModuleKindCoreBuiltin ModuleKind = "core_builtin"
+	ModuleKindPlugin      ModuleKind = "plugin"
 )
 
 type ModuleRuntime string
@@ -155,8 +174,9 @@ type Services struct {
 
 	IsOwner func(userID uint64) bool
 
-	Plugins PluginAdmin
-	Modules ModuleAdmin
+	Plugins     PluginAdmin
+	Marketplace MarketplaceAdmin
+	Modules     ModuleAdmin
 
 	// HelpNames returns the localized slash command names for help output.
 	HelpNames func(locale discord.Locale) []string

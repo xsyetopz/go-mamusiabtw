@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/xsyetopz/go-mamusiabtw/internal/config"
+	"github.com/xsyetopz/go-mamusiabtw/internal/marketplace"
 	"github.com/xsyetopz/go-mamusiabtw/internal/permissions"
 	store "github.com/xsyetopz/go-mamusiabtw/internal/storage"
 )
@@ -217,6 +218,14 @@ func (s *Server) handler() http.Handler {
 	api.HandleFunc("/api/owner/plugins/reload", s.withOwner(s.withCSRF(s.handleReloadPlugins)))
 	api.HandleFunc("/api/owner/plugins/scaffold", s.withOwner(s.withCSRF(s.handleScaffoldPlugin)))
 	api.HandleFunc("/api/owner/plugins/sign", s.withOwner(s.withCSRF(s.handleSignPlugin)))
+	api.HandleFunc("/api/owner/plugins/sources", s.withOwner(s.withCSRF(s.handleMarketplaceSources)))
+	api.HandleFunc("/api/owner/plugins/sources/sync", s.withOwner(s.withCSRF(s.handleMarketplaceSourceSync)))
+	api.HandleFunc("/api/owner/plugins/search", s.withOwner(s.handleMarketplaceSearch))
+	api.HandleFunc("/api/owner/plugins/install", s.withOwner(s.withCSRF(s.handleMarketplaceInstall)))
+	api.HandleFunc("/api/owner/plugins/update", s.withOwner(s.withCSRF(s.handleMarketplaceUpdate)))
+	api.HandleFunc("/api/owner/plugins/uninstall", s.withOwner(s.withCSRF(s.handleMarketplaceUninstall)))
+	api.HandleFunc("/api/owner/plugins/trust/signer", s.withOwner(s.withCSRF(s.handleMarketplaceTrustSigner)))
+	api.HandleFunc("/api/owner/plugins/trust/vendor", s.withOwner(s.withCSRF(s.handleMarketplaceTrustVendor)))
 
 	api.HandleFunc("/api/owner/config/modules", s.withOwner(s.handleModulesConfig))
 	api.HandleFunc("/api/owner/config/permissions", s.withOwner(s.handlePermissionsConfig))
@@ -684,6 +693,141 @@ func (s *Server) handleSignPlugin(w http.ResponseWriter, r *http.Request, sess s
 	}
 	s.logger.Info("admin plugin signed", slog.Uint64("actor_id", sess.UserID), slog.String("plugin_id", req.PluginID))
 	writeJSON(w, http.StatusOK, map[string]any{"signature": path})
+}
+
+func (s *Server) handleMarketplaceSources(w http.ResponseWriter, r *http.Request, _ session) {
+	switch r.Method {
+	case http.MethodGet:
+		items, err := s.svc.MarketplaceSources(r.Context())
+		if err != nil {
+			writeServiceError(w, http.StatusInternalServerError, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, MarketplaceSourcesResponse{Sources: items})
+	case http.MethodPost:
+		var req marketplace.SourceUpsert
+		if err := decodeJSON(r, &req); err != nil {
+			writeError(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		item, err := s.svc.UpsertMarketplaceSource(r.Context(), req)
+		if err != nil {
+			writeServiceError(w, http.StatusBadRequest, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, item)
+	case http.MethodDelete:
+		sourceID := strings.TrimSpace(r.URL.Query().Get("source_id"))
+		if sourceID == "" {
+			writeError(w, http.StatusBadRequest, "source_id is required")
+			return
+		}
+		if err := s.svc.DeleteMarketplaceSource(r.Context(), sourceID); err != nil {
+			writeServiceError(w, http.StatusBadRequest, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]any{"ok": true})
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+	}
+}
+
+func (s *Server) handleMarketplaceSourceSync(w http.ResponseWriter, r *http.Request, _ session) {
+	var req struct {
+		SourceID string `json:"source_id"`
+	}
+	if err := decodeJSON(r, &req); err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	resp, err := s.svc.SyncMarketplaceSource(r.Context(), req.SourceID)
+	if err != nil {
+		writeServiceError(w, http.StatusBadRequest, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, resp)
+}
+
+func (s *Server) handleMarketplaceSearch(w http.ResponseWriter, r *http.Request, _ session) {
+	query := marketplace.SearchQuery{
+		SourceID: strings.TrimSpace(r.URL.Query().Get("source_id")),
+		Term:     strings.TrimSpace(r.URL.Query().Get("term")),
+		Refresh:  strings.TrimSpace(r.URL.Query().Get("refresh")) == "1",
+	}
+	results, err := s.svc.SearchMarketplace(r.Context(), query)
+	if err != nil {
+		writeServiceError(w, http.StatusBadRequest, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"results": results})
+}
+
+func (s *Server) handleMarketplaceInstall(w http.ResponseWriter, r *http.Request, sess session) {
+	var req MarketplaceInstallRequest
+	if err := decodeJSON(r, &req); err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	resp, err := s.svc.InstallMarketplacePlugin(r.Context(), sess.UserID, req)
+	if err != nil {
+		writeServiceError(w, http.StatusBadRequest, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, resp)
+}
+
+func (s *Server) handleMarketplaceUpdate(w http.ResponseWriter, r *http.Request, sess session) {
+	var req MarketplaceUpdateRequest
+	if err := decodeJSON(r, &req); err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	resp, err := s.svc.UpdateMarketplacePlugin(r.Context(), sess.UserID, req)
+	if err != nil {
+		writeServiceError(w, http.StatusBadRequest, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, resp)
+}
+
+func (s *Server) handleMarketplaceUninstall(w http.ResponseWriter, r *http.Request, _ session) {
+	var req MarketplaceUninstallRequest
+	if err := decodeJSON(r, &req); err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	if err := s.svc.UninstallMarketplacePlugin(r.Context(), req); err != nil {
+		writeServiceError(w, http.StatusBadRequest, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"ok": true})
+}
+
+func (s *Server) handleMarketplaceTrustSigner(w http.ResponseWriter, r *http.Request, _ session) {
+	var req MarketplaceTrustSignerRequest
+	if err := decodeJSON(r, &req); err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	if err := s.svc.TrustMarketplaceSigner(r.Context(), req); err != nil {
+		writeServiceError(w, http.StatusBadRequest, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"ok": true})
+}
+
+func (s *Server) handleMarketplaceTrustVendor(w http.ResponseWriter, r *http.Request, _ session) {
+	var req MarketplaceTrustVendorRequest
+	if err := decodeJSON(r, &req); err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	resp, err := s.svc.TrustMarketplaceVendor(r.Context(), req)
+	if err != nil {
+		writeServiceError(w, http.StatusBadRequest, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, resp)
 }
 
 func (s *Server) handleModulesConfig(w http.ResponseWriter, r *http.Request, sess session) {

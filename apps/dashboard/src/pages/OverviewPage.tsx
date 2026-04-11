@@ -74,7 +74,9 @@ export function OverviewPage({ status }: Props) {
 							Database: <Code>{status.config.sqlite_path}</Code>
 						</Text>
 						<Text size="sm">
-							Plugins: <Code>{status.config.plugins_dir}</Code>
+							Bundled plugins: <Code>{status.config.bundled_plugins_dir}</Code>
+							<br />
+							User plugins: <Code>{status.config.user_plugins_dir}</Code>
 						</Text>
 						<Text size="sm">
 							Migrations: <Code>{status.config.migrations_dir}</Code>

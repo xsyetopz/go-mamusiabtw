@@ -24,11 +24,13 @@ import (
 	commandapi "github.com/xsyetopz/go-mamusiabtw/internal/commands/api"
 	"github.com/xsyetopz/go-mamusiabtw/internal/config"
 	"github.com/xsyetopz/go-mamusiabtw/internal/guildconfig"
+	"github.com/xsyetopz/go-mamusiabtw/internal/marketplace"
 	migrate "github.com/xsyetopz/go-mamusiabtw/internal/migration"
 	"github.com/xsyetopz/go-mamusiabtw/internal/ops"
 	"github.com/xsyetopz/go-mamusiabtw/internal/permissions"
 	pluginhost "github.com/xsyetopz/go-mamusiabtw/internal/runtime/plugins"
 	pluginhostlua "github.com/xsyetopz/go-mamusiabtw/internal/runtime/plugins/lua"
+	store "github.com/xsyetopz/go-mamusiabtw/internal/storage"
 )
 
 var pluginIDPattern = regexp.MustCompile(`^[a-z][a-z0-9_]{1,31}$`)
@@ -40,6 +42,7 @@ type Service struct {
 	Snapshot      func() ops.Snapshot
 	ModuleAdmin   commandapi.ModuleAdmin
 	PluginAdmin   commandapi.PluginAdmin
+	Marketplace   commandapi.MarketplaceAdmin
 	Store         commandapi.Store
 	BuildInfo     func() buildinfo.Info
 	OAuth         OAuthClient
@@ -301,7 +304,8 @@ type StatusConfig struct {
 	MigrationsDir           string     `json:"migrations_dir"`
 	MigrationBackupsDir     string     `json:"migration_backups_dir"`
 	LocalesDir              string     `json:"locales_dir"`
-	PluginsDir              string     `json:"plugins_dir"`
+	BundledPluginsDir       string     `json:"bundled_plugins_dir"`
+	UserPluginsDir          string     `json:"user_plugins_dir"`
 	PermissionsFile         string     `json:"permissions_file"`
 	ModulesFile             string     `json:"modules_file"`
 	TrustedKeysFile         string     `json:"trusted_keys_file"`
@@ -354,6 +358,47 @@ type PluginSummary struct {
 	Loaded           bool     `json:"loaded"`
 	Signed           bool     `json:"signed"`
 	HasSignatureFile bool     `json:"has_signature_file"`
+	Dir              string   `json:"dir"`
+	Bundled          bool     `json:"bundled"`
+	ProvenanceKind   string   `json:"provenance_kind"`
+	SourceID         string   `json:"source_id,omitempty"`
+	GitRevision      string   `json:"git_revision,omitempty"`
+	SignatureState   string   `json:"signature_state,omitempty"`
+	LocalModified    bool     `json:"local_modified"`
+}
+
+type MarketplaceSourcesResponse struct {
+	Sources []marketplace.Source `json:"sources"`
+}
+
+type MarketplaceInstallRequest struct {
+	SourceID string `json:"source_id"`
+	PluginID string `json:"plugin_id"`
+	Force    bool   `json:"force,omitempty"`
+}
+
+type MarketplaceUpdateRequest struct {
+	PluginID string `json:"plugin_id"`
+	Force    bool   `json:"force,omitempty"`
+}
+
+type MarketplaceUninstallRequest struct {
+	PluginID string `json:"plugin_id"`
+}
+
+type MarketplaceTrustSignerRequest struct {
+	KeyID        string `json:"key_id"`
+	PublicKeyB64 string `json:"public_key_b64"`
+	VendorID     string `json:"vendor_id,omitempty"`
+}
+
+type MarketplaceTrustVendorRequest struct {
+	VendorID        string `json:"vendor_id"`
+	Name            string `json:"name"`
+	WebsiteURL      string `json:"website_url,omitempty"`
+	SupportURL      string `json:"support_url,omitempty"`
+	TrustedKeysPath string `json:"trusted_keys_path,omitempty"`
+	SourceID        string `json:"source_id,omitempty"`
 }
 
 type TrustedKeysResponse struct {
@@ -537,7 +582,8 @@ func (s *Service) Status(ctx context.Context) (StatusResponse, error) {
 			MigrationsDir:           s.Config.Migrations,
 			MigrationBackupsDir:     s.Config.MigrationBackups,
 			LocalesDir:              s.Config.LocalesDir,
-			PluginsDir:              s.Config.PluginsDir,
+			BundledPluginsDir:       s.Config.BundledPluginsDir,
+			UserPluginsDir:          s.Config.UserPluginsDir,
 			PermissionsFile:         s.Config.PermissionsFile,
 			ModulesFile:             s.Config.ModulesFile,
 			TrustedKeysFile:         s.Config.TrustedKeysFile,
@@ -794,35 +840,88 @@ func (s *Service) Plugins() ([]PluginSummary, error) {
 		}
 	}
 
-	entries, err := os.ReadDir(s.Config.PluginsDir)
-	if err != nil && !os.IsNotExist(err) {
-		return nil, err
+	roots := []struct {
+		dir     string
+		bundled bool
+	}{
+		{dir: strings.TrimSpace(s.Config.BundledPluginsDir), bundled: true},
+		{dir: strings.TrimSpace(s.Config.UserPluginsDir), bundled: false},
+	}
+	installsByID := map[string]store.PluginInstall{}
+	if s.Store != nil {
+		installs, err := s.Store.PluginInstalls().ListPluginInstalls(context.Background())
+		if err != nil {
+			return nil, err
+		}
+		for _, install := range installs {
+			installsByID[install.PluginID] = install
+		}
 	}
 
-	out := make([]PluginSummary, 0, len(entries))
-	for _, entry := range entries {
-		if !entry.IsDir() {
+	outByID := map[string]PluginSummary{}
+	for _, root := range roots {
+		if root.dir == "" {
 			continue
 		}
-		id := entry.Name()
-		dir := filepath.Join(s.Config.PluginsDir, id)
-		manifestPath := filepath.Join(dir, "plugin.json")
-		if _, err := os.Stat(manifestPath); err != nil {
-			continue
+		entries, err := os.ReadDir(root.dir)
+		if err != nil {
+			if os.IsNotExist(err) {
+				continue
+			}
+			return nil, err
 		}
+		for _, entry := range entries {
+			if !entry.IsDir() {
+				continue
+			}
+			id := entry.Name()
+			dir := filepath.Join(root.dir, id)
+			manifestPath := filepath.Join(dir, "plugin.json")
+			if _, err := os.Stat(manifestPath); err != nil {
+				continue
+			}
 
-		var summary PluginSummary
-		summary.ID = id
-		summary.HasSignatureFile = fileExists(filepath.Join(dir, "signature.json"))
-
-		if manifest, err := pluginhost.ReadManifest(manifestPath); err == nil {
-			summary.ID = manifest.ID
-			summary.Name = manifest.Name
-			summary.Version = manifest.Version
+			summary := PluginSummary{
+				ID:               id,
+				Dir:              dir,
+				Bundled:          root.bundled,
+				HasSignatureFile: fileExists(filepath.Join(dir, "signature.json")),
+			}
+			if root.bundled {
+				summary.ProvenanceKind = string(marketplace.ProvenanceKindBundled)
+			} else {
+				summary.ProvenanceKind = string(marketplace.ProvenanceKindManual)
+			}
+			if manifest, err := pluginhost.ReadManifest(manifestPath); err == nil {
+				summary.ID = manifest.ID
+				summary.Name = manifest.Name
+				summary.Version = manifest.Version
+			}
+			if existing, ok := outByID[summary.ID]; ok && !existing.Bundled {
+				continue
+			}
+			outByID[summary.ID] = summary
 		}
-		if info, ok := infosByID[summary.ID]; ok {
+	}
+
+	out := make([]PluginSummary, 0, len(outByID))
+	for id, summary := range outByID {
+		if install, ok := installsByID[id]; ok {
+			summary.ProvenanceKind = string(marketplace.ProvenanceKindMarketplace)
+			summary.SourceID = install.SourceID
+			summary.GitRevision = install.GitRevision
+			if modified, err := marketplace.DirModified(summary.Dir, install.InstalledHashB64); err == nil {
+				summary.LocalModified = modified
+			}
+		}
+		if summary.Dir != "" {
+			state, _ := marketplace.SignatureStateForDir(context.Background(), summary.Dir, s.Config.TrustedKeysFile, s.Store)
+			summary.SignatureState = string(state)
+		}
+		if info, ok := infosByID[id]; ok {
 			summary.Name = fallbackString(summary.Name, info.Name)
 			summary.Version = fallbackString(summary.Version, info.Version)
+			summary.Dir = fallbackString(summary.Dir, info.Dir)
 			summary.Commands = make([]string, 0, len(info.Commands))
 			for _, cmd := range info.Commands {
 				if strings.TrimSpace(cmd.Name) != "" {
@@ -846,6 +945,98 @@ func (s *Service) ReloadPlugins(ctx context.Context) error {
 		return errors.New("plugins not configured")
 	}
 	return s.PluginAdmin.Reload(ctx)
+}
+
+func (s *Service) MarketplaceSources(ctx context.Context) ([]marketplace.Source, error) {
+	if s.Marketplace == nil || !s.Marketplace.Configured() {
+		return nil, errors.New("marketplace not configured")
+	}
+	return s.Marketplace.ListSources(ctx)
+}
+
+func (s *Service) UpsertMarketplaceSource(ctx context.Context, req marketplace.SourceUpsert) (marketplace.Source, error) {
+	if s.Marketplace == nil || !s.Marketplace.Configured() {
+		return marketplace.Source{}, errors.New("marketplace not configured")
+	}
+	return s.Marketplace.UpsertSource(ctx, req)
+}
+
+func (s *Service) DeleteMarketplaceSource(ctx context.Context, sourceID string) error {
+	if s.Marketplace == nil || !s.Marketplace.Configured() {
+		return errors.New("marketplace not configured")
+	}
+	return s.Marketplace.DeleteSource(ctx, sourceID)
+}
+
+func (s *Service) SyncMarketplaceSource(ctx context.Context, sourceID string) (marketplace.SyncResult, error) {
+	if s.Marketplace == nil || !s.Marketplace.Configured() {
+		return marketplace.SyncResult{}, errors.New("marketplace not configured")
+	}
+	return s.Marketplace.SyncSource(ctx, sourceID)
+}
+
+func (s *Service) SearchMarketplace(ctx context.Context, query marketplace.SearchQuery) ([]marketplace.PluginCandidate, error) {
+	if s.Marketplace == nil || !s.Marketplace.Configured() {
+		return nil, errors.New("marketplace not configured")
+	}
+	return s.Marketplace.Search(ctx, query)
+}
+
+func (s *Service) InstallMarketplacePlugin(ctx context.Context, actorID uint64, req MarketplaceInstallRequest) (marketplace.InstallResult, error) {
+	if s.Marketplace == nil || !s.Marketplace.Configured() {
+		return marketplace.InstallResult{}, errors.New("marketplace not configured")
+	}
+	actor := actorID
+	return s.Marketplace.Install(ctx, marketplace.InstallRequest{
+		SourceID: req.SourceID,
+		PluginID: req.PluginID,
+		Force:    req.Force,
+		ActorID:  &actor,
+	})
+}
+
+func (s *Service) UpdateMarketplacePlugin(ctx context.Context, actorID uint64, req MarketplaceUpdateRequest) (marketplace.UpdateResult, error) {
+	if s.Marketplace == nil || !s.Marketplace.Configured() {
+		return marketplace.UpdateResult{}, errors.New("marketplace not configured")
+	}
+	actor := actorID
+	return s.Marketplace.Update(ctx, marketplace.UpdateRequest{
+		PluginID: req.PluginID,
+		Force:    req.Force,
+		ActorID:  &actor,
+	})
+}
+
+func (s *Service) UninstallMarketplacePlugin(ctx context.Context, req MarketplaceUninstallRequest) error {
+	if s.Marketplace == nil || !s.Marketplace.Configured() {
+		return errors.New("marketplace not configured")
+	}
+	return s.Marketplace.Uninstall(ctx, marketplace.UninstallRequest{PluginID: req.PluginID})
+}
+
+func (s *Service) TrustMarketplaceSigner(ctx context.Context, req MarketplaceTrustSignerRequest) error {
+	if s.Marketplace == nil || !s.Marketplace.Configured() {
+		return errors.New("marketplace not configured")
+	}
+	return s.Marketplace.TrustSigner(ctx, marketplace.TrustSignerRequest{
+		KeyID:        req.KeyID,
+		PublicKeyB64: req.PublicKeyB64,
+		VendorID:     req.VendorID,
+	})
+}
+
+func (s *Service) TrustMarketplaceVendor(ctx context.Context, req MarketplaceTrustVendorRequest) (marketplace.TrustVendorResult, error) {
+	if s.Marketplace == nil || !s.Marketplace.Configured() {
+		return marketplace.TrustVendorResult{}, errors.New("marketplace not configured")
+	}
+	return s.Marketplace.TrustVendor(ctx, marketplace.TrustVendorRequest{
+		VendorID:        req.VendorID,
+		Name:            req.Name,
+		WebsiteURL:      req.WebsiteURL,
+		SupportURL:      req.SupportURL,
+		TrustedKeysPath: req.TrustedKeysPath,
+		SourceID:        req.SourceID,
+	})
 }
 
 func (s *Service) LoadModulesConfig() (config.ModulesFile, error) {
@@ -965,7 +1156,7 @@ func (s *Service) ScaffoldPlugin(req PluginScaffoldRequest) (PluginScaffoldRespo
 		responseMessage = "Hello from " + name + "."
 	}
 
-	dir := filepath.Join(s.Config.PluginsDir, id)
+	dir := filepath.Join(s.userPluginsDir(), id)
 	if fileExists(dir) {
 		return PluginScaffoldResponse{}, fmt.Errorf("plugin %q already exists", id)
 	}
@@ -1071,7 +1262,10 @@ func (s *Service) SignPlugin(pluginID string) (string, error) {
 	if !signingReady(s.Config) {
 		return "", errors.New("dashboard signing is not configured")
 	}
-	dir := filepath.Join(s.Config.PluginsDir, strings.TrimSpace(pluginID))
+	dir, err := s.pluginDir(pluginID)
+	if err != nil {
+		return "", err
+	}
 	if !fileExists(filepath.Join(dir, "plugin.json")) {
 		return "", fmt.Errorf("plugin %q not found", pluginID)
 	}
@@ -1119,6 +1313,30 @@ func fallbackString(primary, secondary string) string {
 		return primary
 	}
 	return strings.TrimSpace(secondary)
+}
+
+func (s *Service) userPluginsDir() string {
+	return strings.TrimSpace(s.Config.UserPluginsDir)
+}
+
+func (s *Service) pluginDir(pluginID string) (string, error) {
+	pluginID = strings.TrimSpace(pluginID)
+	if pluginID == "" {
+		return "", errors.New("plugin id is required")
+	}
+	for _, root := range []string{
+		strings.TrimSpace(s.Config.UserPluginsDir),
+		strings.TrimSpace(s.Config.BundledPluginsDir),
+	} {
+		if root == "" {
+			continue
+		}
+		dir := filepath.Join(root, pluginID)
+		if fileExists(filepath.Join(dir, "plugin.json")) {
+			return dir, nil
+		}
+	}
+	return filepath.Join(strings.TrimSpace(s.Config.UserPluginsDir), pluginID), nil
 }
 
 func (s *Service) setupResponse(includeHints bool) SetupResponse {

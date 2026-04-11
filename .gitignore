@@ -21,3 +21,21 @@
 # Executables
 !/cmd/mamusiabtw/
 /mamusiabtw
+
+# JS/TS
+node_modules
+dist/
+build/
+*.tsbuildinfo
+.next/
+out/
+.nuxt/
+.vuepress/dist/
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+pnpm-debug.log

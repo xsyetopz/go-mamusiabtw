@@ -44,6 +44,26 @@ func (s *Store) TrustedSigners() store.TrustedSignerStore {
 	return signerStore{db: s.db, now: s.now}
 }
 
+func (s *Store) MarketplaceSources() store.MarketplaceSourceStore {
+	return marketplaceSourceStore{db: s.db, now: s.now}
+}
+
+func (s *Store) MarketplaceSourceSyncs() store.MarketplaceSourceSyncStore {
+	return marketplaceSourceSyncStore{db: s.db, now: s.now}
+}
+
+func (s *Store) PluginInstalls() store.PluginInstallStore {
+	return pluginInstallStore{db: s.db, now: s.now}
+}
+
+func (s *Store) TrustedVendors() store.TrustedVendorStore {
+	return trustedVendorStore{db: s.db, now: s.now}
+}
+
+func (s *Store) TrustedVendorKeys() store.TrustedVendorKeyStore {
+	return trustedVendorKeyStore{db: s.db}
+}
+
 func (s *Store) PluginKV() store.PluginKVStore {
 	return pluginKVStore{db: s.db, now: s.now}
 }

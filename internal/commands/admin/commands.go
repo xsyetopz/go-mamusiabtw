@@ -16,6 +16,7 @@ import (
 
 	commandapi "github.com/xsyetopz/go-mamusiabtw/internal/commands/api"
 	"github.com/xsyetopz/go-mamusiabtw/internal/i18n"
+	"github.com/xsyetopz/go-mamusiabtw/internal/marketplace"
 	"github.com/xsyetopz/go-mamusiabtw/internal/runtime/discord/interactions"
 	pluginhost "github.com/xsyetopz/go-mamusiabtw/internal/runtime/plugins"
 	store "github.com/xsyetopz/go-mamusiabtw/internal/storage"
@@ -542,8 +543,7 @@ func modulesListEmbed(infos []commandapi.ModuleInfo) discord.Embed {
 	sort.Slice(infos, func(i, j int) bool { return infos[i].ID < infos[j].ID })
 
 	builtins := []string{}
-	official := []string{}
-	user := []string{}
+	plugins := []string{}
 
 	for _, info := range infos {
 		prefix := "⛔"
@@ -559,19 +559,16 @@ func modulesListEmbed(infos []commandapi.ModuleInfo) discord.Embed {
 		switch info.Kind {
 		case commandapi.ModuleKindCoreBuiltin:
 			builtins = append(builtins, line)
-		case commandapi.ModuleKindOfficialPlugin:
-			official = append(official, line)
-		case commandapi.ModuleKindUserPlugin:
-			user = append(user, line)
+		case commandapi.ModuleKindPlugin:
+			plugins = append(plugins, line)
 		default:
-			user = append(user, line)
+			plugins = append(plugins, line)
 		}
 	}
 
 	e := interactions.Embed("Modules", fmt.Sprintf("Loaded: %d", len(infos)), interactions.ThemeColorBrand)
 	e.Fields = append(e.Fields, interactions.EmbedFieldChunked("Built-ins", builtins, false)...)
-	e.Fields = append(e.Fields, interactions.EmbedFieldChunked("Official plugins", official, false)...)
-	e.Fields = append(e.Fields, interactions.EmbedFieldChunked("User plugins", user, false)...)
+	e.Fields = append(e.Fields, interactions.EmbedFieldChunked("Plugins", plugins, false)...)
 	return e
 }
 
@@ -653,6 +650,60 @@ func pluginsCreateCommand(locales []string, t commandapi.Translator) discord.App
 				Description:              t.S("cmd.plugins.sub.reload.desc", nil),
 				DescriptionLocalizations: loc("cmd.plugins.sub.reload.desc"),
 			},
+			discord.ApplicationCommandOptionSubCommand{
+				Name:        "search",
+				Description: "Search cached marketplace plugins",
+				Options: []discord.ApplicationCommandOption{
+					discord.ApplicationCommandOptionString{Name: "term", Description: "Search term", Required: false},
+					discord.ApplicationCommandOptionString{Name: "source_id", Description: "Marketplace source id", Required: false},
+					discord.ApplicationCommandOptionBool{Name: "refresh", Description: "Sync before searching", Required: false},
+				},
+			},
+			discord.ApplicationCommandOptionSubCommand{
+				Name:        "install",
+				Description: "Install a marketplace plugin",
+				Options: []discord.ApplicationCommandOption{
+					discord.ApplicationCommandOptionString{Name: "source_id", Description: "Marketplace source id", Required: true},
+					discord.ApplicationCommandOptionString{Name: "plugin_id", Description: "Plugin id", Required: true},
+					discord.ApplicationCommandOptionBool{Name: "force", Description: "Replace existing marketplace install", Required: false},
+				},
+			},
+			discord.ApplicationCommandOptionSubCommand{
+				Name:        "update",
+				Description: "Update a marketplace plugin",
+				Options: []discord.ApplicationCommandOption{
+					discord.ApplicationCommandOptionString{Name: "plugin_id", Description: "Plugin id", Required: true},
+					discord.ApplicationCommandOptionBool{Name: "force", Description: "Replace local modifications", Required: false},
+				},
+			},
+			discord.ApplicationCommandOptionSubCommand{
+				Name:        "uninstall",
+				Description: "Uninstall a marketplace plugin",
+				Options: []discord.ApplicationCommandOption{
+					discord.ApplicationCommandOptionString{Name: "plugin_id", Description: "Plugin id", Required: true},
+				},
+			},
+			discord.ApplicationCommandOptionSubCommand{
+				Name:        "trust-signer",
+				Description: "Trust a signer public key",
+				Options: []discord.ApplicationCommandOption{
+					discord.ApplicationCommandOptionString{Name: "key_id", Description: "Signer key id", Required: true},
+					discord.ApplicationCommandOptionString{Name: "public_key_b64", Description: "Base64 ed25519 public key", Required: true},
+					discord.ApplicationCommandOptionString{Name: "vendor_id", Description: "Optional vendor id", Required: false},
+				},
+			},
+			discord.ApplicationCommandOptionSubCommand{
+				Name:        "trust-vendor",
+				Description: "Trust vendor keys from a source or file",
+				Options: []discord.ApplicationCommandOption{
+					discord.ApplicationCommandOptionString{Name: "vendor_id", Description: "Vendor id", Required: true},
+					discord.ApplicationCommandOptionString{Name: "name", Description: "Vendor display name", Required: true},
+					discord.ApplicationCommandOptionString{Name: "source_id", Description: "Marketplace source id", Required: false},
+					discord.ApplicationCommandOptionString{Name: "trusted_keys_path", Description: "Path to trusted_keys.json", Required: false},
+					discord.ApplicationCommandOptionString{Name: "website_url", Description: "Vendor website", Required: false},
+					discord.ApplicationCommandOptionString{Name: "support_url", Description: "Vendor support URL", Required: false},
+				},
+			},
 		},
 	}
 }
@@ -699,6 +750,85 @@ func pluginsHandle(
 				interactions.Embed("Plugins", t.S("admin.plugins.reloaded", nil), interactions.ThemeColorSuccess),
 			}, true),
 		}, nil
+	case "search":
+		if s.Marketplace == nil || !s.Marketplace.Configured() {
+			return marketplaceUnavailableAction(), nil
+		}
+		results, err := s.Marketplace.Search(ctx, marketplace.SearchQuery{
+			Term:     strings.TrimSpace(data.String("term")),
+			SourceID: strings.TrimSpace(data.String("source_id")),
+			Refresh:  data.Bool("refresh"),
+		})
+		if err != nil {
+			return nil, err
+		}
+		return marketplaceSearchAction(results), nil
+	case "install":
+		if s.Marketplace == nil || !s.Marketplace.Configured() {
+			return marketplaceUnavailableAction(), nil
+		}
+		actor := actorID
+		result, err := s.Marketplace.Install(ctx, marketplace.InstallRequest{
+			SourceID: strings.TrimSpace(data.String("source_id")),
+			PluginID: strings.TrimSpace(data.String("plugin_id")),
+			Force:    data.Bool("force"),
+			ActorID:  &actor,
+		})
+		if err != nil {
+			return nil, err
+		}
+		return marketplaceResultAction("Installed", result.PluginID+" from "+result.SourceID+" at "+result.GitRevision, interactions.ThemeColorSuccess), nil
+	case "update":
+		if s.Marketplace == nil || !s.Marketplace.Configured() {
+			return marketplaceUnavailableAction(), nil
+		}
+		actor := actorID
+		result, err := s.Marketplace.Update(ctx, marketplace.UpdateRequest{
+			PluginID: strings.TrimSpace(data.String("plugin_id")),
+			Force:    data.Bool("force"),
+			ActorID:  &actor,
+		})
+		if err != nil {
+			return nil, err
+		}
+		return marketplaceResultAction("Updated", result.PluginID+" to "+result.GitRevision, interactions.ThemeColorSuccess), nil
+	case "uninstall":
+		if s.Marketplace == nil || !s.Marketplace.Configured() {
+			return marketplaceUnavailableAction(), nil
+		}
+		pluginID := strings.TrimSpace(data.String("plugin_id"))
+		if err := s.Marketplace.Uninstall(ctx, marketplace.UninstallRequest{PluginID: pluginID}); err != nil {
+			return nil, err
+		}
+		return marketplaceResultAction("Uninstalled", pluginID, interactions.ThemeColorWarning), nil
+	case "trust-signer":
+		if s.Marketplace == nil || !s.Marketplace.Configured() {
+			return marketplaceUnavailableAction(), nil
+		}
+		if err := s.Marketplace.TrustSigner(ctx, marketplace.TrustSignerRequest{
+			KeyID:        strings.TrimSpace(data.String("key_id")),
+			PublicKeyB64: strings.TrimSpace(data.String("public_key_b64")),
+			VendorID:     strings.TrimSpace(data.String("vendor_id")),
+		}); err != nil {
+			return nil, err
+		}
+		return marketplaceResultAction("Trusted signer", strings.TrimSpace(data.String("key_id")), interactions.ThemeColorSuccess), nil
+	case "trust-vendor":
+		if s.Marketplace == nil || !s.Marketplace.Configured() {
+			return marketplaceUnavailableAction(), nil
+		}
+		resp, err := s.Marketplace.TrustVendor(ctx, marketplace.TrustVendorRequest{
+			VendorID:        strings.TrimSpace(data.String("vendor_id")),
+			Name:            strings.TrimSpace(data.String("name")),
+			SourceID:        strings.TrimSpace(data.String("source_id")),
+			TrustedKeysPath: strings.TrimSpace(data.String("trusted_keys_path")),
+			WebsiteURL:      strings.TrimSpace(data.String("website_url")),
+			SupportURL:      strings.TrimSpace(data.String("support_url")),
+		})
+		if err != nil {
+			return nil, err
+		}
+		return marketplaceResultAction("Trusted vendor", resp.VendorID+" keys: "+strings.Join(resp.KeyIDs, ", "), interactions.ThemeColorSuccess), nil
 	default:
 		return interactions.SlashMessage{
 			Create: discord.NewMessageCreate().WithEphemeral(true).WithContent(t.S("err.generic", nil)),
@@ -750,4 +880,46 @@ func pluginsListEmbed(t commandapi.Translator, lines []string, count int) discor
 	e := interactions.Embed("Plugins", desc, interactions.ThemeColorBrand)
 	e.Fields = interactions.EmbedFieldChunked("\u200b", lines, false)
 	return e
+}
+
+func marketplaceUnavailableAction() interactions.SlashAction {
+	return interactions.SlashMessage{
+		Create: interactions.MessageEmbeds([]discord.Embed{
+			interactions.Embed("Marketplace", "Marketplace is not configured.", interactions.ThemeColorWarning),
+		}, true),
+	}
+}
+
+func marketplaceSearchAction(results []marketplace.PluginCandidate) interactions.SlashAction {
+	if len(results) == 0 {
+		return marketplaceResultAction("Marketplace", "No matching plugins found.", interactions.ThemeColorBrand)
+	}
+	lines := make([]string, 0, len(results))
+	for _, item := range results {
+		label := item.PluginID + "@" + item.SourceID
+		if item.Version != "" {
+			label += " " + item.Version
+		}
+		if item.SignatureState != "" {
+			label += " [" + string(item.SignatureState) + "]"
+		}
+		lines = append(lines, label)
+	}
+	return interactions.SlashMessage{
+		Create: interactions.MessageEmbeds([]discord.Embed{
+			func() discord.Embed {
+				e := interactions.Embed("Marketplace", fmt.Sprintf("%d result(s)", len(results)), interactions.ThemeColorBrand)
+				e.Fields = interactions.EmbedFieldChunked("\u200b", lines, false)
+				return e
+			}(),
+		}, true),
+	}
+}
+
+func marketplaceResultAction(title, description string, color int) interactions.SlashAction {
+	return interactions.SlashMessage{
+		Create: interactions.MessageEmbeds([]discord.Embed{
+			interactions.Embed(title, description, color),
+		}, true),
+	}
 }

@@ -22,8 +22,11 @@ import (
 	"github.com/xsyetopz/go-mamusiabtw/internal/config"
 	"github.com/xsyetopz/go-mamusiabtw/internal/dotenv"
 	"github.com/xsyetopz/go-mamusiabtw/internal/logging"
+	"github.com/xsyetopz/go-mamusiabtw/internal/marketplace"
 	migrate "github.com/xsyetopz/go-mamusiabtw/internal/migration"
 	pluginhost "github.com/xsyetopz/go-mamusiabtw/internal/runtime/plugins"
+	"github.com/xsyetopz/go-mamusiabtw/internal/sqlite"
+	sqlitestore "github.com/xsyetopz/go-mamusiabtw/internal/storage/sqlite"
 )
 
 func main() {
@@ -68,6 +71,9 @@ func runMain() int {
 	}
 	if len(args) > 0 && args[0] == "gen-signing-key" {
 		return runGenSigningKeyCommand(args[1:])
+	}
+	if len(args) > 0 && args[0] == "plugins" {
+		return runPluginsCommand(ctx, args[1:])
 	}
 
 	cfg, err := config.LoadFromEnv()
@@ -600,4 +606,291 @@ func runGenSigningKeyCommand(args []string) int {
 	_, _ = fmt.Fprintf(os.Stdout, "trusted_keys_file: %s\n", trustPath)
 	_, _ = fmt.Fprintf(os.Stdout, "public_key_b64: %s\n", publicKeyB64)
 	return 0
+}
+
+func runPluginsCommand(ctx context.Context, args []string) int {
+	if len(args) == 0 {
+		_, _ = os.Stderr.WriteString("usage: mamusiabtw plugins <sources|search|install|update|uninstall|trust>\n")
+		return 1
+	}
+
+	manager, closeFn, err := openMarketplaceManager(ctx)
+	if err != nil {
+		_, _ = os.Stderr.WriteString(err.Error() + "\n")
+		return 1
+	}
+	defer closeFn()
+
+	switch args[0] {
+	case "sources":
+		return runPluginSourcesCommand(ctx, manager, args[1:])
+	case "search":
+		return runPluginSearchCommand(ctx, manager, args[1:])
+	case "install":
+		return runPluginInstallCommand(ctx, manager, args[1:])
+	case "update":
+		return runPluginUpdateCommand(ctx, manager, args[1:])
+	case "uninstall":
+		return runPluginUninstallCommand(ctx, manager, args[1:])
+	case "trust":
+		return runPluginTrustCommand(ctx, manager, args[1:])
+	default:
+		_, _ = os.Stderr.WriteString("usage: mamusiabtw plugins <sources|search|install|update|uninstall|trust>\n")
+		return 1
+	}
+}
+
+func openMarketplaceManager(ctx context.Context) (*marketplace.Manager, func(), error) {
+	cfg, err := config.LoadStorageFromEnv()
+	if err != nil {
+		return nil, nil, err
+	}
+	logger, err := logging.New(cfg.LogLevel)
+	if err != nil {
+		return nil, nil, err
+	}
+	runner, err := migrate.New(migrate.Options{
+		Dir:       cfg.Migrations,
+		BackupDir: cfg.MigrationBackups,
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+	if _, err := runner.UpPath(ctx, cfg.SQLitePath); err != nil {
+		return nil, nil, err
+	}
+	db, err := sqlite.Open(ctx, sqlite.Options{Path: cfg.SQLitePath})
+	if err != nil {
+		return nil, nil, err
+	}
+	store, err := sqlitestore.New(db)
+	if err != nil {
+		_ = db.Close()
+		return nil, nil, err
+	}
+	manager, err := marketplace.New(marketplace.Options{
+		Logger:            logger,
+		Store:             store,
+		BundledPluginsDir: cfg.BundledPluginsDir,
+		UserPluginsDir:    cfg.UserPluginsDir,
+		TrustedKeysFile:   cfg.TrustedKeysFile,
+		CacheDir:          cfg.MarketplaceCacheDir,
+		ProdMode:          cfg.ProdMode,
+		AllowUnsigned:     cfg.AllowUnsignedPlugins,
+	})
+	if err != nil {
+		_ = store.Close()
+		return nil, nil, err
+	}
+	return manager, func() { _ = store.Close() }, nil
+}
+
+func runPluginSourcesCommand(ctx context.Context, manager *marketplace.Manager, args []string) int {
+	if len(args) == 0 {
+		_, _ = os.Stderr.WriteString("usage: mamusiabtw plugins sources <list|add|remove|sync>\n")
+		return 1
+	}
+	switch args[0] {
+	case "list":
+		items, err := manager.ListSources(ctx)
+		if err != nil {
+			_, _ = os.Stderr.WriteString(err.Error() + "\n")
+			return 1
+		}
+		for _, item := range items {
+			_, _ = fmt.Fprintf(os.Stdout, "%s %s ref=%s enabled=%t revision=%s\n", item.SourceID, item.GitURL, item.GitRef, item.Enabled, item.LastRevision)
+		}
+		return 0
+	case "add":
+		fs := flag.NewFlagSet("plugins sources add", flag.ContinueOnError)
+		fs.SetOutput(os.Stderr)
+		sourceID := fs.String("source-id", "", "source id")
+		url := fs.String("url", "", "git URL")
+		ref := fs.String("ref", "", "git ref")
+		subdir := fs.String("subdir", "", "git subdir")
+		tokenEnvVar := fs.String("token-env-var", "", "env var name containing HTTPS token")
+		enabled := fs.Bool("enabled", true, "enable this source")
+		if err := fs.Parse(args[1:]); err != nil {
+			return 1
+		}
+		item, err := manager.UpsertSource(ctx, marketplace.SourceUpsert{
+			SourceID:    strings.TrimSpace(*sourceID),
+			GitURL:      strings.TrimSpace(*url),
+			GitRef:      strings.TrimSpace(*ref),
+			GitSubdir:   strings.TrimSpace(*subdir),
+			TokenEnvVar: strings.TrimSpace(*tokenEnvVar),
+			Enabled:     *enabled,
+		})
+		if err != nil {
+			_, _ = os.Stderr.WriteString(err.Error() + "\n")
+			return 1
+		}
+		_, _ = fmt.Fprintf(os.Stdout, "source_id: %s\n", item.SourceID)
+		return 0
+	case "remove":
+		fs := flag.NewFlagSet("plugins sources remove", flag.ContinueOnError)
+		fs.SetOutput(os.Stderr)
+		sourceID := fs.String("source-id", "", "source id")
+		if err := fs.Parse(args[1:]); err != nil {
+			return 1
+		}
+		if err := manager.DeleteSource(ctx, *sourceID); err != nil {
+			_, _ = os.Stderr.WriteString(err.Error() + "\n")
+			return 1
+		}
+		return 0
+	case "sync":
+		fs := flag.NewFlagSet("plugins sources sync", flag.ContinueOnError)
+		fs.SetOutput(os.Stderr)
+		sourceID := fs.String("source-id", "", "source id")
+		if err := fs.Parse(args[1:]); err != nil {
+			return 1
+		}
+		resp, err := manager.SyncSource(ctx, *sourceID)
+		if err != nil {
+			_, _ = os.Stderr.WriteString(err.Error() + "\n")
+			return 1
+		}
+		_, _ = fmt.Fprintf(os.Stdout, "source_id: %s\nrevision: %s\n", resp.SourceID, resp.Revision)
+		return 0
+	default:
+		_, _ = os.Stderr.WriteString("usage: mamusiabtw plugins sources <list|add|remove|sync>\n")
+		return 1
+	}
+}
+
+func runPluginSearchCommand(ctx context.Context, manager *marketplace.Manager, args []string) int {
+	fs := flag.NewFlagSet("plugins search", flag.ContinueOnError)
+	fs.SetOutput(os.Stderr)
+	sourceID := fs.String("source-id", "", "source id")
+	term := fs.String("term", "", "search term")
+	refresh := fs.Bool("refresh", false, "sync before searching")
+	if err := fs.Parse(args); err != nil {
+		return 1
+	}
+	results, err := manager.Search(ctx, marketplace.SearchQuery{
+		SourceID: strings.TrimSpace(*sourceID),
+		Term:     strings.TrimSpace(*term),
+		Refresh:  *refresh,
+	})
+	if err != nil {
+		_, _ = os.Stderr.WriteString(err.Error() + "\n")
+		return 1
+	}
+	for _, item := range results {
+		_, _ = fmt.Fprintf(os.Stdout, "%s %s %s %s\n", item.PluginID, item.SourceID, item.Version, item.SignatureState)
+	}
+	return 0
+}
+
+func runPluginInstallCommand(ctx context.Context, manager *marketplace.Manager, args []string) int {
+	fs := flag.NewFlagSet("plugins install", flag.ContinueOnError)
+	fs.SetOutput(os.Stderr)
+	sourceID := fs.String("source-id", "", "source id")
+	pluginID := fs.String("plugin-id", "", "plugin id")
+	force := fs.Bool("force", false, "replace existing marketplace install")
+	if err := fs.Parse(args); err != nil {
+		return 1
+	}
+	resp, err := manager.Install(ctx, marketplace.InstallRequest{
+		SourceID: strings.TrimSpace(*sourceID),
+		PluginID: strings.TrimSpace(*pluginID),
+		Force:    *force,
+	})
+	if err != nil {
+		_, _ = os.Stderr.WriteString(err.Error() + "\n")
+		return 1
+	}
+	_, _ = fmt.Fprintf(os.Stdout, "plugin_id: %s\nsource_id: %s\nrevision: %s\n", resp.PluginID, resp.SourceID, resp.GitRevision)
+	return 0
+}
+
+func runPluginUpdateCommand(ctx context.Context, manager *marketplace.Manager, args []string) int {
+	fs := flag.NewFlagSet("plugins update", flag.ContinueOnError)
+	fs.SetOutput(os.Stderr)
+	pluginID := fs.String("plugin-id", "", "plugin id")
+	force := fs.Bool("force", false, "replace local modifications")
+	if err := fs.Parse(args); err != nil {
+		return 1
+	}
+	resp, err := manager.Update(ctx, marketplace.UpdateRequest{
+		PluginID: strings.TrimSpace(*pluginID),
+		Force:    *force,
+	})
+	if err != nil {
+		_, _ = os.Stderr.WriteString(err.Error() + "\n")
+		return 1
+	}
+	_, _ = fmt.Fprintf(os.Stdout, "plugin_id: %s\nsource_id: %s\nrevision: %s\n", resp.PluginID, resp.SourceID, resp.GitRevision)
+	return 0
+}
+
+func runPluginUninstallCommand(ctx context.Context, manager *marketplace.Manager, args []string) int {
+	fs := flag.NewFlagSet("plugins uninstall", flag.ContinueOnError)
+	fs.SetOutput(os.Stderr)
+	pluginID := fs.String("plugin-id", "", "plugin id")
+	if err := fs.Parse(args); err != nil {
+		return 1
+	}
+	if err := manager.Uninstall(ctx, marketplace.UninstallRequest{PluginID: strings.TrimSpace(*pluginID)}); err != nil {
+		_, _ = os.Stderr.WriteString(err.Error() + "\n")
+		return 1
+	}
+	return 0
+}
+
+func runPluginTrustCommand(ctx context.Context, manager *marketplace.Manager, args []string) int {
+	if len(args) == 0 {
+		_, _ = os.Stderr.WriteString("usage: mamusiabtw plugins trust <signer|vendor>\n")
+		return 1
+	}
+	switch args[0] {
+	case "signer":
+		fs := flag.NewFlagSet("plugins trust signer", flag.ContinueOnError)
+		fs.SetOutput(os.Stderr)
+		keyID := fs.String("key-id", "", "key id")
+		publicKeyB64 := fs.String("public-key-b64", "", "base64 public key")
+		vendorID := fs.String("vendor-id", "", "vendor id")
+		if err := fs.Parse(args[1:]); err != nil {
+			return 1
+		}
+		if err := manager.TrustSigner(ctx, marketplace.TrustSignerRequest{
+			KeyID:        strings.TrimSpace(*keyID),
+			PublicKeyB64: strings.TrimSpace(*publicKeyB64),
+			VendorID:     strings.TrimSpace(*vendorID),
+		}); err != nil {
+			_, _ = os.Stderr.WriteString(err.Error() + "\n")
+			return 1
+		}
+		return 0
+	case "vendor":
+		fs := flag.NewFlagSet("plugins trust vendor", flag.ContinueOnError)
+		fs.SetOutput(os.Stderr)
+		vendorID := fs.String("vendor-id", "", "vendor id")
+		name := fs.String("name", "", "vendor name")
+		sourceID := fs.String("source-id", "", "source id")
+		trustedKeysPath := fs.String("trusted-keys-path", "", "trusted keys file path")
+		websiteURL := fs.String("website-url", "", "website URL")
+		supportURL := fs.String("support-url", "", "support URL")
+		if err := fs.Parse(args[1:]); err != nil {
+			return 1
+		}
+		resp, err := manager.TrustVendor(ctx, marketplace.TrustVendorRequest{
+			VendorID:        strings.TrimSpace(*vendorID),
+			Name:            strings.TrimSpace(*name),
+			SourceID:        strings.TrimSpace(*sourceID),
+			TrustedKeysPath: strings.TrimSpace(*trustedKeysPath),
+			WebsiteURL:      strings.TrimSpace(*websiteURL),
+			SupportURL:      strings.TrimSpace(*supportURL),
+		})
+		if err != nil {
+			_, _ = os.Stderr.WriteString(err.Error() + "\n")
+			return 1
+		}
+		_, _ = fmt.Fprintf(os.Stdout, "vendor_id: %s\nkeys: %s\n", resp.VendorID, strings.Join(resp.KeyIDs, ","))
+		return 0
+	default:
+		_, _ = os.Stderr.WriteString("usage: mamusiabtw plugins trust <signer|vendor>\n")
+		return 1
+	}
 }

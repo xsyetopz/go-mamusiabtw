@@ -102,7 +102,7 @@ func (b *Bot) appendPluginModules(
 		pluginRoutes[info.ID] = discordplugin.Route{Host: host, PluginID: info.ID}
 		kind := catalog.ModuleKindForPlugin(info.ID)
 
-		defaultEnabled := catalog.PluginDefaultEnabled(kind, info.ID, b.moduleSeed)
+		defaultEnabled := catalog.PluginDefaultEnabled(info.ID, b.moduleSeed)
 		enabled := defaultEnabled
 		if state, ok := states[info.ID]; ok {
 			enabled = state.Enabled

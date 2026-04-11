@@ -136,11 +136,11 @@ When `MAMUSIABTW_PROD_MODE=1`, plugins must be signed.
 
 Fast rules:
 
-- bundled official plugins are already signed
+- bundled plugins are already signed
 - their matching trusted public keys live in `./config/trusted_keys.json`
 - custom plugins need your own signer key, then `sign-plugin`
 
-Stock official plugins:
+Stock bundled plugins:
 
 - keep `MAMUSIABTW_ALLOW_UNSIGNED_PLUGINS=0`
 - make sure `config/trusted_keys.json` is present on the installed machine

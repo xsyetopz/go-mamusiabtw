@@ -15,19 +15,21 @@ import (
 type Config struct {
 	DiscordToken string
 
-	SQLitePath       string
-	Migrations       string
-	MigrationBackups string
-	OpsAddr          string
-	AdminAddr        string
-	LocalesDir       string
-	PluginsDir       string
-	PermissionsFile  string
-	ModulesFile      string
-	LogLevel         string
-	ProdMode         bool
-	OwnerUserID      *uint64
-	DevGuildID       *uint64
+	SQLitePath          string
+	Migrations          string
+	MigrationBackups    string
+	OpsAddr             string
+	AdminAddr           string
+	LocalesDir          string
+	BundledPluginsDir   string
+	UserPluginsDir      string
+	MarketplaceCacheDir string
+	PermissionsFile     string
+	ModulesFile         string
+	LogLevel            string
+	ProdMode            bool
+	OwnerUserID         *uint64
+	DevGuildID          *uint64
 
 	CommandRegistrationMode  string
 	CommandGuildIDs          []uint64
@@ -64,21 +66,23 @@ type Config struct {
 }
 
 const (
-	defaultSQLitePath        = "./data/mamusiabtw.sqlite"
-	defaultMigrationsDir     = "./migrations/sqlite"
-	defaultMigrationBackups  = "./data/migration_backups"
-	defaultOpsAddr           = ""
-	defaultAdminAddr         = ""
-	defaultLocalesDir        = "./locales"
-	defaultPluginsDir        = "./plugins"
-	defaultPermissionsFile   = "./config/permissions.json"
-	defaultModulesFile       = "./config/modules.json"
-	defaultTrustedKeysFile   = "./config/trusted_keys.json"
-	defaultLogLevel          = "info"
-	defaultCommandRegMode    = "global"
-	defaultSlashCooldownMS   = 5000
-	defaultComponentCooldown = 750
-	defaultModalCooldownMS   = 1500
+	defaultSQLitePath          = "./data/mamusiabtw.sqlite"
+	defaultMigrationsDir       = "./migrations/sqlite"
+	defaultMigrationBackups    = "./data/migration_backups"
+	defaultOpsAddr             = ""
+	defaultAdminAddr           = ""
+	defaultLocalesDir          = "./locales"
+	defaultBundledPluginsDir   = "./plugins"
+	defaultUserPluginsDir      = "./data/plugins"
+	defaultMarketplaceCacheDir = "./data/marketplace_cache"
+	defaultPermissionsFile     = "./config/permissions.json"
+	defaultModulesFile         = "./config/modules.json"
+	defaultTrustedKeysFile     = "./config/trusted_keys.json"
+	defaultLogLevel            = "info"
+	defaultCommandRegMode      = "global"
+	defaultSlashCooldownMS     = 5000
+	defaultComponentCooldown   = 750
+	defaultModalCooldownMS     = 1500
 )
 
 func LoadFromEnv() (Config, error) {
@@ -116,7 +120,9 @@ func loadFromEnv(requireDiscordToken bool) (Config, error) {
 	opsAddr := envDefault("MAMUSIABTW_OPS_ADDR", defaultOpsAddr)
 	adminAddr := envDefault("MAMUSIABTW_ADMIN_ADDR", defaultAdminAddr)
 	localesDir := envDefault("LOCALES_DIR", defaultLocalesDir)
-	pluginsDir := envDefault("PLUGINS_DIR", defaultPluginsDir)
+	bundledPluginsDir := envDefault("MAMUSIABTW_BUNDLED_PLUGINS_DIR", defaultBundledPluginsDir)
+	userPluginsDir := envDefault("MAMUSIABTW_USER_PLUGINS_DIR", envDefault("PLUGINS_DIR", defaultUserPluginsDir))
+	marketplaceCacheDir := envDefault("MAMUSIABTW_MARKETPLACE_CACHE_DIR", defaultMarketplaceCacheDir)
 	permissionsFile := envDefault("MAMUSIABTW_PERMISSIONS_FILE", defaultPermissionsFile)
 	modulesFile := envDefault("MAMUSIABTW_MODULES_FILE", defaultModulesFile)
 	logLevel := envDefault("LOG_LEVEL", defaultLogLevel)
@@ -215,20 +221,22 @@ func loadFromEnv(requireDiscordToken bool) (Config, error) {
 	}
 
 	return Config{
-		DiscordToken:     discordToken,
-		SQLitePath:       sqlitePath,
-		Migrations:       migrations,
-		MigrationBackups: migrationBackups,
-		OpsAddr:          opsAddr,
-		AdminAddr:        adminAddr,
-		LocalesDir:       localesDir,
-		PluginsDir:       pluginsDir,
-		PermissionsFile:  permissionsFile,
-		ModulesFile:      modulesFile,
-		LogLevel:         logLevel,
-		ProdMode:         prodMode,
-		OwnerUserID:      ownerUserID,
-		DevGuildID:       devGuildID,
+		DiscordToken:        discordToken,
+		SQLitePath:          sqlitePath,
+		Migrations:          migrations,
+		MigrationBackups:    migrationBackups,
+		OpsAddr:             opsAddr,
+		AdminAddr:           adminAddr,
+		LocalesDir:          localesDir,
+		BundledPluginsDir:   bundledPluginsDir,
+		UserPluginsDir:      userPluginsDir,
+		MarketplaceCacheDir: marketplaceCacheDir,
+		PermissionsFile:     permissionsFile,
+		ModulesFile:         modulesFile,
+		LogLevel:            logLevel,
+		ProdMode:            prodMode,
+		OwnerUserID:         ownerUserID,
+		DevGuildID:          devGuildID,
 
 		CommandRegistrationMode:  cmdRegMode,
 		CommandGuildIDs:          cmdGuildIDs,

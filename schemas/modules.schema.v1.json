@@ -17,6 +17,9 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "plugin_enabled": {
+          "type": "boolean"
+        },
         "official_enabled": {
           "type": "boolean"
         },

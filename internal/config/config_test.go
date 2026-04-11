@@ -42,8 +42,14 @@ func TestLoadFromEnv_Defaults(t *testing.T) {
 	if cfg.LocalesDir != "./locales" {
 		t.Fatalf("unexpected locales dir: %q", cfg.LocalesDir)
 	}
-	if cfg.PluginsDir != "./plugins" {
-		t.Fatalf("unexpected plugins dir: %q", cfg.PluginsDir)
+	if cfg.BundledPluginsDir != "./plugins" {
+		t.Fatalf("unexpected bundled plugins dir: %q", cfg.BundledPluginsDir)
+	}
+	if cfg.UserPluginsDir != "./data/plugins" {
+		t.Fatalf("unexpected user plugins dir: %q", cfg.UserPluginsDir)
+	}
+	if cfg.MarketplaceCacheDir != "./data/marketplace_cache" {
+		t.Fatalf("unexpected marketplace cache dir: %q", cfg.MarketplaceCacheDir)
 	}
 	if cfg.PermissionsFile != "./config/permissions.json" {
 		t.Fatalf("unexpected permissions file: %q", cfg.PermissionsFile)

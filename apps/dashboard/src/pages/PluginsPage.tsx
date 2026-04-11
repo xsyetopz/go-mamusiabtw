@@ -84,6 +84,9 @@ export function PluginsPage({
 								<Table.Td>
 									<Stack gap={1}>
 										<Text fw={600}>{plugin.name || plugin.id}</Text>
+										<Text size="xs" c="dimmed">
+											{plugin.bundled ? "Bundled plugin" : "User plugin"}
+										</Text>
 										{devDetailsEnabled ? (
 											<Group gap="xs">
 												<Code>{plugin.id}</Code>
@@ -151,6 +154,9 @@ export function PluginsPage({
 									<Text size="xs" c="dimmed">
 										{plugin.version || "No version"} · {plugin.commands.length}{" "}
 										commands
+									</Text>
+									<Text size="xs" c="dimmed">
+										{plugin.bundled ? "Bundled plugin" : "User plugin"}
 									</Text>
 									{devDetailsEnabled ? (
 										<Group gap="xs">

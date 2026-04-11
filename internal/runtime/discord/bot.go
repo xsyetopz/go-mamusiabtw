@@ -25,7 +25,8 @@ type Dependencies struct {
 	CommandRegistrationMode  string
 	CommandGuildIDs          []uint64
 	CommandRegisterAllGuilds bool
-	PluginsDir               string
+	BundledPluginsDir        string
+	UserPluginsDir           string
 	PermissionsFile          string
 	ModulesFile              string
 
@@ -33,9 +34,10 @@ type Dependencies struct {
 	AllowUnsignedPlugins bool
 	TrustedKeysFile      string
 
-	I18n    i18n.Registry
-	Store   commandapi.Store
-	Metrics *ops.Metrics
+	I18n        i18n.Registry
+	Store       commandapi.Store
+	Metrics     *ops.Metrics
+	Marketplace commandapi.MarketplaceAdmin
 
 	SlashCooldown          time.Duration
 	ComponentCooldown      time.Duration
@@ -45,10 +47,11 @@ type Dependencies struct {
 }
 
 type Bot struct {
-	logger  *slog.Logger
-	i18n    i18n.Registry
-	store   commandapi.Store
-	metrics *ops.Metrics
+	logger      *slog.Logger
+	i18n        i18n.Registry
+	store       commandapi.Store
+	metrics     *ops.Metrics
+	marketplace commandapi.MarketplaceAdmin
 
 	prodMode bool
 
@@ -100,14 +103,15 @@ func New(deps Dependencies) (*Bot, error) {
 	}
 
 	b := &Bot{
-		logger:     deps.Logger.With(slog.String("component", "discord")),
-		i18n:       deps.I18n,
-		store:      deps.Store,
-		metrics:    deps.Metrics,
-		prodMode:   deps.ProdMode,
-		devGuildID: cloneOptionalUint64(deps.DevGuildID),
-		owner:      newOwnerState(deps.OwnerUserID),
-		cooldowns:  newCooldownTracker(),
+		logger:      deps.Logger.With(slog.String("component", "discord")),
+		i18n:        deps.I18n,
+		store:       deps.Store,
+		metrics:     deps.Metrics,
+		marketplace: deps.Marketplace,
+		prodMode:    deps.ProdMode,
+		devGuildID:  cloneOptionalUint64(deps.DevGuildID),
+		owner:       newOwnerState(deps.OwnerUserID),
+		cooldowns:   newCooldownTracker(),
 
 		commandRegistrationMode:  commandRegistrationMode,
 		commandGuildIDs:          append([]uint64(nil), deps.CommandGuildIDs...),

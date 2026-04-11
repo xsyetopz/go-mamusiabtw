@@ -16,14 +16,6 @@ const (
 	ModuleSourcePlugin  = "plugins"
 )
 
-var OfficialPluginCatalog = map[string]string{
-	"fun":        "Fun",
-	"info":       "Info",
-	"wellness":   "Wellness",
-	"moderation": "Moderation",
-	"manager":    "Manager",
-}
-
 func BuiltinDefaultEnabled(desc commands.ModuleDescriptor, seed config.ModulesFile) bool {
 	if !desc.Toggleable {
 		return true
@@ -48,13 +40,14 @@ func ResolveBuiltinModuleEnabled(
 	return BuiltinDefaultEnabled(desc, seed)
 }
 
-func PluginDefaultEnabled(kind commandapi.ModuleKind, moduleID string, seed config.ModulesFile) bool {
-	defaultEnabled := kind == commandapi.ModuleKindUserPlugin
-	if kind == commandapi.ModuleKindOfficialPlugin && seed.Defaults.OfficialEnabled != nil {
-		defaultEnabled = *seed.Defaults.OfficialEnabled
-	}
-	if kind == commandapi.ModuleKindUserPlugin && seed.Defaults.UserEnabled != nil {
+func PluginDefaultEnabled(moduleID string, seed config.ModulesFile) bool {
+	defaultEnabled := true
+	if seed.Defaults.PluginEnabled != nil {
+		defaultEnabled = *seed.Defaults.PluginEnabled
+	} else if seed.Defaults.UserEnabled != nil {
 		defaultEnabled = *seed.Defaults.UserEnabled
+	} else if seed.Defaults.OfficialEnabled != nil {
+		defaultEnabled = *seed.Defaults.OfficialEnabled
 	}
 	if entry, ok := seed.Modules[moduleID]; ok && entry.Enabled != nil {
 		defaultEnabled = *entry.Enabled
@@ -63,10 +56,8 @@ func PluginDefaultEnabled(kind commandapi.ModuleKind, moduleID string, seed conf
 }
 
 func ModuleKindForPlugin(pluginID string) commandapi.ModuleKind {
-	if _, ok := OfficialPluginCatalog[strings.TrimSpace(pluginID)]; ok {
-		return commandapi.ModuleKindOfficialPlugin
-	}
-	return commandapi.ModuleKindUserPlugin
+	_ = strings.TrimSpace(pluginID)
+	return commandapi.ModuleKindPlugin
 }
 
 func SlashCommandNames(commands []commandapi.SlashCommand) []string {

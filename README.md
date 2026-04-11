@@ -103,7 +103,7 @@ Minimum prod env (when `MAMUSIABTW_ADMIN_ADDR` is enabled):
 
 Plugin signing in prod:
 
-- bundled official plugins are already signed
+- bundled plugins are already signed
 - keep `config/trusted_keys.json` on the installed machine
 - for your own signer and plugin signing flow, see `docs/reference.md#signing-prod`
 

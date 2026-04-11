@@ -14,6 +14,7 @@ import (
 	"github.com/xsyetopz/go-mamusiabtw/internal/buildinfo"
 	"github.com/xsyetopz/go-mamusiabtw/internal/config"
 	"github.com/xsyetopz/go-mamusiabtw/internal/i18n"
+	"github.com/xsyetopz/go-mamusiabtw/internal/marketplace"
 	migrate "github.com/xsyetopz/go-mamusiabtw/internal/migration"
 	"github.com/xsyetopz/go-mamusiabtw/internal/ops"
 	discordplatform "github.com/xsyetopz/go-mamusiabtw/internal/runtime/discord"
@@ -31,12 +32,13 @@ type App struct {
 	logger *slog.Logger
 	cfg    config.Config
 
-	store   *sqlitestore.Store
-	i18n    i18n.Registry
-	bot     *discordplatform.Bot
-	ops     *ops.Server
-	admin   *adminapi.Server
-	metrics *ops.Metrics
+	store       *sqlitestore.Store
+	marketplace *marketplace.Manager
+	i18n        i18n.Registry
+	bot         *discordplatform.Bot
+	ops         *ops.Server
+	admin       *adminapi.Server
+	metrics     *ops.Metrics
 
 	startedAt        time.Time
 	migrationVersion int
@@ -184,7 +186,7 @@ func (a *App) validatePluginTrust(ctx context.Context) error {
 			pathLabel = "./config/trusted_keys.json"
 		}
 		return fmt.Errorf(
-			"prod mode requires at least one trusted signer in %s or SQLite; bundled official plugins expect a trusted public key file there, and custom plugins should be signed with mamusiabtw gen-signing-key + sign-plugin",
+			"prod mode requires at least one trusted signer in %s or SQLite; bundled plugins expect a trusted public key file there, and custom plugins should be signed with mamusiabtw gen-signing-key + sign-plugin",
 			pathLabel,
 		)
 	}
@@ -208,6 +210,22 @@ func (a *App) initDiscordBot() error {
 	if a.store == nil {
 		return errors.New("store must be initialized before discord bot")
 	}
+	if a.marketplace == nil {
+		manager, err := marketplace.New(marketplace.Options{
+			Logger:            a.logger,
+			Store:             a.store,
+			BundledPluginsDir: a.cfg.BundledPluginsDir,
+			UserPluginsDir:    a.cfg.UserPluginsDir,
+			TrustedKeysFile:   a.cfg.TrustedKeysFile,
+			CacheDir:          a.cfg.MarketplaceCacheDir,
+			ProdMode:          a.cfg.ProdMode,
+			AllowUnsigned:     a.cfg.AllowUnsignedPlugins,
+		})
+		if err != nil {
+			return err
+		}
+		a.marketplace = manager
+	}
 
 	bot, err := discordplatform.New(discordplatform.Dependencies{
 		Logger: a.logger,
@@ -218,7 +236,8 @@ func (a *App) initDiscordBot() error {
 		CommandRegistrationMode:  a.cfg.CommandRegistrationMode,
 		CommandGuildIDs:          a.cfg.CommandGuildIDs,
 		CommandRegisterAllGuilds: a.cfg.CommandRegisterAllGuilds,
-		PluginsDir:               a.cfg.PluginsDir,
+		BundledPluginsDir:        a.cfg.BundledPluginsDir,
+		UserPluginsDir:           a.cfg.UserPluginsDir,
 		PermissionsFile:          a.cfg.PermissionsFile,
 		ModulesFile:              a.cfg.ModulesFile,
 		AllowUnsignedPlugins:     a.cfg.AllowUnsignedPlugins,
@@ -231,9 +250,10 @@ func (a *App) initDiscordBot() error {
 		SlashCooldownBypass:    a.cfg.SlashCooldownBypass,
 		SlashCooldownOverrides: a.cfg.SlashCooldownOverrides,
 
-		I18n:    a.i18n,
-		Store:   a.store,
-		Metrics: a.metrics,
+		I18n:        a.i18n,
+		Store:       a.store,
+		Metrics:     a.metrics,
+		Marketplace: a.marketplace,
 	})
 	if err != nil {
 		return err
@@ -291,6 +311,7 @@ func (a *App) initAdminServer() error {
 			Snapshot:      a.opsSnapshot,
 			ModuleAdmin:   a.bot.ModuleAdmin(),
 			PluginAdmin:   a.bot.PluginAdmin(),
+			Marketplace:   a.marketplace,
 			Store:         a.store,
 			BuildInfo:     buildinfo.Current,
 			OAuth:         oauthClient,

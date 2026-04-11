@@ -27,3 +27,23 @@ jobs:
               -X github.com/xsyetopz/go-mamusiabtw/internal/buildinfo.Version=${GITHUB_SHA} \
               -X github.com/xsyetopz/go-mamusiabtw/internal/buildinfo.Repository=https://github.com/${GITHUB_REPOSITORY}" \
             ./cmd/mamusiabtw
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install workspace deps
+        run: bun install
+
+      - name: Build dashboard
+        run: bun --cwd apps/dashboard run build
+
+      - name: Build public site
+        env:
+          MAMUSIABTW_SITE_BASE: /${{ github.event.repository.name }}/
+        run: bun --cwd apps/site run build

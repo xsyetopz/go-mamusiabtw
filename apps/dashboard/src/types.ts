@@ -66,7 +66,8 @@ export type StatusResponse = {
 		migrations_dir: string;
 		migration_backups_dir: string;
 		locales_dir: string;
-		plugins_dir: string;
+		bundled_plugins_dir: string;
+		user_plugins_dir: string;
 		permissions_file: string;
 		modules_file: string;
 		trusted_keys_file: string;
@@ -101,6 +102,8 @@ export type PluginSummary = {
 	loaded: boolean;
 	signed: boolean;
 	has_signature_file: boolean;
+	dir: string;
+	bundled: boolean;
 };
 
 export type MigrationStatus = {
